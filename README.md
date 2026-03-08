@@ -269,6 +269,32 @@ git push origin feature/seunome
 
 ---
 
+## Deploy no servidor
+
+O servidor puxa automaticamente as atualizações do `main` via cron job semanal:
+
+```bash
+# Clonar na primeira vez no servidor
+git clone https://github.com/TarsorCasePucpr/Portal-para-Registro-de-Propriedade.git /var/www/portal
+
+# Cron job — toda segunda-feira às 03:00
+# crontab -e
+0 3 * * 1 cd /var/www/portal && git pull origin main
+```
+
+**Fluxo de atualização:**
+```
+develop (trabalho da equipe)
+    ↓  merge aprovado por Gerard
+main (versão estável)
+    ↓  cron job semanal
+servidor (site ao vivo)
+```
+
+Isso garante que apenas código revisado e estável chega ao servidor.
+
+---
+
 ## Branches
 
 | Branch | Descrição |
