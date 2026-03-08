@@ -1,59 +1,413 @@
-\documentclass[12pt, a4paper]{article}
+\documentclass[12pt,a4paper]{article}
 
+% --- Pacotes Fundamentais ---
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[brazil]{babel}
-\usepackage[top=3cm, bottom=2cm, left=3cm, right=2cm]{geometry}
+\usepackage[portuguese]{babel}
+\usepackage{geometry}
 \usepackage{setspace}
+\usepackage[scaled]{helvet}
+\renewcommand\familydefault{\sfdefault}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{indentfirst}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{titlesec}
 \usepackage{enumitem}
-\usepackage{parskip}
-\usepackage{ragged2e}
+\usepackage{amssymb}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{hyperref}
+
+\definecolor{cinzaHeader}{RGB}{64,64,64}
+\definecolor{verde}{RGB}{198,224,180}
+\definecolor{amarelo}{RGB}{255,242,204}
+\definecolor{azulClaro}{RGB}{189,215,238}
+
+% --- Configuração de Margens ---
+\geometry{top=3.0cm, left=3.0cm, bottom=2.0cm, right=2.0cm}
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+
+% --- Títulos ---
+\titleformat{\section}{\bfseries\uppercase}{\thesection}{1em}{}
+\titleformat{\subsection}{\bfseries}{\thesubsection}{1em}{}
 
 \begin{document}
 
-\begin{flushright}
-    Curitiba, 05 de março de 2026.
-\end{flushright}
+% ============================================================
+% CAPA
+% ============================================================
+\thispagestyle{empty}
+\noindent
+\begin{minipage}[c]{0.22\textwidth}
+  % *** COLOQUE O ARQUIVO Logo.png NA MESMA PASTA DESTE .tex ***
+  \includegraphics[width=\linewidth]{Logo.png}
+\end{minipage}%
+\hfill
+\begin{minipage}[c]{0.75\textwidth}
+  \centering
+  \textbf{PONTIFÍCIA UNIVERSIDADE CATÓLICA DO PARANÁ} \\
+  \textbf{ESCOLA POLITÉCNICA} \\
+  \textbf{BACHARELADO EM CIBERSEGURANÇA}
+\end{minipage}
 
-\vspace{0.5cm}
-
-\noindent\textbf{Disciplina:} Experiência Criativa: Implementando Sistemas com Criptografia.
-
-\noindent\textbf{Professores:} Altair Olivo Santin / Aramis Hornung Moraes
-
-\vspace{0.3cm}
-
-\noindent\textbf{Estudantes:}
-
-\begin{itemize}[leftmargin=2cm, label={}]
-    \item Gerard Gonzalez
-    \item Gustavo Batista de Souza
-    \item Henrique Bernardo Maciel
-    \item Kauã Garcia Reschetti Rubbo
-    \item Wellington Breno Evangelista Costa
-\end{itemize}
-
-\vspace{0.8cm}
-
+\vspace{4cm}
 \begin{center}
-    \textbf{\large Portal para Registro de Propriedade}
+  \textbf{RELATÓRIO PARCIAL}
+  \vspace{2.5cm} \\
+  \textbf{PORTAL PARA REGISTRO DE PROPRIEDADE: \\
+  VERIFICADOR DE PROCEDÊNCIA DE PRODUTOS COM SEGURANÇA CRIPTOGRÁFICA}
+  \vspace{2.5cm} \\
+  \textbf{Gerard Gonzalez} \\
+  \textbf{Gustavo Batista de Souza} \\
+  \textbf{Henrique Bernardo Maciel} \\
+  \textbf{Kauã Garcia Reschetti Rubbo} \\
+  \textbf{Wellington Breno Evangelista Costa} \\
+  \vspace{0.5cm}
+  \textbf{Curso: Bacharelado em Cibersegurança} \\
+  \textbf{Escola Politécnica}
+  \vspace{\fill} \\
+  \textbf{CURITIBA} \\
+  \textbf{2026}
 \end{center}
+\newpage
 
-\vspace{0.5cm}
+% ============================================================
+% FOLHA DE ROSTO
+% ============================================================
+\thispagestyle{empty}
+\begin{center}
+  \textbf{Gerard Gonzalez \\ Gustavo Batista de Souza \\ Henrique Bernardo Maciel \\
+  Kauã Garcia Reschetti Rubbo \\ Wellington Breno Evangelista Costa} \\
+  \vspace{2cm}
+  \textbf{PORTAL PARA REGISTRO DE PROPRIEDADE: \\
+  VERIFICADOR DE PROCEDÊNCIA DE PRODUTOS COM SEGURANÇA CRIPTOGRÁFICA}
+\end{center}
+\vspace{3cm}
+\begin{flushright}
+  \begin{minipage}{0.55\textwidth}
+    \setstretch{1.0}\small
+    Relatório Parcial apresentado à Pontifícia Universidade
+    Católica do Paraná, referente à disciplina
+    \textbf{PCS122 -- Experiência Criativa: Implementando
+    Sistemas com Criptografia}, sob orientação dos professores
+    \textbf{Altair Olivo Santin} e \textbf{Aramis Hornung Moraes}.
+  \end{minipage}
+\end{flushright}
+\vspace{\fill}
+\begin{center}
+  \textbf{CURITIBA} \\
+  \textbf{2026}
+\end{center}
+\newpage
 
-\noindent Esse projeto tem o objetivo de fazer o cadastro de proprietário de qualquer produto que contenha número de série único, cujo objetivo é auxiliar o proprietário, a polícia e outros cidadãos a encontrar o proprietário.
+% ============================================================
+% SUMÁRIO
+% ============================================================
+\tableofcontents
+\newpage
 
-\vspace{0.6cm}
+% ============================================================
+% 1. INTRODUÇÃO
+% ============================================================
+\setcounter{section}{0}
+\section{INTRODUÇÃO}
 
-\noindent\textbf{Páginas:}
+O comércio de produtos usados movimenta bilhões de reais anualmente no Brasil, por meio de plataformas como OLX e Mercado Livre, além de feiras e transações diretas entre particulares. Nesse contexto, a verificação da procedência de um produto — isto é, confirmar que o vendedor é o legítimo proprietário — representa um desafio prático sem solução tecnológica acessível ao cidadão comum.
+
+Este projeto propõe o desenvolvimento de uma plataforma web segura denominada \textbf{Portal para Registro de Propriedade}, cujo objetivo é permitir que proprietários registrem seus produtos por número de série e que qualquer pessoa possa consultar publicamente o status de um item antes de adquiri-lo. O sistema foi concebido com foco em três pilares: \textbf{segurança criptográfica}, \textbf{privacidade do usuário} e \textbf{impacto social mensurável}.
+
+A proposta tem como escopo primário dificultar a venda de produtos furtados no mercado de usados, criando um desincentivo econômico ao crime sem depender da disponibilidade operacional de forças policiais. O sistema não exige integração institucional: policiais, lojistas e cidadãos utilizam a mesma interface de busca pública, sem necessidade de cadastro ou autorização especial.
+
+% ============================================================
+% 2. CONTEXTUALIZAÇÃO E JUSTIFICATIVA
+% ============================================================
+\section{CONTEXTUALIZAÇÃO E JUSTIFICATIVA}
+
+O problema central endereçado pelo projeto é a assimetria de informação no mercado de produtos usados. Um comprador de boa-fé não dispõe, hoje, de mecanismo simples para verificar se o produto que está adquirindo foi furtado. Essa lacuna beneficia diretamente o mercado informal de bens roubados.
+
+Durante a concepção do sistema, foram identificadas e discutidas criticamente quatro limitações de soluções convencionais:
+
+\begin{enumerate}
+  \item \textbf{Remoção do número de série:} criminosos podem raspar ou substituir o número após o furto. Por isso, o sistema foi reposicionado com foco na \textit{prevenção da venda}, e não na recuperação pós-furto. Um produto com alerta de furto ativo torna-se difícil de comercializar mesmo sem número de série visível, pois o comprador pode recusar a transação na ausência de verificação.
+
+  \item \textbf{Privacidade dos dados do proprietário:} a busca pública retorna exclusivamente o \textit{status} do produto (\texttt{registrado}, \texttt{furtado} ou \texttt{não encontrado}), sem expor qualquer dado pessoal do dono.
+
+  \item \textbf{Risco em contatos diretos:} o sistema não implementa fluxo pessoa a pessoa. Mensagens de quem encontrou um objeto são intermediadas anonimamente pelo sistema, que encaminha a comunicação ao dono sem revelar identidade ou localização de nenhuma das partes.
+
+  \item \textbf{Dependência policial:} a plataforma é autossuficiente para o cidadão comum. A polícia pode utilizar a busca pública como qualquer usuário, sem necessidade de integração ou convênio institucional.
+\end{enumerate}
+
+Essa análise crítica orientou diretamente as decisões de arquitetura e design do sistema.
+
+% ============================================================
+% 3. OBJETIVOS
+% ============================================================
+\section{OBJETIVOS}
+
+O objetivo geral é desenvolver e implantar uma aplicação web segura para registro e verificação de procedência de produtos por número de série, implementando boas práticas de criptografia, autenticação e proteção de dados.
+
+Como objetivos específicos, busca-se:
+
+\begin{enumerate}
+  \item Implementar cadastro de usuários com validação por expressões regulares, hash de senhas com \textit{bcrypt} e confirmação por e-mail;
+  \item Desenvolver autenticação multifator (MFA) via TOTP, dispensando o uso de e-mail como segundo fator;
+  \item Construir mecanismo de recuperação de senha com tokens de uso único e expiração controlada;
+  \item Projetar sistema de busca pública anonimizada que não exponha dados pessoais em nenhuma circunstância;
+  \item Aplicar gerência de segredos (\textit{secrets management}) para isolar credenciais do código-fonte versionado;
+  \item Implementar controle de sessão com expiração deslizante e proteção contra fixação de sessão.
+\end{enumerate}
+
+% ============================================================
+% 4. MATERIAIS E MÉTODOS
+% ============================================================
+\section{MATERIAIS E MÉTODOS}
+
+\subsection{Tecnologias Utilizadas}
+
+O sistema foi desenvolvido com tecnologias web consolidadas, sem dependência de frameworks de alto nível, em atendimento ao escopo da disciplina:
 
 \begin{itemize}
-    \item Home
-    \item Cadastro de usuário
-    \item Cadastro de produto
-    \item MFA
-    \item Recuperação de senha
-    \item Confirmação de cadastro
+  \item \textbf{Front-end:} HTML5, CSS3 e JavaScript ES6+ puro (sem frameworks);
+  \item \textbf{Back-end:} PHP 8+ sem framework, com arquitetura de arquivos por responsabilidade;
+  \item \textbf{Banco de dados:} MySQL 8.0 com InnoDB, \textit{foreign keys} e \textit{soft deletes};
+  \item \textbf{Autenticação:} sessões PHP com \textit{hardening} completo e TOTP para MFA;
+  \item \textbf{Criptografia de senhas:} \textit{bcrypt} com custo 13 via \texttt{password\_hash()};
+  \item \textbf{Versionamento:} Git com GitHub, utilizando branches \texttt{main}, \texttt{develop} e \texttt{feature/*}.
 \end{itemize}
+
+\subsection{Arquitetura do Sistema}
+
+O projeto adota separação clara entre camadas de apresentação e lógica de negócio. A estrutura de diretórios reflete essa separação:
+
+\begin{itemize}
+  \item \texttt{frontend/pages/} — 9 páginas HTML independentes;
+  \item \texttt{backend/auth/} — módulos de login, registro, confirmação, MFA e recuperação;
+  \item \texttt{backend/produto/} — módulos de cadastro, listagem, busca, status e contato;
+  \item \texttt{backend/middleware/} — \textit{auth guard}, CSRF e \textit{rate limiter};
+  \item \texttt{backend/utils/} — funções auxiliares de hash, e-mail e segredos;
+  \item \texttt{database/schema.sql} — definição completa do banco de dados.
+\end{itemize}
+
+\subsection{Modelo de Dados}
+
+O banco de dados é composto por cinco tabelas principais, conforme descrito na Tabela~\ref{tab:banco}.
+
+\begin{table}[H]
+  \centering
+  \caption{Estrutura do banco de dados}
+  \label{tab:banco}
+  \small
+  \begin{tabularx}{\textwidth}{|l|X|}
+    \hline
+    \textbf{Tabela} & \textbf{Descrição} \\
+    \hline
+    \texttt{users} & Dados do usuário: nome, e-mail, hash da senha, status de confirmação e segredo MFA \\
+    \hline
+    \texttt{properties} & Produtos registrados: título, número de série, categoria e status (\texttt{active}, \texttt{stolen}, \texttt{sold}) \\
+    \hline
+    \texttt{tokens} & Tokens de confirmação de e-mail e recuperação de senha: armazenados como hash SHA-256, com tipo e data de expiração \\
+    \hline
+    \texttt{rate\_limits} & Registro de tentativas por IP e ação, para controle de \textit{rate limiting} \\
+    \hline
+    \texttt{contact\_messages} & Mensagens anônimas enviadas ao proprietário de um produto \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+\subsection{Requisitos de Segurança Implementados}
+
+Os requisitos de segurança da Sprint 1 foram integralmente atendidos, conforme listado na Tabela~\ref{tab:requisitos}.
+
+\begin{table}[H]
+  \centering
+  \caption{Requisitos de segurança da Sprint 1}
+  \label{tab:requisitos}
+  \small
+  \begin{tabularx}{\textwidth}{|c|X|c|}
+    \hline
+    \textbf{Nº} & \textbf{Requisito} & \textbf{Status} \\
+    \hline
+    1 & Página de cadastro de usuário & Concluído \\
+    \hline
+    2 & Autenticação com opção de recuperação de senha por e-mail & Concluído \\
+    \hline
+    3 & Página de cadastro de nova senha & Concluído \\
+    \hline
+    4 & Validação de campos com expressões regulares (e-mail, senha, CPF/CNPJ, telefone) & Concluído \\
+    \hline
+    5 & Exigência de senha forte & Concluído \\
+    \hline
+    6 & Hash de senha com função \textit{bcrypt} & Concluído \\
+    \hline
+    7 & Confirmação de cadastro por e-mail & Concluído \\
+    \hline
+    8 & Autenticação em dois fatores via TOTP (não por e-mail) & Concluído \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+% ============================================================
+% 5. RESULTADOS PARCIAIS
+% ============================================================
+\section{RESULTADOS PARCIAIS}
+
+\subsection{Páginas Desenvolvidas}
+
+Ao término da Sprint 1, as seguintes páginas foram implementadas com suas respectivas funcionalidades de front-end:
+
+\begin{itemize}
+  \item \textbf{Home (\texttt{index.html}):} apresentação do sistema e formulário de busca pública por número de série;
+  \item \textbf{Resultado de Busca (\texttt{busca.html}):} exibição do status do produto (registrado / furtado / não encontrado) sem dados pessoais, com formulário de contato anônimo;
+  \item \textbf{Cadastro de Usuário (\texttt{cadastro-usuario.html}):} formulário com validação em tempo real por expressões regulares e indicador visual de força de senha;
+  \item \textbf{Confirmação de Cadastro (\texttt{confirmacao.html}):} instrução para verificação do link enviado por e-mail;
+  \item \textbf{Login (\texttt{login.html}):} autenticação com proteção contra enumeração de usuários;
+  \item \textbf{Recuperação de Senha (\texttt{recuperacao-senha.html}):} fluxo em duas etapas com token de uso único e expiração de 1 hora;
+  \item \textbf{MFA (\texttt{mfa.html}):} entrada do código TOTP de 6 dígitos gerado por aplicativo autenticador;
+  \item \textbf{Cadastro de Produto (\texttt{cadastro-produto.html}):} registro de produto com número de série e opção de marcar como furtado;
+  \item \textbf{Dashboard (\texttt{dashboard.html}):} painel do usuário com listagem de produtos e controle de status.
+\end{itemize}
+
+\subsection{Decisões de Design de Segurança}
+
+Duas decisões de design merecem destaque por seu impacto direto na segurança e privacidade do sistema:
+
+\textbf{Anonimização da busca pública:} a rota \texttt{backend/produto/buscar.php} retorna exclusivamente o campo \texttt{status} do produto. Nenhum identificador do usuário, nome ou dado de contato é incluído na resposta, independentemente do status retornado. Essa decisão elimina o risco de uso do sistema como vetor de coleta de dados pessoais.
+
+\textbf{Intermediação anônima de contato:} mensagens enviadas por quem encontrou um produto são processadas por \texttt{backend/produto/contato.php}, que encaminha o conteúdo ao e-mail do proprietário sem incluir dados do remetente. O sistema aplica \textit{rate limiting} de 3 mensagens por hora por número de série para prevenir abuso.
+
+% ============================================================
+% 6. DISCUSSÃO
+% ============================================================
+\section{DISCUSSÃO}
+
+Os resultados da Sprint 1 demonstram a viabilidade técnica da proposta dentro do escopo da disciplina. A implementação dos 8 requisitos de segurança previstos, combinada com as decisões arquiteturais de anonimização, confirma que o sistema pode ser desenvolvido de forma responsável sem sacrificar a experiência do usuário.
+
+A principal discussão identificada durante o desenvolvimento diz respeito ao posicionamento do sistema. A análise crítica realizada na fase de concepção levou ao reposicionamento do projeto: de ``portal anti-furto'' para ``verificador de procedência para o mercado de usados''. Essa mudança é relevante porque altera o critério de sucesso do sistema. Enquanto um portal anti-furto seria avaliado pela taxa de recuperação de objetos furtados — métrica difícil de atingir dada a capacidade dos criminosos de raspar números de série —, um verificador de procedência é avaliado pela adoção por compradores no momento da transação, critério mais realista e mensurável.
+
+Uma limitação identificada é a dependência de que o proprietário realize o registro \textit{antes} do furto. Sistemas voluntários de registro tendem a ter baixa adoção inicial. A mitigação proposta para fases futuras inclui parcerias com lojistas para registro automático no ponto de venda, transferindo o esforço de registro do consumidor para o varejo.
+
+% ============================================================
+% 7. ETAPAS FUTURAS E CRONOGRAMA
+% ============================================================
+\section{ETAPAS FUTURAS E CRONOGRAMA}
+
+As próximas etapas do projeto estão organizadas em duas sprints adicionais:
+
+\begin{enumerate}
+  \item \textbf{Sprint 2 (Semanas 8--11):} implementação do back-end PHP com persistência em banco de dados MySQL, integração do \textit{bcrypt} para hash de senhas, controle e expiração de sessão, confirmação de cadastro por e-mail com token e implementação completa do MFA via TOTP.
+
+  \item \textbf{Sprint 3 (Semanas 12--15):} aplicação de gerência de segredos com isolamento de credenciais do código-fonte, implementação de criptografia de dados sensíveis com certificados e chaves, e validação final do sistema completo.
+\end{enumerate}
+
+A Tabela~\ref{tab:cronograma} apresenta o cronograma completo do projeto.
+
+\begin{table}[H]
+  \centering
+  \caption{Cronograma de Atividades}
+  \label{tab:cronograma}
+  \renewcommand{\arraystretch}{1.4}
+  \small
+  \begin{tabularx}{\textwidth}{|X|c|c|}
+    \hline
+    \rowcolor{cinzaHeader}
+    \textcolor{white}{\textbf{Atividade}} &
+    \textcolor{white}{\textbf{Período}} &
+    \textcolor{white}{\textbf{Status}} \\
+    \hline
+    \rowcolor{verde}
+    Definição do tema, análise de requisitos e estrutura do repositório &
+    Sem. 1--2 & Concluído \\
+    \hline
+    \rowcolor{verde}
+    Desenvolvimento do front-end: páginas HTML, CSS e validações com Regex &
+    Sem. 2--6 & Concluído \\
+    \hline
+    \rowcolor{verde}
+    Apresentação da Sprint 1 e vídeo TDE &
+    Sem. 7 & Concluído \\
+    \hline
+    \rowcolor{amarelo}
+    Back-end PHP: banco de dados, bcrypt, controle de sessão &
+    Sem. 8--10 & Em andamento \\
+    \hline
+    \rowcolor{amarelo}
+    Confirmação por e-mail, MFA (TOTP) e contato anônimo &
+    Sem. 10 & Em andamento \\
+    \hline
+    \rowcolor{azulClaro}
+    Apresentação da Sprint 2 e vídeo &
+    Sem. 11 & Pendente \\
+    \hline
+    \rowcolor{azulClaro}
+    Gerência de segredos e criptografia com certificados/chaves &
+    Sem. 12--14 & Pendente \\
+    \hline
+    \rowcolor{azulClaro}
+    Apresentação da Sprint 3 e entrega final &
+    Sem. 15--16 & Pendente \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+% ============================================================
+% 8. RELATO DE EXPERIÊNCIA
+% ============================================================
+\section{RELATO DE EXPERIÊNCIA}
+
+O desenvolvimento do projeto até este ponto proporcionou aprendizados que transcendem o conteúdo técnico da disciplina. A etapa de concepção — que envolveu a análise crítica das limitações reais do sistema — foi particularmente formativa: identificar os pontos fracos de uma ideia antes da implementação e reformular o escopo em resposta a essas críticas é uma habilidade central na engenharia de software seguro, e raramente é exercitada de forma tão direta em projetos acadêmicos.
+
+A configuração do repositório GitHub com convenções de branching, mensagens de commit padronizadas e separação entre \texttt{main} e \texttt{develop} representou o primeiro contato prático da equipe com fluxo de trabalho colaborativo estruturado. A necessidade de coordenar cinco desenvolvedores em páginas interdependentes tornou evidente a importância do versionamento controlado para evitar conflitos e retrabalho.
+
+Do ponto de vista de segurança, a implementação dos requisitos da Sprint 1 reforçou a compreensão de que segurança não é uma camada adicionada ao sistema, mas uma restrição que molda cada decisão de design. A decisão de nunca retornar dados pessoais na busca pública, por exemplo, não foi uma medida de segurança acrescentada após o desenvolvimento da funcionalidade: ela foi o ponto de partida do design da rota de busca.
+
+% ============================================================
+% 9. USO DE INTELIGÊNCIA ARTIFICIAL GENERATIVA
+% ============================================================
+\section{USO DE INTELIGÊNCIA ARTIFICIAL GENERATIVA}
+
+\renewcommand{\arraystretch}{1.4}
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|X|l|}
+\hline
+\multicolumn{2}{|c|}{\textbf{PERGUNTAS SOBRE O USO DE IA GENERATIVA}} \\
+\hline
+1) Para escrita deste relatório, alguma ferramenta de IA generativa foi utilizada? & Sim ($\boxtimes$) \hspace{0.3cm} Não ($\square$) \\
+\hline
+\multicolumn{2}{|p{\dimexpr\textwidth-2\tabcolsep-2\arrayrulewidth}|}{2) Ferramentas utilizadas: \textbf{Claude (Anthropic)}} \\
+\hline
+\multicolumn{2}{|p{\dimexpr\textwidth-2\tabcolsep-2\arrayrulewidth}|}{3) Usos aplicados: Gerar partes do texto escrito ($\boxtimes$). Outros: organização estrutural, síntese técnica e formatação do documento.} \\
+\hline
+\multicolumn{2}{|p{\dimexpr\textwidth-2\tabcolsep-2\arrayrulewidth}|}{4) Declaração: $\boxtimes$ Durante a preparação deste Relatório Parcial, o(s) autor(es) usaram \textbf{Claude (Anthropic)} para síntese, organização estrutural e formatação. O conteúdo foi revisado e editado pelos autores, que assumem total responsabilidade pelo conteúdo.} \\
+\hline
+\end{tabularx}
+\end{table}
+
+% ============================================================
+% 10. REFERÊNCIAS
+% ============================================================
+\section{REFERÊNCIAS}
+
+\begin{thebibliography}{9}
+
+  \bibitem{stallings} STALLINGS, W.; BROWN, L. \textit{Segurança de computadores: princípios e práticas}. Rio de Janeiro: Elsevier Campus, 2014.
+
+  \bibitem{owasp} OWASP FOUNDATION. \textit{OWASP Top Ten}. 2021. Disponível em: \url{https://owasp.org/www-project-top-ten/}. Acesso em: mar. 2026.
+
+  \bibitem{php} CONVERSE, T.; PARK, J. \textit{PHP: A Bíblia}. 2. ed. Rio de Janeiro: Campus, 2003.
+
+  \bibitem{anderson} ANDERSON, R. \textit{Security Engineering: A Guide to Building Dependable Distributed Systems}. 2. ed. Hoboken: Wiley, 2008.
+
+  \bibitem{rfc6238} MRAIHI, D. et al. \textit{RFC 6238: TOTP: Time-Based One-Time Password Algorithm}. IETF, 2011. Disponível em: \url{https://datatracker.ietf.org/doc/html/rfc6238}. Acesso em: mar. 2026.
+
+\end{thebibliography}
 
 \end{document}
