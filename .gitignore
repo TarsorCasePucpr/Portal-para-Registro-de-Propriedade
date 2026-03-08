@@ -1,6 +1,7 @@
 .env
 .env.*
 backend/utils/secrets.php
+CLAUDE.md
 *.log
 /vendor/
 node_modules/
