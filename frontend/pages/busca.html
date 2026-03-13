@@ -3,12 +3,106 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SerialSafe — Busca</title>
+  <title>SNGuard — Consulta por Número de Série</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
+  <!-- ===== CABEÇALHO ===== -->
+  <header>
+    <!-- TODO: Logo SNGuard + links: Home | Login | Cadastrar-se -->
+  </header>
+
+  <main>
+    <section id="busca-section">
+      <h1>Verificar número de série</h1>
+
+      <!--
+        FORMULÁRIO DE BUSCA PÚBLICA
+        action → backend/produto/buscar.php (GET — sem estado, sem login necessário)
+
+        Segurança e LGPD:
+          - BUSCA PÚBLICA: qualquer pessoa pode usar SEM estar logada
+          - Resposta retorna APENAS: status do produto (normal/roubado/não encontrado)
+          - NUNCA expor: nome do dono, e-mail, CPF, telefone ou qualquer dado pessoal
+            (LGPD — Art. 9, § 1: limitação de finalidade e minimização de dados)
+          - Rate limiting: máx. 10 consultas / minuto por IP (prevenir scraping)
+          - Input sanitizado: strip_tags + trim + maxlength=100
+
+        LGPD — Art. 9 (Transparência de informação):
+          Informar ao usuário que:
+          - Nenhum dado pessoal é coletado ou exibido nesta busca
+          - O IP é registrado apenas para rate limiting (finalidade legítima — Art. 7, IX)
+          - Logs de acesso são eliminados após 30 dias
+      -->
+      <form id="form-busca" action="../../backend/produto/buscar.php" method="GET" novalidate>
+        <!-- TODO: Input número de série -->
+        <!-- <label for="serial">Número de série do produto</label>
+             <input type="text" id="serial" name="serial"
+                    required maxlength="100" placeholder="Ex: SN1234567890"
+                    autocomplete="off">
+             <small>Encontrado na embalagem, etiqueta traseira ou nota fiscal</small> -->
+
+        <!-- TODO: Botão buscar -->
+        <!-- <button type="submit">Verificar</button> -->
+      </form>
+
+      <!-- ===== RESULTADO DA BUSCA ===== -->
+      <div id="resultado-busca" aria-live="polite">
+        <!--
+          TODO: Exibir resultado (via redirect PHP com parâmetro ou AJAX):
+
+          Estado 1 — Serial registrado, sem alerta:
+            Badge verde "REGISTRADO"
+            "Este produto está registrado. Nenhum alerta ativo."
+
+          Estado 2 — Serial marcado como roubado/perdido:
+            Badge vermelho "ALERTA — PRODUTO REPORTADO"
+            "Este produto foi marcado como roubado ou perdido. Não adquira."
+            → Exibir formulário de contato anônimo abaixo
+
+          Estado 3 — Serial não encontrado:
+            Badge cinza "NÃO ENCONTRADO"
+            "Este número de série não está registrado no sistema."
+
+          CRÍTICO: Nenhum dos 3 estados deve revelar dados pessoais do proprietário.
+        -->
+      </div>
+
+      <!-- ===== FORMULÁRIO DE CONTATO ANÔNIMO ===== -->
+      <div id="contato-anonimo" style="display:none;">
+        <!--
+          Visível APENAS quando produto está marcado como roubado/perdido.
+          action → backend/produto/contato.php (POST)
+
+          Segurança:
+            - CSRF token obrigatório
+            - Rate limiting: máx. 3 mensagens / hora por serial por IP
+            - Mensagem enviada ao dono via e-mail SEM revelar dados do remetente
+              (sistema intermediário anônimo — LGPD Art. 9)
+            - Sem campo de e-mail do remetente (por design)
+
+          LGPD — Art. 6, III (Minimização de dados):
+            Coletar apenas o mínimo: texto da mensagem + serial.
+            IP registrado apenas para rate limiting, eliminado em 30 dias.
+        -->
+        <!-- TODO: <form id="form-contato" action="../../backend/produto/contato.php" method="POST">
+               <input type="hidden" name="csrf" value="[...]">
+               <input type="hidden" name="serial" value="[serial da busca]">
+               <label for="mensagem">Sua mensagem (anônima)</label>
+               <textarea id="mensagem" name="mensagem" maxlength="500" required
+                         placeholder="Descreva onde/como encontrou o objeto..."></textarea>
+               <button type="submit">Enviar mensagem ao proprietário</button>
+             </form> -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <!-- TODO: Links: Política de Privacidade | Termos de Uso -->
+  </footer>
+
+  <script src="../js/validacoes.js" defer></script>
+  <script src="../js/main.js" defer></script>
 </body>
-<script src="../js/validacoes.js"></script>
-<script src="../js/main.js"></script>
 </html>

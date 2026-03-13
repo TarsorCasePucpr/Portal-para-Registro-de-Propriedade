@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SNGuard — Redefinir Senha</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <!-- ===== CABEÇALHO ===== -->
+  <header>
+    <!-- TODO: Logo SNGuard -->
+  </header>
+
+  <main>
+    <section id="redefinicao-section">
+      <h1>Criar nova senha</h1>
+
+      <!--
+        PASSO 2: Definir nova senha via link do e-mail
+        URL de acesso: /frontend/pages/redefinicao-senha.html?token=RAW_TOKEN
+        action → backend/auth/recover.php (POST) — ação: redefinir_senha
+
+        Fluxo:
+          1. PHP lê token da URL (?token=...)
+          2. PHP faz hash('sha256', $token) → busca na tabela tokens (tipo 'recovery')
+          3. Verifica: token existe + not used_at + expires_at > NOW()
+          4. Se válido: exibe formulário de nova senha
+          5. Se inválido: exibe erro e link para solicitar novo token
+
+        Segurança:
+          - Token raw NUNCA armazenado na DB — apenas hash SHA-256
+          - Comparação: hash_equals($storedHash, hash('sha256', $providedToken))
+          - Nova senha: password_hash($novaSenha, PASSWORD_BCRYPT, ['cost' => 13])
+          - Invalidar token após uso: UPDATE tokens SET used_at = NOW() WHERE ...
+          - Invalidar todas as sessões ativas do usuário após mudança de senha
+          - CSRF token obrigatório
+          - Rate limiting implícito pelo tempo de expiração do token (1 hora)
+
+        LGPD:
+          Nenhum dado pessoal adicional é coletado nesta etapa.
+      -->
+
+      <!-- Estado 1: Token válido — mostrar formulário -->
+      <div id="estado-formulario">
+        <form id="form-nova-senha" action="../../backend/auth/recover.php" method="POST" novalidate>
+          <!-- TODO: <input type="hidden" name="csrf" value="[gerado pelo PHP]">
+                     <input type="hidden" name="acao" value="redefinir_senha">
+                     <input type="hidden" name="token" value="[token da URL, sanitizado]"> -->
+
+          <!-- TODO: Input nova senha com indicador de força -->
+          <!-- <label for="nova-senha">Nova senha</label>
+               <input type="password" id="nova-senha" name="nova_senha" required
+                      maxlength="255" autocomplete="new-password"
+                      pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}">
+               <div id="forca-senha">Fraca | Média | Forte</div>
+               <small>Mín. 12 caracteres, maiúscula, minúscula, número e símbolo</small> -->
+
+          <!-- TODO: Input confirmar nova senha (validação só no JS — não enviado ao PHP) -->
+          <!-- <label for="confirmar-nova-senha">Confirmar nova senha</label>
+               <input type="password" id="confirmar-nova-senha" name="confirmar_nova_senha"
+                      required maxlength="255" autocomplete="new-password"> -->
+
+          <!-- TODO: Botão submit -->
+          <!-- <button type="submit">Salvar nova senha</button> -->
+        </form>
+      </div>
+
+      <!-- Estado 2: Token inválido / expirado -->
+      <div id="estado-token-invalido" style="display:none;">
+        <!-- TODO: "Link inválido ou expirado" -->
+        <!-- TODO: Botão "Solicitar novo link" → recuperacao-senha.html -->
+      </div>
+
+      <!-- Estado 3: Senha redefinida com sucesso -->
+      <div id="estado-sucesso" style="display:none;">
+        <!-- TODO: "Senha redefinida com sucesso!" -->
+        <!-- TODO: Botão "Ir para o Login" → login.html -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <!-- TODO: Links: Política de Privacidade | Termos de Uso -->
+  </footer>
+
+  <script src="../js/validacoes.js" defer></script>
+  <script src="../js/main.js" defer></script>
+</body>
+</html>
