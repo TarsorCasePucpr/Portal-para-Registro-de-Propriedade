@@ -1,3 +1,10 @@
+# Pipeline corre en: MRs, pushes a develop, pushes a main
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
 stages:
   - validate
   - security
@@ -22,9 +29,6 @@ php-syntax:
         exit 1
       fi
       echo "All PHP files passed syntax check"
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
 
 # ─────────────────────────────────────────────
 # 2. Strict Types
@@ -41,9 +45,6 @@ php-strict-types:
         exit 1
       fi
       echo "All PHP files have declare(strict_types=1)"
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
 
 # ─────────────────────────────────────────────
 # 3. HTML Lint
@@ -54,9 +55,6 @@ html-lint:
   script:
     - npm install -g htmlhint
     - htmlhint "frontend/pages/*.html" --config .htmlhintrc
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
 
 # ─────────────────────────────────────────────
 # 4. Schema Integrity
@@ -73,69 +71,9 @@ schema-check:
       grep -q "ENGINE=InnoDB" database/schema.sql              || { echo "Should use ENGINE=InnoDB"; ERROR=1; }
       if [ $ERROR -ne 0 ]; then exit 1; fi
       echo "Schema integrity check passed"
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
 
 # ─────────────────────────────────────────────
-# 5. Security Scan
-# ─────────────────────────────────────────────
-security-scan:
-  stage: security
-  image: alpine:latest
-  script:
-    - |
-      ERROR=0
-
-      # md5/sha1 para senhas
-      if grep -rn "md5\s*(" backend/ --include="*.php" 2>/dev/null | grep -iE "password|hash|senha|pass"; then
-        echo "md5() nao deve ser usado para hashing de senhas"
-        ERROR=1
-      fi
-      if grep -rn "sha1\s*(" backend/ --include="*.php" 2>/dev/null | grep -iE "password|hash|senha|pass"; then
-        echo "sha1() nao deve ser usado para hashing de senhas"
-        ERROR=1
-      fi
-
-      # eval()
-      if grep -rn "eval\s*(" backend/ --include="*.php" 2>/dev/null; then
-        echo "eval() encontrado — proibido por seguranca"
-        ERROR=1
-      fi
-
-      # mysql_* depreciado
-      if grep -rn "mysql_query\|mysql_connect\|mysql_fetch" backend/ --include="*.php" 2>/dev/null; then
-        echo "Funcoes mysql_* depreciadas — usar PDO"
-        ERROR=1
-      fi
-
-      # mail() nativo
-      if grep -rn "^\s*mail\s*(" backend/ --include="*.php" 2>/dev/null; then
-        echo "mail() nativo — usar PHPMailer"
-        ERROR=1
-      fi
-
-      # secrets.php commitado
-      if git ls-files | grep -q "secrets\.php$"; then
-        echo "secrets.php esta commitado — remover imediatamente"
-        ERROR=1
-      fi
-
-      # .env commitado
-      if git ls-files | grep -qE "^\.env$|^\.env\.(local|production|staging)$"; then
-        echo "Arquivo .env no repositorio"
-        ERROR=1
-      fi
-
-      if [ $ERROR -ne 0 ]; then exit 1; fi
-      echo "Security scan passed"
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
-    - if: '$CI_COMMIT_BRANCH == "main"'
-
-# ─────────────────────────────────────────────
-# 6. File Structure
+# 5. File Structure
 # ─────────────────────────────────────────────
 structure-check:
   stage: validate
@@ -163,6 +101,47 @@ structure-check:
       done
       if [ $ERROR -ne 0 ]; then exit 1; fi
       echo "All required files present"
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+# ─────────────────────────────────────────────
+# 6. Security Scan
+# ─────────────────────────────────────────────
+security-scan:
+  stage: security
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache git
+  script:
+    - |
+      ERROR=0
+
+      if grep -rn "md5\s*(" backend/ --include="*.php" 2>/dev/null | grep -iE "password|hash|senha|pass"; then
+        echo "md5() nao deve ser usado para hashing de senhas"
+        ERROR=1
+      fi
+      if grep -rn "sha1\s*(" backend/ --include="*.php" 2>/dev/null | grep -iE "password|hash|senha|pass"; then
+        echo "sha1() nao deve ser usado para hashing de senhas"
+        ERROR=1
+      fi
+      if grep -rn "eval\s*(" backend/ --include="*.php" 2>/dev/null; then
+        echo "eval() encontrado — proibido por seguranca"
+        ERROR=1
+      fi
+      if grep -rn "mysql_query\|mysql_connect\|mysql_fetch" backend/ --include="*.php" 2>/dev/null; then
+        echo "Funcoes mysql_* depreciadas — usar PDO"
+        ERROR=1
+      fi
+      if grep -rn "^\s*mail\s*(" backend/ --include="*.php" 2>/dev/null; then
+        echo "mail() nativo — usar PHPMailer"
+        ERROR=1
+      fi
+      if git ls-files | grep -q "secrets\.php$"; then
+        echo "secrets.php esta commitado — remover imediatamente"
+        ERROR=1
+      fi
+      if git ls-files | grep -qE "^\.env$|^\.env\.(local|production|staging)$"; then
+        echo "Arquivo .env no repositorio"
+        ERROR=1
+      fi
+
+      if [ $ERROR -ne 0 ]; then exit 1; fi
+      echo "Security scan passed"
