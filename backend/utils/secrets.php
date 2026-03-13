@@ -1,2 +1,0 @@
-<?php
-// secrets.php

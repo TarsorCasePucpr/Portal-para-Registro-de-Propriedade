@@ -3,12 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SerialSafe — Autenticação 2 Fatores</title>
+  <title>SNGuard — Autenticação em Dois Fatores</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
+  <!-- ===== CABEÇALHO ===== -->
+  <header>
+    <!-- TODO: Logo SNGuard -->
+  </header>
+
+  <main>
+    <section id="mfa-section">
+      <h1>Verificação em dois fatores</h1>
+
+      <!--
+        FORMULÁRIO MFA — TOTP (preferido) ou Email OTP (fallback)
+        action → backend/auth/mfa.php (POST)
+
+        Fluxo:
+          1. login.php bem-sucedido → sessão parcial:
+             $_SESSION['mfa_pending'] = true, $_SESSION['user_id'] = $id
+          2. Usuário redirecionado para esta página
+          3. mfa.php valida código → completa sessão → redireciona ao dashboard
+
+        Segurança:
+          - TOTP: PHPGangsta_GoogleAuthenticator (window=2: ±60s de tolerância)
+          - Email OTP: random_int(100000, 999999) → hash SHA-256, expira em 5 min
+            (NUNCA usar rand() — não é criptograficamente seguro)
+          - Rate limiting: máx. 3 tentativas / 10 min por IP
+          - Sessão MFA pendente expira em 5 min sem completar o segundo fator
+          - CSRF token obrigatório
+          - Implementar verificação de 2FA (Não e-mail como método primário)
+
+        LGPD — Art. 46 (Medidas de Segurança):
+          MFA é medida técnica de proteção de dados do titular.
+          O segredo TOTP (users.mfa_secret) deve ser criptografado em repouso.
+      -->
+      <form id="form-mfa" action="../../backend/auth/mfa.php" method="POST" novalidate>
+        <!-- TODO: <input type="hidden" name="csrf" value="[gerado pelo PHP]"> -->
+
+        <!-- TODO: Instrução dinâmica via PHP:
+             TOTP ativo  → "Digite o código de 6 dígitos do seu aplicativo autenticador"
+             Email OTP   → "Digite o código enviado para seu e-mail (expira em 5 min)" -->
+
+        <!-- TODO: Input código OTP (6 dígitos numéricos) -->
+        <!-- <label for="codigo">Código de verificação</label>
+             <input type="text" id="codigo" name="codigo"
+                    inputmode="numeric" pattern="[0-9]{6}"
+                    maxlength="6" minlength="6" required
+                    autocomplete="one-time-code"
+                    placeholder="000000"> -->
+
+        <!-- TODO: Botão submit -->
+        <!-- <button type="submit">Verificar</button> -->
+
+        <!-- TODO: Link "Usar e-mail como fallback" (se TOTP ativo) -->
+        <!-- TODO: Área de erro: "Código incorreto. X tentativas restantes." -->
+      </form>
+
+      <!-- ===== CONFIGURAÇÃO TOTP (primeiro acesso) ===== -->
+      <!--
+        Exibida APENAS quando mfa_enabled = 0 e usuário precisa configurar TOTP.
+        PHP gera: $ga->createSecret() → salvar em users.mfa_secret (encriptado)
+        Mostrar QR Code para escanear no Google Authenticator / Authy / etc.
+      -->
+      <div id="totp-setup" style="display:none;">
+        <!-- TODO: QR Code gerado pelo PHP (base64 via $ga->getQRCodeGoogleUrl()) -->
+        <!-- TODO: Código manual (para quem não consegue escanear) -->
+        <!-- TODO: Campo de confirmação: digitar primeiro código para validar o setup -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <!-- TODO: Links: Política de Privacidade | Termos de Uso -->
+  </footer>
+
+  <script src="../js/validacoes.js" defer></script>
+  <script src="../js/main.js" defer></script>
 </body>
-<script src="../js/validacoes.js"></script>
-<script src="../js/main.js"></script>
 </html>
