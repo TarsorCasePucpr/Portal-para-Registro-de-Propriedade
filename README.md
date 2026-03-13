@@ -556,6 +556,105 @@ Categorias e objetos prioritários (mais roubados e revendidos em mercado secund
 
 ---
 
+## Mapa do Site (Sitemap)
+
+```
+SNGuard — Portal para Registro de Propriedade
+│
+├── / (index.html)                  ← Landing page + busca rápida pública
+│   ├── /busca.html                 ← Consulta pública por S/N (sem login)
+│   ├── /login.html                 ← Autenticação
+│   ├── /cadastro-usuario.html      ← Registro + consentimento LGPD
+│   ├── /confirmacao.html           ← Aguardando confirmação de e-mail
+│   ├── /mfa.html                   ← Verificação TOTP (2º fator)
+│   ├── /recuperacao-senha.html     ← Solicitar link de recuperação
+│   └── /redefinicao-senha.html     ← Definir nova senha via link
+│
+└── [AUTENTICADO]
+    ├── /dashboard.html             ← Painel com lista de produtos
+    └── /cadastro-produto.html      ← Registrar novo objeto com S/N
+```
+
+**Rotas de backend por módulo:**
+
+| Módulo | Rota | Método |
+|--------|------|--------|
+| Auth | `backend/auth/register.php` | POST |
+| Auth | `backend/auth/confirm.php` | GET |
+| Auth | `backend/auth/login.php` | POST |
+| Auth | `backend/auth/mfa.php` | POST |
+| Auth | `backend/auth/recover.php` | POST |
+| Auth | `backend/auth/logout.php` | GET |
+| Produto | `backend/produto/buscar.php` | GET (público) |
+| Produto | `backend/produto/cadastrar.php` | POST (autenticado) |
+| Produto | `backend/produto/listar.php` | GET (autenticado) |
+| Produto | `backend/produto/status.php` | POST (autenticado) |
+| Produto | `backend/produto/contato.php` | POST (público) |
+
+---
+
+## Conformidade LGPD — Lei nº 13.709/2018
+
+O SNGuard foi projetado com **Privacidade por Design** (Privacy by Design) como princípio arquitetural. A seguir, o mapeamento das obrigações legais para os componentes do sistema.
+
+### Bases Legais Utilizadas (Art. 7)
+
+| Base Legal | Onde se Aplica |
+|------------|---------------|
+| **Art. 7, I** — Consentimento | Cadastro de usuário (`cadastro-usuario.html`): checkbox obrigatório antes de submeter. Log de consentimento gravado com timestamp + IP + versão da política. |
+| **Art. 7, IX** — Legítimo interesse | Rate limiting: registro de IP para segurança do sistema. Logs eliminados após 30 dias. |
+
+### Controle de Consentimento (Art. 7, I)
+
+- **Onde:** `frontend/pages/cadastro-usuario.html` — campo `aceite_lgpd`
+- **Como:** Checkbox obrigatório antes de submeter formulário; botão de cadastro desabilitado via JS até aceite.
+- **Backend:** `backend/auth/register.php` verifica `$_POST['aceite_lgpd'] === '1'`; grava log na tabela `lgpd_consent` (user_id, ip, timestamp, versão da política).
+- **Revogação:** Usuário pode excluir a conta via dashboard (Art. 18, VI).
+
+### Transparência de Informação (Art. 9)
+
+- **Onde:** `frontend/pages/index.html` (seção `#lgpd-info`), `cadastro-usuario.html`, `busca.html`
+- **Conteúdo obrigatório:**
+  - Quais dados são coletados: nome, e-mail, CPF (vinculação NF-e)
+  - Finalidade específica de cada dado
+  - Tempo de retenção
+  - Como exercer direitos do Art. 18
+- **Busca pública:** `backend/produto/buscar.php` retorna **apenas** `status` — nunca dados pessoais do titular.
+- **Contato anônimo:** `backend/produto/contato.php` — remetente anônimo por design; proprietário notificado sem exposição de dados de quem encontrou.
+
+### Exclusão de Dados (Art. 18, VI e Art. 16)
+
+- **Onde:** `frontend/pages/dashboard.html` (seção `#exclusao-conta`)
+- **Fluxo de exclusão de produto:** Botão "Excluir" → soft delete (`objects.deleted_at = NOW()`) → exclusão permanente por cron job após 30 dias.
+- **Fluxo de exclusão de conta:** Soft delete em `users` + todos os `objects` → e-mail de confirmação → logout → exclusão permanente após 30 dias.
+- **Por que soft delete:** LGPD Art. 16 permite retenção para fins de auditoria e cumprimento de obrigação legal.
+
+### Minimização de Dados (Art. 6, III)
+
+| Endpoint | Dados coletados | Justificativa |
+|----------|-----------------|---------------|
+| `buscar.php` | Nenhum (GET sem auth) | Busca pública não requer identificação |
+| `contato.php` | Texto da mensagem + serial | Mínimo para intermediação anônima |
+| `rate_limiter.php` | IP + ação + timestamp | Segurança do sistema (Art. 7, IX) |
+| `register.php` | Nome, e-mail, CPF, senha (hash) | Necessários para identificação e vinculação NF-e |
+
+### Medidas de Segurança Técnica (Art. 46)
+
+| Medida | Implementação |
+|--------|--------------|
+| Hash de senhas | `backend/utils/hash.php` — bcrypt cost 13 |
+| Tokens seguros | `random_bytes(32)` → SHA-256 em repouso |
+| Sessão hardened | HttpOnly + Secure + SameSite=Strict |
+| MFA | TOTP (phishing-resistant) via `backend/auth/mfa.php` |
+| CSRF | Token por sessão via `backend/middleware/csrf.php` |
+| Rate limiting | Por IP + ação via `backend/middleware/rate_limiter.php` |
+| SQL injection | PDO prepared statements, ATTR_EMULATE_PREPARES=false |
+| XSS | `htmlspecialchars()` em todos os outputs |
+| Headers HTTP | CSP, X-Frame-Options, HSTS, etc. em `backend/config/db.php` |
+| Secrets | Isolados em `backend/utils/secrets.php` (gitignoreado) |
+
+---
+
 ## Licença
 
 Uso interno — Projeto acadêmico PUCPR. Todos os direitos reservados.
