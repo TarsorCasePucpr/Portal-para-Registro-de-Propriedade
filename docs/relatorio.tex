@@ -254,6 +254,138 @@ Os requisitos de segurança da Sprint 1 foram integralmente atendidos, conforme 
 \end{table}
 
 % ============================================================
+% 5. ARQUITETURA DE ARQUIVOS E CONFORMIDADE LGPD
+% ============================================================
+\section{ARQUITETURA DE ARQUIVOS E CONFORMIDADE LGPD}
+
+\subsection{Mapa de Arquivos do Sistema}
+
+O sistema é composto por 10 páginas \textit{frontend}, 11 módulos \textit{backend} de lógica,
+3 \textit{middlewares} de segurança e 4 utilitários, conforme apresentado
+na Tabela~\ref{tab:arquivos}.
+
+\begin{table}[H]
+  \centering
+  \caption{Mapa de arquivos — SNGuard v1.0}
+  \label{tab:arquivos}
+  \small
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabularx}{\textwidth}{|l|l|X|}
+    \hline
+    \rowcolor{cinzaHeader}
+    \textcolor{white}{\textbf{Camada}} &
+    \textcolor{white}{\textbf{Arquivo}} &
+    \textcolor{white}{\textbf{Responsabilidade}} \\
+    \hline
+    \multicolumn{3}{|l|}{\textbf{Frontend — Páginas}} \\
+    \hline
+    HTML & \texttt{index.html}              & Landing page com busca pública rápida e aviso LGPD \\
+    HTML & \texttt{busca.html}              & Consulta pública por S/N e contato anônimo \\
+    HTML & \texttt{login.html}              & Autenticação com CSRF e rate limiting \\
+    HTML & \texttt{cadastro-usuario.html}   & Registro com consentimento LGPD (Art. 7, I) \\
+    HTML & \texttt{confirmacao.html}        & Aguardar confirmação de e-mail \\
+    HTML & \texttt{mfa.html}               & Verificação TOTP/OTP — 2º fator \\
+    HTML & \texttt{recuperacao-senha.html}  & Solicitar link de recuperação \\
+    HTML & \texttt{redefinicao-senha.html}  & Definir nova senha via token \\
+    HTML & \texttt{cadastro-produto.html}   & Registrar objeto com S/N e NF-e \\
+    HTML & \texttt{dashboard.html}          & Painel do usuário com exclusão de dados (Art. 18) \\
+    \hline
+    \multicolumn{3}{|l|}{\textbf{Backend — Autenticação (\texttt{backend/auth/})}} \\
+    \hline
+    PHP & \texttt{register.php}   & Cadastro + hash bcrypt + token de confirmação \\
+    PHP & \texttt{confirm.php}    & Validação de token (hash\_equals) + ativação de conta \\
+    PHP & \texttt{login.php}      & Login + session hardening + regeneração de sessão \\
+    PHP & \texttt{mfa.php}        & Verificação TOTP (preferido) ou Email OTP \\
+    PHP & \texttt{recover.php}    & Geração e validação de token de recuperação \\
+    PHP & \texttt{logout.php}     & Destruição completa de sessão \\
+    \hline
+    \multicolumn{3}{|l|}{\textbf{Backend — Produto (\texttt{backend/produto/})}} \\
+    \hline
+    PHP & \texttt{buscar.php}    & Busca pública — retorna apenas \texttt{status} (sem dados pessoais) \\
+    PHP & \texttt{cadastrar.php} & Registro de objeto — user\_id via sessão, IDOR prevention \\
+    PHP & \texttt{listar.php}    & Listagem filtrada por \texttt{user\_id} da sessão \\
+    PHP & \texttt{status.php}    & Alteração de status com IDOR prevention \\
+    PHP & \texttt{contato.php}   & Mensagem anônima ao proprietário (remetente sem dados) \\
+    \hline
+    \multicolumn{3}{|l|}{\textbf{Backend — Middleware (\texttt{backend/middleware/})}} \\
+    \hline
+    PHP & \texttt{auth\_guard.php}    & Proteção de rotas autenticadas + expiração deslizante \\
+    PHP & \texttt{csrf.php}           & Geração e validação de token CSRF (hash\_equals) \\
+    PHP & \texttt{rate\_limiter.php}  & Rate limiting por IP/ação na tabela \texttt{rate\_limits} \\
+    \hline
+    \multicolumn{3}{|l|}{\textbf{Backend — Utilitários (\texttt{backend/utils/})}} \\
+    \hline
+    PHP & \texttt{hash.php}     & \texttt{hashPassword()} / \texttt{verifyPassword()} — bcrypt cost 13 \\
+    PHP & \texttt{mailer.php}   & PHPMailer — envio de e-mails transacionais \\
+    PHP & \texttt{secrets.php}  & \texttt{getSecret()} — credenciais via variáveis de ambiente \\
+    PHP & \texttt{response.php} & \texttt{jsonSuccess()} / \texttt{jsonError()} padronizados \\
+    \hline
+    \multicolumn{3}{|l|}{\textbf{Banco de dados}} \\
+    \hline
+    SQL & \texttt{schema.sql} & 5 tabelas: \texttt{users}, \texttt{tokens}, \texttt{rate\_limits}, \texttt{objects}, \texttt{contact\_messages} \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+\subsection{Conformidade com a LGPD — Privacidade por Design}
+
+O sistema foi concebido com o princípio de \textbf{Privacidade por Design}
+(\textit{Privacy by Design}), no qual a proteção de dados pessoais é um requisito
+arquitetural, e não uma camada adicionada \textit{a posteriori}.
+A Tabela~\ref{tab:lgpd} mapeia os artigos da Lei nº 13.709/2018 para os
+componentes de código que os implementam.
+
+\begin{table}[H]
+  \centering
+  \caption{Mapeamento LGPD por componente}
+  \label{tab:lgpd}
+  \small
+  \renewcommand{\arraystretch}{1.4}
+  \begin{tabularx}{\textwidth}{|l|l|X|}
+    \hline
+    \rowcolor{cinzaHeader}
+    \textcolor{white}{\textbf{Obrigação LGPD}} &
+    \textcolor{white}{\textbf{Artigo}} &
+    \textcolor{white}{\textbf{Implementação no código}} \\
+    \hline
+    Consentimento &
+    Art. 7, I &
+    \texttt{cadastro-usuario.html}: \textit{checkbox} obrigatório; \texttt{register.php} verifica \texttt{\$\_POST['aceite\_lgpd']} e grava log na tabela \texttt{lgpd\_consent} (timestamp + IP + versão da política). \\
+    \hline
+    Transparência &
+    Art. 9 &
+    \texttt{index.html} (seção \texttt{\#lgpd-info}): parágrafo explicando quais dados são coletados, finalidade, retenção e como exercer os direitos do Art. 18. \texttt{buscar.php}: resposta contém apenas \texttt{status}, nunca dados pessoais. \\
+    \hline
+    Minimização de dados &
+    Art. 6, III &
+    \texttt{buscar.php}: retorna exclusivamente o campo \texttt{status}. \texttt{contato.php}: remetente anônimo por design — nenhum dado pessoal coletado do remetente. \\
+    \hline
+    Exclusão de dados &
+    Art. 18, VI &
+    \texttt{dashboard.html} (seção \texttt{\#exclusao-conta}): fluxo de exclusão de conta com \textit{soft delete} em \texttt{users} e \texttt{objects}; exclusão permanente via \textit{cron job} após 30 dias (Art. 16). \\
+    \hline
+    Medidas de segurança &
+    Art. 46 &
+    \texttt{hash.php}: bcrypt cost 13. \texttt{mfa.php}: TOTP. \texttt{csrf.php}: token por sessão. \texttt{rate\_limiter.php}: limite por IP. \texttt{db.php}: \texttt{ATTR\_EMULATE\_PREPARES = false}. \texttt{secrets.php}: credenciais em variáveis de ambiente. \\
+    \hline
+    Legítimo interesse (IP) &
+    Art. 7, IX &
+    \texttt{rate\_limiter.php}: IP registrado exclusivamente para segurança do sistema; eliminado após 30 dias conforme \texttt{cleanOldLimits()}. \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+A adoção de \textit{soft delete} nas tabelas \texttt{users} e \texttt{objects}
+merece destaque arquitetural. Em vez de eliminar imediatamente os registros ao
+receber uma solicitação de exclusão, o sistema marca a coluna \texttt{deleted\_at}
+e agenda a exclusão permanente para 30 dias depois. Essa decisão atende
+simultaneamente à LGPD (Art. 18, VI — direito à exclusão) e ao Art. 16
+(possibilidade de retenção para cumprimento de obrigação legal ou exercício regular
+de direitos). A mesma coluna garante que dados excluídos não apareçam em nenhuma
+consulta de produção, pois todas as \textit{queries} incluem a cláusula
+\texttt{AND deleted\_at IS NULL}.
+
+% ============================================================
 % 5. RESULTADOS PARCIAIS
 % ============================================================
 \section{RESULTADOS PARCIAIS}
