@@ -655,6 +655,77 @@ O SNGuard foi projetado com **Privacidade por Design** (Privacy by Design) como 
 
 ---
 
+## Planejamento de Sprints (Entrega: 16/04/2026)
+
+### Sprint 1 — Fundação de Segurança e Cadastro
+**Período:** 19/03/2026 (qui) → 25/03/2026 (qua)
+
+| # | Atividade | Data | Status |
+|---|-----------|------|--------|
+| 1 | Arquitetura: Privacy by Design — revisar que a consulta pública de S/N não exponha dados pessoais | 19–20/03 | 🟡 Em andamento |
+| 2 | LGPD: Controle de Consentimento — aceite de termos no cadastro, log na DB | 19–20/03 | 🟡 Em andamento |
+| 3 | Segurança: Backend Hashing — configurar Argon2id/Bcrypt, proibir texto plano | 20–21/03 | 🟡 Em andamento |
+| 4 | Página de Cadastro de Usuário — e-mail, senha, validação, aceite LGPD | 21–22/03 | 🟡 Em andamento |
+| 5 | Exigência de Senha Forte — regex: mín. 8 chars, maiúscula, número, especial | 22–23/03 | 🟡 Em andamento |
+| 6 | Validação de Campos por Expressão Regular — todos os inputs do sistema | 23–25/03 | 🟡 Em andamento |
+
+> **Entregável:** Usuário cadastrado com senha segura (hash), consentimento LGPD registrado na DB.
+
+---
+
+### Sprint 2 — Autenticação Completa e Recuperação de Acesso
+**Período:** 26/03/2026 (qui) → 01/04/2026 (qua)
+
+| # | Atividade | Data | Status |
+|---|-----------|------|--------|
+| 7 | Página de Autenticação de Usuário (Login) | 26–27/03 | 📋 Pendente |
+| 8 | Página de Confirmação de Cadastro por E-mail | 27–28/03 | 📋 Pendente |
+| 9 | MFA obrigatório — TOTP/Google Authenticator (não por e-mail) | 28–30/03 | 📋 Pendente |
+| 10 | Recuperação de Senha por E-mail — link seguro, página de redefinição | 30–31/03 | 📋 Pendente |
+| 11 | Página de Cadastro de Nova Senha — senha forte, hash, redirect ao login | 31/03–01/04 | 📋 Pendente |
+
+> **Entregável:** Fluxo completo cadastro → confirmação → login → MFA → dashboard. Recuperação de senha funcional.
+
+---
+
+### Sprint 3 — Cadastro de Recursos e Dashboard
+**Período:** 02/04/2026 (qui) → 08/04/2026 (qua)
+
+| # | Atividade | Data | Status |
+|---|-----------|------|--------|
+| 12 | Cadastro de Recursos (Produto) — S/N, foto, NF-e, declaração de primeiro dono | 02–04/04 | 📋 Pendente |
+| 13 | Dashboard do Usuário — lista de produtos, alertas de roubo/perda | 04–06/04 | 📋 Pendente |
+| 14 | Página de Consulta Pública de S/N — busca sem expor dados pessoais, contato indireto | 06–08/04 | 📋 Pendente |
+
+> **Entregável:** Usuário autenticado cadastra produto e visualiza painel. Consulta pública de S/N funcional.
+
+---
+
+### Sprint 4 — LGPD Completa e Entrega Final
+**Período:** 09/04/2026 (qui) → 16/04/2026 (qui)
+
+| # | Atividade | Data | Status |
+|---|-----------|------|--------|
+| 15 | LGPD: Transparência — vista "Meus Dados" com todas as informações do usuário | 09–11/04 | 📋 Pendente |
+| 16 | LGPD: Direito ao Esquecimento — exclusão total/parcial, borrado seguro na DB | 11–13/04 | 📋 Pendente |
+| 17 | Testes de integração e correção de bugs | 13–15/04 | 📋 Pendente |
+| 18 | Entrega Final — deploy, documentação, apresentação | 16/04 | 📋 Pendente |
+
+> **Entregável:** Sistema completo com todos os 14 requisitos do professor, LGPD de ponta a ponta.
+
+---
+
+### Visão Consolidada
+
+| Sprint | Início | Fim | Foco |
+|--------|--------|-----|------|
+| Sprint 1 | 19/03/2026 | 25/03/2026 | Privacy by Design, hashing, cadastro de usuário, LGPD consentimento |
+| Sprint 2 | 26/03/2026 | 01/04/2026 | Login, confirmação por e-mail, MFA (TOTP), recuperação de senha |
+| Sprint 3 | 02/04/2026 | 08/04/2026 | Cadastro de produtos (NF-e), dashboard, consulta pública S/N |
+| Sprint 4 | 09/04/2026 | 16/04/2026 | LGPD: transparência e direito ao esquecimento, testes, entrega final |
+
+---
+
 ## Licença
 
 Uso interno — Projeto acadêmico PUCPR. Todos os direitos reservados.
