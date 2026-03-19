@@ -234,21 +234,21 @@ Os requisitos de segurança da Sprint 1 foram integralmente atendidos, conforme 
     \hline
     \textbf{Nº} & \textbf{Requisito} & \textbf{Status} \\
     \hline
-    1 & Página de cadastro de usuário & Concluído \\
+    1 & Página de cadastro de usuário & Pendente \\
     \hline
-    2 & Autenticação com opção de recuperação de senha por e-mail & Concluído \\
+    2 & Autenticação com opção de recuperação de senha por e-mail & Pendente \\
     \hline
-    3 & Página de cadastro de nova senha & Concluído \\
+    3 & Página de cadastro de nova senha & Pendente \\
     \hline
-    4 & Validação de campos com expressões regulares (e-mail, senha, CPF/CNPJ, telefone) & Concluído \\
+    4 & Validação de campos com expressões regulares (e-mail, senha, CPF/CNPJ, telefone) & Pendente \\
     \hline
-    5 & Exigência de senha forte & Concluído \\
+    5 & Exigência de senha forte & Pendente \\
     \hline
-    6 & Hash de senha com função \textit{bcrypt} & Concluído \\
+    6 & Hash de senha com função \textit{bcrypt} & Pendente \\
     \hline
-    7 & Confirmação de cadastro por e-mail & Concluído \\
+    7 & Confirmação de cadastro por e-mail & Pendente \\
     \hline
-    8 & Autenticação em dois fatores via TOTP (não por e-mail) & Concluído \\
+    8 & Autenticação em dois fatores via TOTP (não por e-mail) & Pendente \\
     \hline
   \end{tabularx}
 \end{table}
@@ -452,22 +452,22 @@ equipes. A entrega final está fixada para 16/04/2026.
     \textcolor{white}{\textbf{Status}} \\
     \hline
     \rowcolor{amarelo}
-    1 & Arquitetura: Privacy by Design — revisar que a consulta pública de S/N não exponha dados pessoais & 19--20/03 & Em andamento \\
+    1 & Arquitetura: Privacy by Design — revisar que a consulta pública de S/N não exponha dados pessoais & 19--20/03 & Pendente \\
     \hline
     \rowcolor{amarelo}
-    2 & LGPD: Controle de Consentimento — aceite de termos no cadastro, log na DB & 19--20/03 & Em andamento \\
+    2 & LGPD: Controle de Consentimento — aceite de termos no cadastro, log na DB & 19--20/03 & Pendente \\
     \hline
     \rowcolor{amarelo}
-    3 & Segurança: Backend Hashing — configurar Argon2id/Bcrypt, proibir texto plano & 20--21/03 & Em andamento \\
+    3 & Segurança: Backend Hashing — configurar Argon2id/Bcrypt, proibir texto plano & 20--21/03 & Pendente \\
     \hline
     \rowcolor{amarelo}
-    4 & Página de Cadastro de Usuário — e-mail, senha, validação, aceite LGPD & 21--22/03 & Em andamento \\
+    4 & Página de Cadastro de Usuário — e-mail, senha, validação, aceite LGPD & 21--22/03 & Pendente \\
     \hline
     \rowcolor{amarelo}
-    5 & Exigência de Senha Forte — regex: mín. 8 chars, maiúscula, número, especial & 22--23/03 & Em andamento \\
+    5 & Exigência de Senha Forte — regex: mín. 8 chars, maiúscula, número, especial & 22--23/03 & Pendente \\
     \hline
     \rowcolor{amarelo}
-    6 & Validação de Campos por Expressão Regular — todos os inputs do sistema & 23--25/03 & Em andamento \\
+    6 & Validação de Campos por Expressão Regular — todos os inputs do sistema & 23--25/03 & Pendente \\
     \hline
     \multicolumn{4}{|p{\dimexpr\textwidth-2\tabcolsep-2\arrayrulewidth}|}{%
       \textbf{Entregável:} Usuário cadastrado com senha segura (hash), consentimento LGPD registrado na DB.} \\
@@ -618,11 +618,7 @@ A Tabela~\ref{tab:cronograma} resume os marcos principais do projeto por sprint.
 % ============================================================
 \section{RELATO DE EXPERIÊNCIA}
 
-O desenvolvimento do projeto até este ponto proporcionou aprendizados que transcendem o conteúdo técnico da disciplina. A etapa de concepção — que envolveu a análise crítica das limitações reais do sistema — foi particularmente formativa: identificar os pontos fracos de uma ideia antes da implementação e reformular o escopo em resposta a essas críticas é uma habilidade central na engenharia de software seguro, e raramente é exercitada de forma tão direta em projetos acadêmicos.
 
-A configuração do repositório GitHub com convenções de branching, mensagens de commit padronizadas e separação entre \texttt{main} e \texttt{develop} representou o primeiro contato prático da equipe com fluxo de trabalho colaborativo estruturado. A necessidade de coordenar cinco desenvolvedores em páginas interdependentes tornou evidente a importância do versionamento controlado para evitar conflitos e retrabalho.
-
-Do ponto de vista de segurança, a implementação dos requisitos da Sprint 1 reforçou a compreensão de que segurança não é uma camada adicionada ao sistema, mas uma restrição que molda cada decisão de design. A decisão de nunca retornar dados pessoais na busca pública, por exemplo, não foi uma medida de segurança acrescentada após o desenvolvimento da funcionalidade: ela foi o ponto de partida do design da rota de busca.
 
 % ============================================================
 % 9. USO DE INTELIGÊNCIA ARTIFICIAL GENERATIVA
