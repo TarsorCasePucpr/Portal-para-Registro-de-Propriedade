@@ -1,10 +1,31 @@
 <?php
 declare(strict_types=1);
 
-// response.php — Respostas JSON padronizadas
-//
-// Pontos importantes:
-//   - Todas as respostas da API devem ter o mesmo formato (sucesso ou erro)
-//   - Mensagens de erro para o usuário devem ser genéricas — nunca expor detalhes internos
-//   - Erros internos reais devem ser registrados no log do servidor, não enviados ao cliente
-//   - O código HTTP da resposta deve corresponder ao tipo de situação (401, 403, 429, 500...)
+/**
+ * Resposta JSON de sucesso.
+ */
+function jsonSuccess(mixed $data = [], int $code = 200): never {
+    http_response_code($code);
+    header('Content-Type: application/json');
+    echo json_encode(['success' => true, 'data' => $data]);
+    exit;
+}
+
+/**
+ * Resposta JSON de erro.
+ * A mensagem deve ser genérica — nunca expor detalhes internos ao cliente.
+ */
+function jsonError(string $message, int $code = 400): never {
+    http_response_code($code);
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'error' => $message]);
+    exit;
+}
+
+/**
+ * Redireciona para outra URL e encerra a execução.
+ */
+function redirect(string $url): never {
+    header("Location: $url");
+    exit;
+}

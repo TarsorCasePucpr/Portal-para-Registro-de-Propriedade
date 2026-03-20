@@ -1,10 +1,28 @@
 <?php
 declare(strict_types=1);
 
-// csrf.php — Proteção contra Cross-Site Request Forgery
-//
-// Pontos importantes:
-//   - Gerar um token aleatório por sessão e incluí-lo em todos os formulários como campo oculto
-//   - Validar o token em todo POST antes de processar qualquer dado
-//   - A comparação do token deve ser resistente a timing attacks — não usar ==
-//   - Se o token for inválido, rejeitar a requisição com status 403 imediatamente
+/**
+ * Gera (ou recupera) o token CSRF da sessão.
+ * Um token por sessão — regenerado apenas no logout.
+ */
+function generateCsrfToken(): string {
+    if (empty($_SESSION['csrf'])) {
+        $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf'];
+}
+
+/**
+ * Valida o token CSRF de um POST.
+ * Usa hash_equals para prevenir timing attacks.
+ * Encerra a execução com 403 se inválido.
+ */
+function validateCsrfToken(): void {
+    $sessionToken = $_SESSION['csrf'] ?? '';
+    $postToken    = $_POST['csrf']    ?? '';
+
+    if (!hash_equals($sessionToken, $postToken)) {
+        http_response_code(403);
+        die(json_encode(['error' => 'Token CSRF inválido. Recarregue a página e tente novamente.']));
+    }
+}
