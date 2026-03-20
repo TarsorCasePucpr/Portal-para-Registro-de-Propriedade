@@ -34,32 +34,26 @@
           - Art. 18 (Direitos do titular): link para política de privacidade
       -->
       <form id="form-cadastro" action="../../backend/auth/register.php" method="POST" novalidate>
-        <!-- TODO: <input type="hidden" name="csrf" value="[gerado pelo PHP]"> -->
+        <input type="hidden" name="csrf" value="[gerado pelo PHP]">
 
-        <!-- TODO: Input nome completo -->
-        <!-- <label for="nome">Nome completo</label>
-             <input type="text" id="nome" name="nome" required maxlength="100"
-                    autocomplete="name" placeholder="Seu nome completo"> -->
+        
+        <label for="nome">Nome completo</label>
+        <input type="text" id="nome" name="nome" required maxlength="100" autocomplete="name" placeholder="Seu nome completo">
 
-        <!-- TODO: Input e-mail com validação regex -->
-        <!-- <label for="email">E-mail</label>
-             <input type="email" id="email" name="email" required maxlength="255"
-                    autocomplete="email" placeholder="seu@email.com"> -->
+        
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" required maxlength="255" autocomplete="email" placeholder="seu@email.com">
 
-        <!-- TODO: Input CPF (máscara JS: 000.000.000-00) -->
-        <!-- <label for="cpf">CPF</label>
-             <input type="text" id="cpf" name="cpf" required maxlength="14"
-                    autocomplete="off" placeholder="000.000.000-00"
-                    pattern="\d{3}\.\d{3}\.\d{3}-\d{2}">
-             <small>Necessário para validar propriedade via Nota Fiscal Eletrônica (NF-e)</small> -->
+        
+        <label for="cpf">CPF</label>
+        <input type="text" id="cpf" name="cpf" required maxlength="14" autocomplete="off" placeholder="000.000.000-00" pattern="\d{3}\.\d{3}\.\d{3}-\d{2}">
+        <small>Necessário para validar propriedade via Nota Fiscal Eletrônica (NF-e)</small>
 
         <!-- TODO: Input senha com indicador de força -->
-        <!-- <label for="senha">Senha</label>
-             <input type="password" id="senha" name="senha" required maxlength="255"
-                    autocomplete="new-password"
-                    pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}">
-             <div id="forca-senha" aria-live="polite">Fraca | Média | Forte</div>
-             <small>Mín. 12 caracteres, maiúscula, minúscula, número e símbolo</small> -->
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" name="senha" required maxlength="255" autocomplete="new-password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}">
+        <div id="forca-senha" aria-live="polite">Fraca | Média | Forte</div>
+        <small>Mín. 12 caracteres, maiúscula, minúscula, número e símbolo</small>
 
         <!-- TODO: Input confirmar senha (validação JS apenas — NÃO enviada ao PHP) -->
         <!-- <label for="confirmar-senha">Confirmar senha</label>
@@ -85,8 +79,8 @@
         <!-- TODO: Botão submit desabilitado até LGPD ser aceito (JS) -->
         <!-- <button type="submit" id="btn-cadastrar" disabled>Criar conta</button> -->
 
-        <!-- TODO: Link para login -->
-        <!-- <a href="login.html">Já tenho conta</a> -->
+        
+        <a href="login.html">Já tenho conta</a> -->
       </form>
     </section>
   </main>
