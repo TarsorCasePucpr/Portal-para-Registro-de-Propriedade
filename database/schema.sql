@@ -56,28 +56,17 @@ CREATE TABLE IF NOT EXISTS rate_limits (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ─────────────────────────────────────────────
--- TODO: tabelas a modelar na fase de implementação
+-- LGPD CONSENT
+-- Registra o aceite dos termos (Art. 7, I LGPD)
 -- ─────────────────────────────────────────────
---
--- objects (objetos registrados por número de série)
---   Campos essenciais a definir:
---   - user_id          FK → users.id
---   - serial_number    VARCHAR UNIQUE NOT NULL   (número de série do produto)
---   - category         VARCHAR                  (eletrônico, bicicleta, etc.)
---   - description      TEXT
---   - status           ENUM('normal','roubado','perdido')
---   - nfe_chave        VARCHAR(44)              (chave de acesso NF-e, 44 dígitos)
---   - nfe_validated    TINYINT(1)               (1 = CPF confirmado via NF-e)
---   - nfe_product_desc TEXT                     (xProd da NF-e, raw)
---   - created_at, updated_at, deleted_at
---
--- contact_messages (pessoa encontrou objeto → notifica dono via delegacia)
---   Campos essenciais a definir:
---   - object_id        FK → objects.id
---   - sender_name, sender_email, message, ip
---   - created_at
---
--- Ver README.md seção "Validação de Propriedade via NF-e" para detalhes
--- da integração com API de consulta.
+CREATE TABLE IF NOT EXISTS lgpd_consent (
+    id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id        INT UNSIGNED        NOT NULL,
+    ip             VARCHAR(45)         NOT NULL,
+    policy_version VARCHAR(10)         NOT NULL DEFAULT '1.0',
+    consented_at   DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_consent (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
