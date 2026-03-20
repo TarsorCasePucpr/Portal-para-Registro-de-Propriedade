@@ -3,101 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SNGuard — Cadastrar Produto</title>
+  <title>SNGuard — Cadastro de Produto</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
-  <!-- ===== CABEÇALHO / NAV AUTENTICADO ===== -->
+  <!-- ===== HEADER ===== -->
   <header>
-    <!-- TODO: Logo SNGuard + nav autenticado: Dashboard | Novo Produto | Perfil | Sair -->
-    <!-- TODO: JS deve verificar sessão; se não logado, redirecionar para login.html -->
+    <!-- Preciso colocar o Logo, Navegação (Dashboard | Novo Produto | Perfil | Sair) -->
   </header>
 
   <main>
     <section id="cadastro-produto-section">
-      <h1>Registrar novo produto</h1>
+      <h1>Registrar novo produto na SNGuard</h1>
 
-      <!--
-        FORMULÁRIO DE CADASTRO DE PRODUTO
-        action → backend/produto/cadastrar.php (POST)
+      <!-- AQUI EU FAÇO A IMPORTAÇÃO VIA NOTA FISCAL  -->
+      <h2>Importar via Nota Fiscal</h2>
 
-        Segurança:
-          - Rota protegida: backend/middleware/auth_guard.php verifica $_SESSION
-          - CSRF token obrigatório
-          - Vinculação automática: user_id vem da $_SESSION, NUNCA do formulário
-          - Número de série: sanitizar com htmlspecialchars + trim
-          - Upload de imagem (NF-e): validar MIME type real com finfo_file(), não extensão
-            Tipos permitidos: image/jpeg, image/png, application/pdf
-            Tamanho máximo: 5MB; armazenar fora do webroot
-          - Rate limiting: máx. 10 cadastros / hora por usuário
+      <p>
+        Consultar a chave da nota fiscal permite validar a propriedade do produto
+        e aumenta o score de confiabilidade do cadastro.
+      </p>
 
-        LGPD — Art. 9 (Transparência):
-          Informar que os dados do produto são vinculados ao CPF do usuário
-          e que o STATUS do produto (mas não dados pessoais) será público na busca.
-        LGPD — Art. 18, VI (Exclusão de dados):
-          Usuário pode excluir produtos via dashboard (soft delete — objects.deleted_at).
-      -->
-      <form id="form-produto" action="../../backend/produto/cadastrar.php"
-            method="POST" enctype="multipart/form-data" novalidate>
-        <!-- TODO: <input type="hidden" name="csrf" value="[gerado pelo PHP]"> -->
+      <label for="nfe-chave">Chave da Nota Fiscal (44 dígitos)</label>
+      <input type="text" id="nfe-chave" name="nfe_chave"
+             maxlength="44" minlength="44"
+             placeholder="Digite a chave da NF">
 
-        <!-- TODO: Input nome do produto -->
-        <!-- <label for="nome-produto">Nome do produto</label>
-             <input type="text" id="nome-produto" name="nome_produto"
-                    required maxlength="200" placeholder="Ex: Notebook Dell Inspiron 15"> -->
+      <button type="button">Consultar Nota Fiscal</button>
 
-        <!-- TODO: Select categoria (ver lista completa no README.md) -->
-        <!-- <label for="categoria">Categoria</label>
-             <select id="categoria" name="categoria" required>
-               <option value="">Selecione...</option>
-               <option value="eletronico">Eletrônico</option>
-               <option value="transporte">Transporte</option>
-               <option value="ferramenta">Ferramenta</option>
-               <option value="instrumento">Instrumento Musical</option>
-               <option value="esporte">Esporte e Lazer</option>
-               <option value="joia">Joia e Relógio</option>
-               <option value="outro">Outro</option>
-             </select> -->
+      <hr>
 
-        <!-- TODO: Input número de série (S/N) -->
-        <!-- <label for="serial">Número de série (S/N)</label>
-             <input type="text" id="serial" name="serial_number"
-                    required maxlength="100" placeholder="Número de série do produto"
-                    pattern="[A-Za-z0-9\-\.]{3,100}">
-             <small>Encontrado na embalagem, nota fiscal ou na parte traseira do produto</small> -->
+      <!-- ===== INFORMAÇÕES DO PRODUTO ===== -->
+      <h2>Informações do Produto</h2>
 
-        <!-- TODO: Campo chave NF-e (validação de propriedade) -->
-        <!-- <label for="nfe-chave">Chave de acesso NF-e (recomendado)</label>
-             <input type="text" id="nfe-chave" name="nfe_chave"
-                    maxlength="44" minlength="44" inputmode="numeric"
-                    pattern="[0-9]{44}" placeholder="44 dígitos da nota fiscal">
-             <button type="button" id="btn-validar-nfe">Validar NF-e</button>
-             <div id="resultado-nfe" aria-live="polite"></div> -->
+      <label for="descricao">Descrição do Produto</label>
+      <textarea id="descricao" name="descricao"
+                placeholder="Descreva o produto"></textarea>
 
-        <!-- TODO: Upload comprovante (imagem ou PDF) -->
-        <!-- <label for="comprovante">Comprovante de compra (opcional)</label>
-             <input type="file" id="comprovante" name="comprovante"
-                    accept=".jpg,.jpeg,.png,.pdf">
-             <small>Máx. 5MB. Formatos: JPG, PNG ou PDF</small> -->
+      <label for="serial">Número de Série</label>
+      <input type="text" id="serial" name="serial_number"
+             placeholder="Digite o número de série">
 
-        <!-- TODO: Textarea descrição adicional -->
-        <!-- <label for="descricao">Descrição (opcional)</label>
-             <textarea id="descricao" name="descricao" maxlength="500"
-                       placeholder="Cor, modelo exato, características especiais..."></textarea> -->
+      <label for="foto-produto">Foto do Produto</label>
+      <input type="file" id="foto-produto" name="foto_produto">
 
-        <!-- TODO: Botão submit -->
-        <!-- <button type="submit">Registrar produto</button> -->
-        <!-- TODO: Botão cancelar → dashboard.html -->
-      </form>
+      <label for="foto-serial">Foto do Número de Série</label>
+      <input type="file" id="foto-serial" name="foto_serial">
+
+      <label for="data-compra">Data de Compra</label>
+      <input type="date" id="data-compra" name="data_compra">
+
+      <!-- AQUI É A DECLARAÇÃO LEGAL ONDE O USUARIO DEVE ACEITAR PARA CONTINUAR-->
+      <div>
+        <p>
+          Declaro que sou o primeiro dono do produto e estou ciente das penalidades legais
+          em caso de tentativa de cadastro de produto roubado, furtado ou proveniente de perda.
+        </p>
+      </div>
+
+      <label>
+        <input type="checkbox" name="aceite_termos">
+        Eu concordo com a declaração de responsabilidade
+      </label>
+
+      <!-- ===== AÇÕES ===== -->
+      <button type="submit">Cadastrar Produto</button>
+
     </section>
   </main>
 
   <footer>
-    <!-- TODO: Links: Política de Privacidade | Termos de Uso -->
+    <!-- Política de Privacidade | Termos de Uso -->
   </footer>
 
-  <script src="../js/validacoes.js" defer></script>
-  <script src="../js/main.js" defer></script>
 </body>
 </html>
