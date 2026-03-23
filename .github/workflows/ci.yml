@@ -273,13 +273,13 @@ jobs:
           lock_check "lgpd.esquecimento|direito.esquecimento"     "2026-03-23" "Henrique"         "LGPD Direito ao Esquecimento"
           lock_check "lgpd.consentimento|controle.consentimento"  "2026-03-23" "Henrique/Gustavo" "LGPD Controle de Consentimento"
 
-          # --- Bloqueio: 2026-03-25 ---
-          lock_check "frontend/pages/index\.html"                 "2026-03-25" "Wellington"       "Home e Index"
-          lock_check "frontend/pages/busca\.html"                 "2026-03-25" "Gustavo"          "Consultas SN"
-          lock_check "backend/produto/buscar\.php"                "2026-03-25" "Gustavo"          "Consultas SN"
-          lock_check "backend/produto/status\.php"                "2026-03-25" "Gustavo"          "Consultas SN"
-          lock_check "frontend/pages/redefinicao-senha\.html"     "2026-03-25" "Kauã"             "Redefinição de Senha"
-          lock_check "frontend/pages/dashboard\.html"             "2026-03-25" "Henrique"         "Dashboard Padrão"
+          # --- Bloqueio: 2026-03-24 ---
+          lock_check "frontend/pages/index\.html"                 "2026-03-24" "Wellington"       "Home e Index"
+          lock_check "frontend/pages/busca\.html"                 "2026-03-24" "Gustavo"          "Consultas SN"
+          lock_check "backend/produto/buscar\.php"                "2026-03-24" "Gustavo"          "Consultas SN"
+          lock_check "backend/produto/status\.php"                "2026-03-24" "Gustavo"          "Consultas SN"
+          lock_check "frontend/pages/redefinicao-senha\.html"     "2026-03-24" "Kauã"             "Redefinição de Senha"
+          lock_check "frontend/pages/dashboard\.html"             "2026-03-24" "Henrique"         "Dashboard Padrão"
 
           if [ "$BLOCKED" -eq 1 ]; then
             echo ""
