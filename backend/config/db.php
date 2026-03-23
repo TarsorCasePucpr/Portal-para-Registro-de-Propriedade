@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 
-// Carrega variáveis do .env (arquivo na raiz do projeto)
 $envFile = __DIR__ . '/../../.env';
 if (file_exists($envFile)) {
     foreach (parse_ini_file($envFile) ?: [] as $key => $val) {
@@ -9,16 +8,11 @@ if (file_exists($envFile)) {
     }
 }
 
-// Headers de segurança HTTP — aplicados em todas as respostas
 header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
 header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 
-/**
- * Retorna a conexão PDO singleton.
- * Prepared statements emulados desativados para prevenir SQL injection.
- */
 function getDb(): PDO {
     static $pdo = null;
 
@@ -39,7 +33,7 @@ function getDb(): PDO {
             $pass,
             [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_EMULATE_PREPARES   => false, // Crítico: true permite SQLi em PHP antigo
+                PDO::ATTR_EMULATE_PREPARES   => false,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             ]
         );

@@ -1,18 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * Verifica e registra uma tentativa de ação por IP.
- *
- * Limites definidos no projeto:
- *   login       → max 5 / 15 min
- *   mfa         → max 3 / 10 min
- *   recovery    → max 3 / 60 min
- *   nfe_query   → max 10 / 60 min
- *   contact     → max 3 / 60 min
- *
- * Retorna true se a ação é permitida, false se o limite foi atingido.
- */
 function checkRateLimit(PDO $pdo, string $ip, string $action, int $max, int $windowMinutes): bool {
     $since = time() - ($windowMinutes * 60);
 
