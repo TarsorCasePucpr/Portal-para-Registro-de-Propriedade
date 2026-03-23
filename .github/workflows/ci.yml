@@ -251,14 +251,21 @@ jobs:
             local owner="$3"
             local task="$4"
 
-            if echo "$CHANGED" | grep -qE "$pattern"; then
-              if [[ "$TODAY" > "$lock_date" || "$TODAY" == "$lock_date" ]]; then
-                echo "❌  Arquivo bloqueado: $(echo "$CHANGED" | grep -E "$pattern" | head -1)"
-                echo "    Responsável : $owner"
-                echo "    Tarefa      : $task"
-                echo "    Prazo       : $lock_date"
-                BLOCKED=1
-              fi
+            local file
+            file=$(echo "$CHANGED" | grep -E "$pattern" | head -1)
+            [ -z "$file" ] && return
+
+            # Só bloqueia se o conteúdo foi realmente alterado em relação ao develop
+            local real_diff
+            real_diff=$(git diff "origin/$GH_BASE_REF:$file" "HEAD:$file" 2>/dev/null)
+            [ -z "$real_diff" ] && return
+
+            if [[ "$TODAY" > "$lock_date" || "$TODAY" == "$lock_date" ]]; then
+              echo "❌  Arquivo bloqueado: $file"
+              echo "    Responsável : $owner"
+              echo "    Tarefa      : $task"
+              echo "    Prazo       : $lock_date"
+              BLOCKED=1
             fi
           }
 
