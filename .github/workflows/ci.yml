@@ -279,7 +279,8 @@ jobs:
           lock_check "frontend/pages/busca\.html"                 "2026-03-24" "Gustavo"          "Consultas SN"
           lock_check "backend/produto/buscar\.php"                "2026-03-24" "Gustavo"          "Consultas SN"
           lock_check "backend/produto/status\.php"                "2026-03-24" "Gustavo"          "Consultas SN"
-          lock_check "frontend/pages/redefinicao-senha\.html"     "2026-03-24" "Kauã"             "Redefinição de Senha"
+          # Kauã desbloqueado manualmente em 2026-03-23
+          # lock_check "frontend/pages/redefinicao-senha\.html"     "2026-03-24" "Kauã"             "Redefinição de Senha"
           lock_check "frontend/pages/dashboard\.html"             "2026-03-24" "Henrique"         "Dashboard Padrão"
 
           if [ "$BLOCKED" -eq 1 ]; then
