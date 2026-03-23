@@ -267,8 +267,9 @@ jobs:
           lock_check "backend/auth/mfa\.php"                      "2026-03-23" "Wellington"       "Autenticação MFA"
           lock_check "frontend/pages/recuperacao-senha\.html"     "2026-03-23" "Henrique"         "Recuperação de Senha"
           lock_check "backend/auth/recover\.php"                  "2026-03-23" "Henrique"         "Recuperação de Senha"
-          lock_check "frontend/pages/confirmacao-cadastro\.html"  "2026-03-23" "Kauã"             "Confirmação de Cadastro"
-          lock_check "backend/auth/confirm\.php"                  "2026-03-23" "Kauã"             "Confirmação de Cadastro"
+          # Kauã desbloqueado manualmente em 2026-03-23
+          # lock_check "frontend/pages/confirmacao-cadastro\.html"  "2026-03-23" "Kauã"             "Confirmação de Cadastro"
+          # lock_check "backend/auth/confirm\.php"                  "2026-03-23" "Kauã"             "Confirmação de Cadastro"
           lock_check "lgpd.transparencia|transparencia.dados"     "2026-03-23" "Wellington"       "LGPD Transparência de Dados"
           lock_check "lgpd.esquecimento|direito.esquecimento"     "2026-03-23" "Henrique"         "LGPD Direito ao Esquecimento"
           lock_check "lgpd.consentimento|controle.consentimento"  "2026-03-23" "Henrique/Gustavo" "LGPD Controle de Consentimento"
