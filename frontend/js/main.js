@@ -1,10 +1,5 @@
-// main.js — Interações de UI para login e cadastro
-
 document.addEventListener('DOMContentLoaded', function () {
 
-  // ─────────────────────────────────────────────
-  // CSRF: buscar token do servidor antes de qualquer submit
-  // ─────────────────────────────────────────────
   const csrfInput = document.getElementById('csrf-token');
   if (csrfInput) {
     fetch('../../backend/auth/get_csrf.php')
@@ -13,9 +8,6 @@ document.addEventListener('DOMContentLoaded', function () {
       .catch(function () { console.error('Não foi possível obter o token CSRF.'); });
   }
 
-  // ─────────────────────────────────────────────
-  // MOSTRAR / OCULTAR SENHA
-  // ─────────────────────────────────────────────
   configurarToggleSenha('toggle-senha',    'senha');
   configurarToggleSenha('toggle-confirmar', 'confirmar-senha');
 
@@ -31,9 +23,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ─────────────────────────────────────────────
-  // MÁSCARA E VALIDAÇÃO DE CPF (apenas na tela de cadastro)
-  // ─────────────────────────────────────────────
   const campoCPF = document.getElementById('cpf');
   if (campoCPF) {
     campoCPF.addEventListener('input', function () {
@@ -49,9 +38,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ─────────────────────────────────────────────
-  // INDICADOR DE FORÇA DE SENHA (apenas na tela de cadastro)
-  // ─────────────────────────────────────────────
   const campoSenhaCadastro = document.getElementById('senha');
   const divForca           = document.getElementById('forca-senha');
 
@@ -68,9 +54,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ─────────────────────────────────────────────
-  // LGPD: habilitar/desabilitar botão de cadastro
-  // ─────────────────────────────────────────────
   const checkLGPD      = document.getElementById('aceite-lgpd');
   const btnCadastrar   = document.getElementById('btn-cadastrar');
 
@@ -80,9 +63,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ─────────────────────────────────────────────
-  // VALIDAÇÃO DO FORMULÁRIO DE LOGIN
-  // ─────────────────────────────────────────────
   const formLogin = document.getElementById('form-login');
   if (formLogin) {
     formLogin.addEventListener('submit', function (e) {
@@ -110,7 +90,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      // Estado de carregamento
       const btn = document.getElementById('btn-login');
       if (btn) {
         btn.textContent = 'Entrando...';
@@ -119,9 +98,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ─────────────────────────────────────────────
-  // VALIDAÇÃO DO FORMULÁRIO DE CADASTRO
-  // ─────────────────────────────────────────────
   const formCadastro = document.getElementById('form-cadastro');
   if (formCadastro) {
     formCadastro.addEventListener('submit', function (e) {
@@ -181,7 +157,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      // Estado de carregamento
       const btn = document.getElementById('btn-cadastrar');
       if (btn) {
         btn.textContent = 'Criando conta...';
