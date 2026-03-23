@@ -213,3 +213,79 @@ jobs:
 
           if [ $ERROR -ne 0 ]; then exit 1; fi
           echo "✅ All required files present"
+
+  # ─────────────────────────────────────────────
+  # 7. File Lock — bloqueia merge de arquivos com prazo encerrado
+  # ─────────────────────────────────────────────
+  file-lock:
+    name: File Lock
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verificar arquivos bloqueados
+        env:
+          GH_EVENT: ${{ github.event_name }}
+          GH_BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "$GH_EVENT" != "pull_request" ]; then
+            echo "Não é um PR — verificação ignorada."
+            exit 0
+          fi
+
+          TODAY=$(date -u '+%Y-%m-%d')
+          git fetch origin "$GH_BASE_REF" --quiet
+          CHANGED=$(git diff --name-only "origin/$GH_BASE_REF...HEAD")
+
+          echo "Arquivos modificados neste PR:"
+          echo "$CHANGED"
+          echo "---"
+
+          BLOCKED=0
+
+          lock_check() {
+            local pattern="$1"
+            local lock_date="$2"
+            local owner="$3"
+            local task="$4"
+
+            if echo "$CHANGED" | grep -qE "$pattern"; then
+              if [[ "$TODAY" > "$lock_date" || "$TODAY" == "$lock_date" ]]; then
+                echo "❌  Arquivo bloqueado: $(echo "$CHANGED" | grep -E "$pattern" | head -1)"
+                echo "    Responsável : $owner"
+                echo "    Tarefa      : $task"
+                echo "    Prazo       : $lock_date"
+                BLOCKED=1
+              fi
+            fi
+          }
+
+          # --- Bloqueio: 2026-03-23 ---
+          lock_check "frontend/pages/mfa\.html"                   "2026-03-23" "Wellington"       "Autenticação MFA"
+          lock_check "backend/auth/mfa\.php"                      "2026-03-23" "Wellington"       "Autenticação MFA"
+          lock_check "frontend/pages/recuperacao-senha\.html"     "2026-03-23" "Henrique"         "Recuperação de Senha"
+          lock_check "backend/auth/recover\.php"                  "2026-03-23" "Henrique"         "Recuperação de Senha"
+          lock_check "frontend/pages/confirmacao-cadastro\.html"  "2026-03-23" "Kauã"             "Confirmação de Cadastro"
+          lock_check "backend/auth/confirm\.php"                  "2026-03-23" "Kauã"             "Confirmação de Cadastro"
+          lock_check "lgpd.transparencia|transparencia.dados"     "2026-03-23" "Wellington"       "LGPD Transparência de Dados"
+          lock_check "lgpd.esquecimento|direito.esquecimento"     "2026-03-23" "Henrique"         "LGPD Direito ao Esquecimento"
+          lock_check "lgpd.consentimento|controle.consentimento"  "2026-03-23" "Henrique/Gustavo" "LGPD Controle de Consentimento"
+
+          # --- Bloqueio: 2026-03-25 ---
+          lock_check "frontend/pages/index\.html"                 "2026-03-25" "Wellington"       "Home e Index"
+          lock_check "frontend/pages/busca\.html"                 "2026-03-25" "Gustavo"          "Consultas SN"
+          lock_check "backend/produto/buscar\.php"                "2026-03-25" "Gustavo"          "Consultas SN"
+          lock_check "backend/produto/status\.php"                "2026-03-25" "Gustavo"          "Consultas SN"
+          lock_check "frontend/pages/redefinicao-senha\.html"     "2026-03-25" "Kauã"             "Redefinição de Senha"
+          lock_check "frontend/pages/dashboard\.html"             "2026-03-25" "Henrique"         "Dashboard Padrão"
+
+          if [ "$BLOCKED" -eq 1 ]; then
+            echo ""
+            echo "Este PR inclui arquivos com prazo encerrado."
+            echo "Contate Gerard Gonzalez para autorização de desbloqueio."
+            exit 1
+          fi
+
+          echo "✅ Nenhum arquivo bloqueado."
