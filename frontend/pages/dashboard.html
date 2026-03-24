@@ -77,17 +77,9 @@
 
     <!-- ===== EXCLUSÃO DE CONTA (LGPD Art. 18) ===== -->
     <section id="exclusao-conta">
-      <!--
-        LGPD — Art. 18, VI (Direito à exclusão dos dados):
-        TODO: Botão/link "Solicitar exclusão da minha conta"
-        Fluxo ao confirmar:
-          1. Soft delete em users (deleted_at = NOW())
-          2. Soft delete em todos os objects do usuário
-          3. Enviar e-mail de confirmação da exclusão (via mailer.php)
-          4. Logout automático (session_destroy)
-          5. Cron job agenda exclusão permanente após 30 dias (LGPD Art. 16)
-        NUNCA excluir dados imediatamente — período de retenção mínimo para auditoria.
-      -->
+      <h2>Privacidade e exclusão de dados</h2>
+      <p>Em conformidade com a LGPD (Art. 18, VI), você pode solicitar a exclusão dos seus dados pessoais.</p>
+      <a href="exclusao-conta.html" id="btn-exclusao-conta">Solicitar exclusão da minha conta</a>
     </section>
   </main>
 
