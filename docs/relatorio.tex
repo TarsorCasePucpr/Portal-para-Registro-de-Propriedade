@@ -234,21 +234,21 @@ Os requisitos de segurança da Sprint 1 foram integralmente atendidos, conforme 
     \hline
     \textbf{Nº} & \textbf{Requisito} & \textbf{Status} \\
     \hline
-    1 & Página de cadastro de usuário & Concluído \\
+    1 & Página de cadastro de usuário & Pendente \\
     \hline
-    2 & Autenticação com opção de recuperação de senha por e-mail & Concluído \\
+    2 & Autenticação com opção de recuperação de senha por e-mail & Pendente \\
     \hline
-    3 & Página de cadastro de nova senha & Concluído \\
+    3 & Página de cadastro de nova senha & Pendente \\
     \hline
-    4 & Validação de campos com expressões regulares (e-mail, senha, CPF/CNPJ, telefone) & Concluído \\
+    4 & Validação de campos com expressões regulares (e-mail, senha, CPF/CNPJ, telefone) & Pendente \\
     \hline
-    5 & Exigência de senha forte & Concluído \\
+    5 & Exigência de senha forte & Pendente \\
     \hline
-    6 & Hash de senha com função \textit{bcrypt} & Concluído \\
+    6 & Hash de senha com função \textit{bcrypt} & Pendente \\
     \hline
-    7 & Confirmação de cadastro por e-mail & Concluído \\
+    7 & Confirmação de cadastro por e-mail & Pendente \\
     \hline
-    8 & Autenticação em dois fatores via TOTP (não por e-mail) & Concluído \\
+    8 & Autenticação em dois fatores via TOTP (não por e-mail) & Pendente \\
     \hline
   \end{tabularx}
 \end{table}
@@ -426,64 +426,189 @@ A principal discussão identificada durante o desenvolvimento diz respeito ao po
 Uma limitação identificada é a dependência de que o proprietário realize o registro \textit{antes} do furto. Sistemas voluntários de registro tendem a ter baixa adoção inicial. A mitigação proposta para fases futuras inclui parcerias com lojistas para registro automático no ponto de venda, transferindo o esforço de registro do consumidor para o varejo.
 
 % ============================================================
-% 7. ETAPAS FUTURAS E CRONOGRAMA
+% 7. PLANEJAMENTO DE SPRINTS E CRONOGRAMA
 % ============================================================
-\section{ETAPAS FUTURAS E CRONOGRAMA}
+\section{PLANEJAMENTO DE SPRINTS E CRONOGRAMA}
 
-As próximas etapas do projeto estão organizadas em duas sprints adicionais:
+O projeto foi estruturado em quatro sprints com datas definidas, cobrindo o período de
+19 de março a 16 de abril de 2026, totalizando 18 atividades distribuídas entre as
+equipes. A entrega final está fixada para 16/04/2026.
 
-\begin{enumerate}
-  \item \textbf{Sprint 2 (Semanas 8--11):} implementação do back-end PHP com persistência em banco de dados MySQL, integração do \textit{bcrypt} para hash de senhas, controle e expiração de sessão, confirmação de cadastro por e-mail com token e implementação completa do MFA via TOTP.
-
-  \item \textbf{Sprint 3 (Semanas 12--15):} aplicação de gerência de segredos com isolamento de credenciais do código-fonte, implementação de criptografia de dados sensíveis com certificados e chaves, e validação final do sistema completo.
-\end{enumerate}
-
-A Tabela~\ref{tab:cronograma} apresenta o cronograma completo do projeto.
+\subsection{Sprint 1 — Fundação de Segurança e Cadastro}
+\textbf{Período:} 19/03/2026 (qui) $\rightarrow$ 25/03/2026 (qua)
 
 \begin{table}[H]
   \centering
-  \caption{Cronograma de Atividades}
-  \label{tab:cronograma}
-  \renewcommand{\arraystretch}{1.4}
+  \caption{Sprint 1 — Fundação de Segurança e Cadastro}
+  \label{tab:sprint1}
+  \renewcommand{\arraystretch}{1.3}
   \small
-  \begin{tabularx}{\textwidth}{|X|c|c|}
+  \begin{tabularx}{\textwidth}{|c|X|c|c|}
     \hline
     \rowcolor{cinzaHeader}
+    \textcolor{white}{\textbf{\#}} &
     \textcolor{white}{\textbf{Atividade}} &
     \textcolor{white}{\textbf{Período}} &
     \textcolor{white}{\textbf{Status}} \\
     \hline
-    \rowcolor{verde}
-    Definição do tema, análise de requisitos e estrutura do repositório &
-    Sem. 1--2 & Concluído \\
-    \hline
-    \rowcolor{verde}
-    Desenvolvimento do front-end: páginas HTML, CSS e validações com Regex &
-    Sem. 2--6 & Concluído \\
-    \hline
-    \rowcolor{verde}
-    Apresentação da Sprint 1 e vídeo TDE &
-    Sem. 7 & Concluído \\
+    \rowcolor{amarelo}
+    1 & Arquitetura: Privacy by Design — revisar que a consulta pública de S/N não exponha dados pessoais & 19--20/03 & Pendente \\
     \hline
     \rowcolor{amarelo}
-    Back-end PHP: banco de dados, bcrypt, controle de sessão &
-    Sem. 8--10 & Em andamento \\
+    2 & LGPD: Controle de Consentimento — aceite de termos no cadastro, log na DB & 19--20/03 & Pendente \\
     \hline
     \rowcolor{amarelo}
-    Confirmação por e-mail, MFA (TOTP) e contato anônimo &
-    Sem. 10 & Em andamento \\
+    3 & Segurança: Backend Hashing — configurar Argon2id/Bcrypt, proibir texto plano & 20--21/03 & Pendente \\
+    \hline
+    \rowcolor{amarelo}
+    4 & Página de Cadastro de Usuário — e-mail, senha, validação, aceite LGPD & 21--22/03 & Pendente \\
+    \hline
+    \rowcolor{amarelo}
+    5 & Exigência de Senha Forte — regex: mín. 8 chars, maiúscula, número, especial & 22--23/03 & Pendente \\
+    \hline
+    \rowcolor{amarelo}
+    6 & Validação de Campos por Expressão Regular — todos os inputs do sistema & 23--25/03 & Pendente \\
+    \hline
+    \multicolumn{4}{|p{\dimexpr\textwidth-2\tabcolsep-2\arrayrulewidth}|}{%
+      \textbf{Entregável:} Usuário cadastrado com senha segura (hash), consentimento LGPD registrado na DB.} \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+\subsection{Sprint 2 — Autenticação Completa e Recuperação de Acesso}
+\textbf{Período:} 26/03/2026 (qui) $\rightarrow$ 01/04/2026 (qua)
+
+\begin{table}[H]
+  \centering
+  \caption{Sprint 2 — Autenticação Completa e Recuperação de Acesso}
+  \label{tab:sprint2}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabularx}{\textwidth}{|c|X|c|c|}
+    \hline
+    \rowcolor{cinzaHeader}
+    \textcolor{white}{\textbf{\#}} &
+    \textcolor{white}{\textbf{Atividade}} &
+    \textcolor{white}{\textbf{Período}} &
+    \textcolor{white}{\textbf{Status}} \\
     \hline
     \rowcolor{azulClaro}
-    Apresentação da Sprint 2 e vídeo &
-    Sem. 11 & Pendente \\
+    7  & Página de Autenticação de Usuário (Login) & 26--27/03 & Pendente \\
     \hline
     \rowcolor{azulClaro}
-    Gerência de segredos e criptografia com certificados/chaves &
-    Sem. 12--14 & Pendente \\
+    8  & Página de Confirmação de Cadastro por E-mail & 27--28/03 & Pendente \\
     \hline
     \rowcolor{azulClaro}
-    Apresentação da Sprint 3 e entrega final &
-    Sem. 15--16 & Pendente \\
+    9  & MFA obrigatório — TOTP/Google Authenticator (não por e-mail) & 28--30/03 & Pendente \\
+    \hline
+    \rowcolor{azulClaro}
+    10 & Recuperação de Senha por E-mail — link seguro, página de redefinição & 30--31/03 & Pendente \\
+    \hline
+    \rowcolor{azulClaro}
+    11 & Página de Cadastro de Nova Senha — senha forte, hash, redirect ao login & 31/03--01/04 & Pendente \\
+    \hline
+    \multicolumn{4}{|p{\dimexpr\textwidth-2\tabcolsep-2\arrayrulewidth}|}{%
+      \textbf{Entregável:} Fluxo completo cadastro $\rightarrow$ confirmação $\rightarrow$ login $\rightarrow$ MFA $\rightarrow$ dashboard. Recuperação de senha funcional.} \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+\subsection{Sprint 3 — Cadastro de Recursos e Dashboard}
+\textbf{Período:} 02/04/2026 (qui) $\rightarrow$ 08/04/2026 (qua)
+
+\begin{table}[H]
+  \centering
+  \caption{Sprint 3 — Cadastro de Recursos e Dashboard}
+  \label{tab:sprint3}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabularx}{\textwidth}{|c|X|c|c|}
+    \hline
+    \rowcolor{cinzaHeader}
+    \textcolor{white}{\textbf{\#}} &
+    \textcolor{white}{\textbf{Atividade}} &
+    \textcolor{white}{\textbf{Período}} &
+    \textcolor{white}{\textbf{Status}} \\
+    \hline
+    \rowcolor{azulClaro}
+    12 & Cadastro de Recursos (Produto) — S/N, foto, NF-e, declaração de primeiro dono & 02--04/04 & Pendente \\
+    \hline
+    \rowcolor{azulClaro}
+    13 & Dashboard do Usuário — lista de produtos, alertas de roubo/perda, alerta de status & 04--06/04 & Pendente \\
+    \hline
+    \rowcolor{azulClaro}
+    14 & Página de Consulta Pública de S/N — busca sem expor dados pessoais, contato indireto & 06--08/04 & Pendente \\
+    \hline
+    \multicolumn{4}{|p{\dimexpr\textwidth-2\tabcolsep-2\arrayrulewidth}|}{%
+      \textbf{Entregável:} Usuário autenticado cadastra produto e visualiza painel. Consulta pública de S/N funcional.} \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+\subsection{Sprint 4 — LGPD Completa e Entrega Final}
+\textbf{Período:} 09/04/2026 (qui) $\rightarrow$ 16/04/2026 (qui)
+
+\begin{table}[H]
+  \centering
+  \caption{Sprint 4 — LGPD Completa e Entrega Final}
+  \label{tab:sprint4}
+  \renewcommand{\arraystretch}{1.3}
+  \small
+  \begin{tabularx}{\textwidth}{|c|X|c|c|}
+    \hline
+    \rowcolor{cinzaHeader}
+    \textcolor{white}{\textbf{\#}} &
+    \textcolor{white}{\textbf{Atividade}} &
+    \textcolor{white}{\textbf{Período}} &
+    \textcolor{white}{\textbf{Status}} \\
+    \hline
+    \rowcolor{azulClaro}
+    15 & LGPD: Transparência — vista ``Meus Dados'' com todas as informações do usuário & 09--11/04 & Pendente \\
+    \hline
+    \rowcolor{azulClaro}
+    16 & LGPD: Direito ao Esquecimento — exclusão total/parcial, borrado seguro na DB & 11--13/04 & Pendente \\
+    \hline
+    \rowcolor{azulClaro}
+    17 & Testes de integração e correção de bugs & 13--15/04 & Pendente \\
+    \hline
+    \rowcolor{azulClaro}
+    18 & Entrega Final — deploy, documentação, apresentação & 16/04 & Pendente \\
+    \hline
+    \multicolumn{4}{|p{\dimexpr\textwidth-2\tabcolsep-2\arrayrulewidth}|}{%
+      \textbf{Entregável:} Sistema completo com todos os 14 requisitos do professor, LGPD de ponta a ponta.} \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+\subsection{Visão Consolidada do Cronograma}
+
+A Tabela~\ref{tab:cronograma} resume os marcos principais do projeto por sprint.
+
+\begin{table}[H]
+  \centering
+  \caption{Cronograma Consolidado — SNGuard}
+  \label{tab:cronograma}
+  \renewcommand{\arraystretch}{1.4}
+  \small
+  \begin{tabularx}{\textwidth}{|l|c|c|X|}
+    \hline
+    \rowcolor{cinzaHeader}
+    \textcolor{white}{\textbf{Sprint}} &
+    \textcolor{white}{\textbf{Início}} &
+    \textcolor{white}{\textbf{Fim}} &
+    \textcolor{white}{\textbf{Foco principal}} \\
+    \hline
+    \rowcolor{amarelo}
+    Sprint 1 & 19/03/2026 & 25/03/2026 & Privacy by Design, hashing, cadastro de usuário, LGPD consentimento \\
+    \hline
+    \rowcolor{azulClaro}
+    Sprint 2 & 26/03/2026 & 01/04/2026 & Login, confirmação por e-mail, MFA (TOTP), recuperação de senha \\
+    \hline
+    \rowcolor{azulClaro}
+    Sprint 3 & 02/04/2026 & 08/04/2026 & Cadastro de produtos (NF-e), dashboard, consulta pública S/N \\
+    \hline
+    \rowcolor{azulClaro}
+    Sprint 4 & 09/04/2026 & 16/04/2026 & LGPD: transparência e direito ao esquecimento, testes, entrega final \\
     \hline
   \end{tabularx}
 \end{table}
@@ -493,11 +618,7 @@ A Tabela~\ref{tab:cronograma} apresenta o cronograma completo do projeto.
 % ============================================================
 \section{RELATO DE EXPERIÊNCIA}
 
-O desenvolvimento do projeto até este ponto proporcionou aprendizados que transcendem o conteúdo técnico da disciplina. A etapa de concepção — que envolveu a análise crítica das limitações reais do sistema — foi particularmente formativa: identificar os pontos fracos de uma ideia antes da implementação e reformular o escopo em resposta a essas críticas é uma habilidade central na engenharia de software seguro, e raramente é exercitada de forma tão direta em projetos acadêmicos.
 
-A configuração do repositório GitHub com convenções de branching, mensagens de commit padronizadas e separação entre \texttt{main} e \texttt{develop} representou o primeiro contato prático da equipe com fluxo de trabalho colaborativo estruturado. A necessidade de coordenar cinco desenvolvedores em páginas interdependentes tornou evidente a importância do versionamento controlado para evitar conflitos e retrabalho.
-
-Do ponto de vista de segurança, a implementação dos requisitos da Sprint 1 reforçou a compreensão de que segurança não é uma camada adicionada ao sistema, mas uma restrição que molda cada decisão de design. A decisão de nunca retornar dados pessoais na busca pública, por exemplo, não foi uma medida de segurança acrescentada após o desenvolvimento da funcionalidade: ela foi o ponto de partida do design da rota de busca.
 
 % ============================================================
 % 9. USO DE INTELIGÊNCIA ARTIFICIAL GENERATIVA
