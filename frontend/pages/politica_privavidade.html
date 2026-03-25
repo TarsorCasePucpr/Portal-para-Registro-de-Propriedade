@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SNGuard — Política de Privacidade</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <header>
+    <a href="index.html">
+      <span class="logo-texto">SNGuard</span>
+    </a>
+    <nav>
+      <a href="busca.html">Verificar Serial</a>
+      <a href="login.html">Entrar</a>
+      <a href="cadastro-usuario.html">Cadastrar-se</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="pagina-legal">
+
+      <h1>Política de Privacidade</h1>
+      <p class="atualizacao">Última atualização: março de 2026 — Versão 1.0</p>
+
+      <div class="destaque">
+        Esta Política de Privacidade está em conformidade com a
+        <strong>Lei Geral de Proteção de Dados Pessoais (LGPD — Lei nº 13.709/2018)</strong>.
+        Ao utilizar o SNGuard, você concorda com os termos descritos abaixo.
+      </div>
+
+      <section id="quem-somos">
+        <h2>1. Quem somos</h2>
+        <p>
+          O <strong>SNGuard</strong> é um portal acadêmico desenvolvido por estudantes do curso de
+          Bacharelado em Cibersegurança da PUCPR (Pontifícia Universidade Católica do Paraná),
+          no âmbito da disciplina de Experiência Criativa — Criptografia. A plataforma permite o
+          registro de objetos pessoais por número de série para auxiliar na verificação de
+          propriedade e recuperação em caso de furto ou perda.
+        </p>
+      </section>
+
+      <section id="dados-coletados">
+        <h2>2. Quais dados coletamos</h2>
+        <p>Coletamos apenas os dados estritamente necessários para o funcionamento do serviço:</p>
+        <ul>
+          <li><strong>Nome completo</strong> — para identificação da conta.</li>
+          <li><strong>Endereço de e-mail</strong> — para confirmação de conta, recuperação de senha e comunicações relacionadas ao serviço.</li>
+          <li><strong>CPF</strong> — exclusivamente para vinculação e validação de propriedade via Nota Fiscal Eletrônica (NF-e). Não é utilizado para fins de cobrança ou compartilhado com terceiros.</li>
+          <li><strong>Senha</strong> — armazenada exclusivamente em formato de hash criptográfico (bcrypt). Nunca armazenamos sua senha em texto simples.</li>
+          <li><strong>Endereço IP</strong> — registrado temporariamente para controle de tentativas de acesso (rate limiting) e segurança da plataforma. Eliminado após 30 dias.</li>
+          <li><strong>Dados dos objetos registrados</strong> — número de série, categoria, descrição e status (normal / roubado / perdido).</li>
+        </ul>
+      </section>
+
+      <section id="finalidade">
+        <h2>3. Para que usamos os dados</h2>
+        <p>Seus dados são utilizados exclusivamente para:</p>
+        <ul>
+          <li>Criar e autenticar sua conta na plataforma.</li>
+          <li>Vincular objetos registrados ao seu CPF por meio de Nota Fiscal Eletrônica.</li>
+          <li>Enviar e-mails de confirmação de cadastro e recuperação de senha.</li>
+          <li>Proteger a plataforma contra acessos não autorizados e abuso (rate limiting).</li>
+          <li>Permitir que terceiros consultem apenas o <em>status público</em> de um objeto por número de série — sem acesso a dados pessoais do proprietário.</li>
+        </ul>
+        <div class="destaque">
+          <strong>Minimização de dados (Art. 6, III, LGPD):</strong>
+          A consulta pública por número de série retorna unicamente o status do objeto
+          (registrado / alerta / não encontrado). Nenhum dado pessoal do proprietário é exposto.
+        </div>
+      </section>
+
+      <section id="base-legal">
+        <h2>4. Base legal para o tratamento</h2>
+        <p>O tratamento dos seus dados pessoais é fundamentado em (Art. 7, LGPD):</p>
+        <ul>
+          <li><strong>Consentimento (Art. 7, I):</strong> fornecido no ato do cadastro, por meio do aceite expresso à Política de Privacidade e aos Termos de Uso.</li>
+          <li><strong>Execução de contrato (Art. 7, V):</strong> necessário para prestação dos serviços da plataforma.</li>
+          <li><strong>Legítimo interesse (Art. 7, IX):</strong> para fins de segurança da plataforma (controle de rate limiting e prevenção de fraudes).</li>
+        </ul>
+      </section>
+
+      <section id="compartilhamento">
+        <h2>5. Compartilhamento de dados</h2>
+        <p>
+          O SNGuard <strong>não vende, aluga ou compartilha</strong> seus dados pessoais com terceiros para
+          fins comerciais. Os dados podem ser acessados unicamente por:
+        </p>
+        <ul>
+          <li>Membros da equipe de desenvolvimento para fins de manutenção e suporte técnico.</li>
+          <li>Autoridades competentes, quando exigido por lei ou ordem judicial.</li>
+        </ul>
+        <p>
+          O SNGuard pode utilizar APIs externas (ex.: consulta de NF-e) para validação de
+          propriedade. Nesse caso, apenas o número da chave da NF-e é enviado — sem dados pessoais.
+        </p>
+      </section>
+
+      <section id="retencao">
+        <h2>6. Por quanto tempo guardamos os dados</h2>
+        <ul>
+          <li><strong>Dados da conta (nome, e-mail, CPF, hash de senha):</strong> enquanto a conta estiver ativa.</li>
+          <li><strong>Dados de objetos registrados:</strong> enquanto o objeto estiver ativo na conta.</li>
+          <li><strong>Após solicitação de exclusão da conta:</strong> os dados são marcados para exclusão e permanentemente removidos em até 30 dias (soft delete — Art. 16, LGPD).</li>
+          <li><strong>Logs de IP (rate limiting):</strong> eliminados automaticamente após 30 dias.</li>
+          <li><strong>Registros de consentimento LGPD:</strong> mantidos pelo prazo legal para fins de auditoria.</li>
+        </ul>
+      </section>
+
+      <section id="seguranca">
+        <h2>7. Como protegemos seus dados</h2>
+        <ul>
+          <li>Senhas armazenadas exclusivamente como hash bcrypt (custo 13) — nunca em texto simples.</li>
+          <li>Comunicação via HTTPS (TLS) em produção.</li>
+          <li>Proteção contra SQL Injection (prepared statements PDO).</li>
+          <li>Proteção contra CSRF em todos os formulários.</li>
+          <li>Limitação de tentativas de login (rate limiting por IP).</li>
+          <li>Sessões com expiração automática (30 minutos de inatividade).</li>
+          <li>Autenticação em dois fatores (MFA) disponível para o usuário.</li>
+        </ul>
+      </section>
+
+      <section id="direitos">
+        <h2>8. Seus direitos (Art. 18, LGPD)</h2>
+        <p>Você tem os seguintes direitos em relação aos seus dados pessoais:</p>
+        <ul>
+          <li><strong>Confirmação e acesso:</strong> saber quais dados temos sobre você.</li>
+          <li><strong>Correção:</strong> solicitar a atualização de dados incompletos ou desatualizados.</li>
+          <li><strong>Anonimização ou exclusão:</strong> solicitar a exclusão dos seus dados, respeitado o prazo de retenção legal.</li>
+          <li><strong>Portabilidade:</strong> solicitar seus dados em formato estruturado.</li>
+          <li><strong>Revogação do consentimento:</strong> retirar seu consentimento a qualquer momento, com encerramento da conta.</li>
+          <li><strong>Oposição:</strong> se opor ao tratamento que não esteja em conformidade com a LGPD.</li>
+        </ul>
+        <p>Para exercer qualquer um desses direitos, acesse as configurações da sua conta ou entre em contato conosco.</p>
+      </section>
+
+      <section id="cookies">
+        <h2>9. Cookies e sessão</h2>
+        <p>
+          O SNGuard utiliza <strong>cookies de sessão</strong> estritamente necessários para manter
+          o estado de autenticação. Esses cookies são:
+        </p>
+        <ul>
+          <li>Temporários — expiram ao fechar o navegador ou após 30 minutos de inatividade.</li>
+          <li>Não rastreiam navegação entre sites.</li>
+          <li>Não são utilizados para publicidade.</li>
+        </ul>
+        <p>Não utilizamos cookies de rastreamento, analytics ou marketing.</p>
+      </section>
+
+      <section id="contato">
+        <h2>10. Contato</h2>
+        <p>
+          Em caso de dúvidas sobre esta Política de Privacidade ou para exercer seus direitos,
+          entre em contato com a equipe do SNGuard por meio dos canais institucionais da PUCPR
+          ou pelo e-mail do responsável pelo projeto.
+        </p>
+      </section>
+
+      <section id="alteracoes">
+        <h2>11. Alterações nesta política</h2>
+        <p>
+          Esta Política de Privacidade pode ser atualizada periodicamente. Quando houver
+          mudanças relevantes, você será notificado por e-mail ou por aviso na plataforma.
+          O uso continuado do serviço após as alterações implica na aceitação da nova versão.
+        </p>
+      </section>
+
+    </div>
+  </main>
+
+  <footer>
+    <a href="politica_privavidade.html">Política de Privacidade</a>
+    <a href="termo_de_uso.html">Termos de Uso</a>
+    <span>Projeto acadêmico PUCPR — Bacharelado em Cibersegurança</span>
+  </footer>
+
+</body>
+</html>
