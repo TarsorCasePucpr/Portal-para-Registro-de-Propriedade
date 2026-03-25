@@ -4,27 +4,37 @@ Guia completo para os integrantes do grupo trabalharem com Git e GitHub.
 
 ---
 
-## Integrantes e páginas atribuídas
+## Integrantes e responsabilidades
 
-| Integrante | Páginas |
-|------------|---------|
-| Gerard | `index.html` + `busca.html` |
-| Gustavo | `login.html` + `cadastro-usuario.html` |
-| Henrique | `confirmacao.html` + `recuperacao-senha.html` |
-| Kauã | `mfa.html` + `cadastro-produto.html` |
-| Wellington | `dashboard.html` + backend |
+| Integrante | Branch | Responsabilidades |
+|------------|--------|-------------------|
+| Gerard | `feature/Gerard_Gonzalez` | Cadastro de usuário, backend hashing (bcrypt), Privacy by Design, Banco de dados |
+| Gustavo | `feature/GustavoBatista` | (definir com o grupo) |
+| Henrique | `feature/henrique` | (definir com o grupo) |
+| Kauã | `feature/Kauã-Rubbo` | (definir com o grupo) |
+| Wellington | — | (definir com o grupo) |
 
 ---
 
 ## Regra principal
 
 ```
-main    → versão de entrega. Só o responsável (Gerard) faz merge aqui.
-develop → onde todo mundo trabalha e integra.
-feature/seunome → sua branch pessoal de desenvolvimento.
+main           → versão final / servidor. Merge só desde develop, com aprovação.
+develop        → integração do grupo. PROTEGIDA — exige PR + aprovação + CI verde.
+feature/SeuNome → sua branch pessoal. Aqui você pode fazer o que quiser.
 ```
 
-**Nunca faça alterações diretamente no `main`.**
+**Nunca faça alterações diretamente em `develop` ou `main`.**
+
+### Por que `develop` é protegida?
+
+O GitHub bloqueia qualquer push direto para `develop`. Para integrar seu código, você **obrigatoriamente** precisa:
+
+1. Abrir um **Pull Request** (`feature/SeuNome` → `develop`)
+2. Os **6 checks automáticos de CI** passarem (ver abaixo)
+3. **1 companheiro** do grupo aprovar o seu PR
+
+Se qualquer um desses três falhar, o merge é bloqueado.
 
 ---
 
@@ -47,15 +57,29 @@ git clone https://github.com/TarsorCasePucpr/Portal-para-Registro-de-Propriedade
 cd Portal-para-Registro-de-Propriedade
 ```
 
-### 1.4 Criar sua branch de trabalho
+### 1.4 Pegar sua branch de trabalho (já criadas no repo)
+
+As branches já foram criadas. Só precisa baixar a sua:
+
 ```bash
-git checkout develop
-git pull origin develop
-git checkout -b feature/seunome
-git push origin feature/seunome
+git fetch --all
+git checkout -b feature/SeuNome origin/feature/SeuNome
 ```
 
-Substitua `seunome` pelo seu primeiro nome, tudo em minúsculas. Ex: `feature/gustavo`
+Exemplo para cada integrante:
+```bash
+# Gerard
+git checkout -b feature/Gerard_Gonzalez origin/feature/Gerard_Gonzalez
+
+# Gustavo
+git checkout -b feature/GustavoBatista origin/feature/GustavoBatista
+
+# Henrique
+git checkout -b feature/henrique origin/feature/henrique
+
+# Kauã
+git checkout -b "feature/Kauã-Rubbo" "origin/feature/Kauã-Rubbo"
+```
 
 ---
 
@@ -76,27 +100,68 @@ Isso garante que você está trabalhando com a versão mais recente.
 
 git add frontend/pages/login.html
 git commit -m "Add: formulário de login"
-git push origin feature/seunome
+git push origin feature/SeuNome
 ```
 
 ---
 
 ## Passo 3 — Enviar seu trabalho para o grupo (Pull Request)
 
-Quando terminar uma página ou uma parte do trabalho:
+Quando terminar uma parte do trabalho:
 
 1. Acesse o repositório no GitHub
 2. Clique na aba **Pull requests**
 3. Clique em **New pull request**
 4. Selecione:
    - **base:** `develop`
-   - **compare:** `feature/seunome`
+   - **compare:** `feature/SeuNome`
 5. Clique em **Create pull request**
-6. Coloque um título descritivo: ex. `Add: login.html e cadastro-usuario.html`
+6. Coloque um título descritivo: ex. `Add: login.html com validação de formulário`
 7. Clique em **Create pull request**
 
-**O que é um Pull Request?**
-É um pedido para integrar o seu código ao `develop`. O Gerard vai revisar o que você enviou e, se estiver tudo certo, aprova e o código entra no grupo. Se tiver algo a corrigir, ele avisa nos comentários.
+---
+
+## Passo 4 — O que acontece depois de abrir o PR
+
+### 4.1 — CI automático (obrigatório)
+
+O GitHub vai rodar automaticamente **6 verificações**. Todas precisam estar verdes para poder fazer merge:
+
+| Check | O que verifica |
+|-------|---------------|
+| PHP Syntax | Erros de sintaxe nos arquivos PHP |
+| PHP Strict Types | `declare(strict_types=1)` em todo PHP |
+| Security Scan | Senhas em texto plano, SQL injection, etc. |
+| HTML Lint | Erros estruturais no HTML |
+| Schema Integrity | Integridade do `schema.sql` |
+| File Structure | Arquivos nos diretórios corretos |
+
+Se algum check falhar, aparece um ❌ no PR. Corrija e faça um novo push — o CI roda de novo automaticamente.
+
+### 4.2 — Aprovação de um companheiro (obrigatório)
+
+O `develop` exige **1 aprovação** de outro integrante do grupo antes de fazer merge.
+
+**Sugestão de rotação — quem revisa quem:**
+
+| Quem abriu o PR | Quem revisa |
+|-----------------|-------------|
+| Gerard | Kauã |
+| Kauã | Gustavo |
+| Gustavo | Henrique |
+| Henrique | Gerard |
+
+Para revisar: abra o PR, clique em **Files changed**, leia o código, e clique em **Review changes → Approve** (ou deixe comentários se tiver algo a corrigir).
+
+### 4.3 — Fazer o merge
+
+Depois que o CI está verde **e** tem 1 aprovação, o botão **Merge pull request** fica disponível. Quem abriu o PR pode clicar nele.
+
+---
+
+## Passo 5 — Merge de `develop` para `main`
+
+O merge para `main` só acontece quando o grupo decidir que uma versão está pronta para entrega. O processo é igual: abrir um PR de `develop` → `main`.
 
 ---
 
@@ -138,7 +203,7 @@ Para editar no Overleaf:
 # Após substituir o arquivo:
 git add docs/relatorio.tex
 git commit -m "Update: relatório parcial"
-git push origin feature/seunome
+git push origin feature/SeuNome
 # → abrir Pull Request para develop
 ```
 
@@ -149,13 +214,17 @@ git push origin feature/seunome
 ```
 Você edita seus arquivos
         ↓
-git add + git commit + git push → feature/seunome
+git add + git commit + git push → feature/SeuNome
         ↓
 Abrir Pull Request → develop
         ↓
-Gerard revisa e aprova → merge em develop
+CI automático roda os 6 checks (deve passar tudo ✅)
         ↓
-(quando o grupo decidir) Gerard faz merge develop → main
+1 companheiro revisa e aprova o PR ✅
+        ↓
+Merge em develop
+        ↓
+(quando o grupo decidir) PR develop → main
 ```
 
 ---

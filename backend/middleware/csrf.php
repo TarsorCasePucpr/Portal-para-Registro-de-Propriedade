@@ -1,10 +1,24 @@
 <?php
 declare(strict_types=1);
 
-// csrf.php — Proteção contra Cross-Site Request Forgery
-//
-// Pontos importantes:
-//   - Gerar um token aleatório por sessão e incluí-lo em todos os formulários como campo oculto
-//   - Validar o token em todo POST antes de processar qualquer dado
-//   - A comparação do token deve ser resistente a timing attacks — não usar ==
-//   - Se o token for inválido, rejeitar a requisição com status 403 imediatamente
+function startSessionSafe(): void {
+    if (session_status() !== PHP_SESSION_NONE) return;
+    ini_set('session.cookie_httponly', '1');
+    ini_set('session.cookie_secure', '1');
+    ini_set('session.cookie_samesite', 'Strict');
+    session_start();
+}
+
+function generateCsrfToken(): string {
+    startSessionSafe();
+    if (empty($_SESSION['csrf'])) {
+        $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf'];
+}
+
+function validateCsrfToken(string $provided): bool {
+    startSessionSafe();
+    if (empty($_SESSION['csrf'])) return false;
+    return hash_equals($_SESSION['csrf'], $provided);
+}
