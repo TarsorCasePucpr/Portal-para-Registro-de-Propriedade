@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SNGuard — Exclusão de Conta</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <header>
+    <a href="dashboard.html">← Voltar ao painel</a>
+  </header>
+
+  <main>
+    <section id="exclusao-section">
+      <h1>Exclusão de conta</h1>
+      <p>
+        Em conformidade com a LGPD (Art. 18, VI), você tem o direito de solicitar a exclusão
+        dos seus dados pessoais. Escolha o tipo de exclusão abaixo.
+      </p>
+
+      <div id="msg-servidor" role="alert" aria-live="polite"></div>
+
+      <form id="form-exclusao" novalidate>
+        <input type="hidden" id="csrf" name="csrf">
+
+        <fieldset id="tipo-exclusao">
+          <legend>Tipo de exclusão</legend>
+
+          <label class="campo-radio">
+            <input type="radio" name="type" id="tipo-parcial" value="partial" required>
+            <span>
+              <strong>Exclusão parcial</strong><br>
+              Seus dados pessoais (nome, e-mail, CPF) são anonimizados e sua conta é desativada.
+              Os produtos registrados em seu nome permanecem no sistema para fins de rastreabilidade.
+            </span>
+          </label>
+
+          <label class="campo-radio">
+            <input type="radio" name="type" id="tipo-total" value="total">
+            <span>
+              <strong>Exclusão total</strong><br>
+              Seus dados pessoais são anonimizados e <strong>todos os seus produtos registrados
+              também são removidos</strong>. Esta ação não pode ser desfeita.
+            </span>
+          </label>
+        </fieldset>
+
+        <div class="campo campo-senha">
+          <label for="senha">Confirme sua senha para continuar</label>
+          <input type="password" id="senha" name="password" required
+                 autocomplete="current-password" maxlength="255"
+                 placeholder="Sua senha atual">
+          <span id="msg-erro" class="erro" role="alert" aria-live="polite"></span>
+        </div>
+
+        <div class="campo">
+          <label class="label-checkbox" id="consentimento-exclusao">
+            <input type="checkbox" id="aceite-exclusao" required>
+            Entendo que esta ação é irreversível e desejo prosseguir com a exclusão da minha conta.
+          </label>
+        </div>
+
+        <button type="submit" id="btn-excluir" disabled>Excluir minha conta</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <a href="dashboard.html">Cancelar e voltar ao painel</a>
+  </footer>
+
+  <script defer>
+    (function () {
+      const form       = document.getElementById('form-exclusao');
+      const btnExcluir = document.getElementById('btn-excluir');
+      const aceite     = document.getElementById('aceite-exclusao');
+      const msgServidor = document.getElementById('msg-servidor');
+      const msgErro    = document.getElementById('msg-erro');
+      const senhaInput = document.getElementById('senha');
+      const csrfInput  = document.getElementById('csrf');
+
+      fetch('../../backend/auth/get_csrf.php')
+        .then(r => r.json())
+        .then(data => { if (data.token) csrfInput.value = data.token; })
+        .catch(() => mostrarErroServidor('Erro ao carregar o formulário. Recarregue a página.'));
+
+      aceite.addEventListener('change', () => {
+        btnExcluir.disabled = !aceite.checked;
+      });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        msgServidor.textContent = '';
+        msgErro.textContent = '';
+
+        const type = form.querySelector('input[name="type"]:checked');
+        if (!type) {
+          msgServidor.textContent = 'Selecione o tipo de exclusão.';
+          return;
+        }
+
+        const senha = senhaInput.value.trim();
+        if (!senha) {
+          msgErro.textContent = 'Informe sua senha para confirmar.';
+          senhaInput.focus();
+          return;
+        }
+
+        if (!aceite.checked) {
+          msgServidor.textContent = 'Marque o campo de confirmação para prosseguir.';
+          return;
+        }
+
+        btnExcluir.disabled = true;
+        btnExcluir.textContent = 'Processando...';
+
+        const body = new FormData();
+        body.append('csrf', csrfInput.value);
+        body.append('type', type.value);
+        body.append('password', senha);
+
+        try {
+          const resp = await fetch('../../backend/lgpd/delete_account.php', {
+            method: 'POST',
+            body,
+          });
+          const data = await resp.json();
+
+          if (data.success) {
+            msgServidor.textContent = 'Conta excluída. Redirecionando...';
+            setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+          } else {
+            mostrarErroServidor(data.error || 'Erro ao processar a solicitação.');
+            btnExcluir.disabled = false;
+            btnExcluir.textContent = 'Excluir minha conta';
+          }
+        } catch (_) {
+          mostrarErroServidor('Erro de conexão. Tente novamente.');
+          btnExcluir.disabled = false;
+          btnExcluir.textContent = 'Excluir minha conta';
+        }
+      });
+
+      function mostrarErroServidor(msg) {
+        msgServidor.textContent = msg;
+      }
+    })();
+  </script>
+
+</body>
+</html>
