@@ -83,7 +83,7 @@
 
       fetch('../../backend/auth/get_csrf.php')
         .then(r => r.json())
-        .then(data => { if (data.token) csrfInput.value = data.token; })
+        .then(data => { if (data.csrf) csrfInput.value = data.csrf; })
         .catch(() => mostrarErroServidor('Erro ao carregar o formulário. Recarregue a página.'));
 
       aceite.addEventListener('change', () => {
