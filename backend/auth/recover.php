@@ -1,17 +1,60 @@
 <?php
 declare(strict_types=1);
+require_once "../config/db.php";
 
-// recover.php — Recuperação de senha (duas etapas)
-//
-// Etapa 1 — Solicitar link:
-//   1. Verificar token CSRF e limite de requisições por IP
-//   2. Buscar o usuário pelo e-mail — mas sempre responder de forma genérica, exista ou não
-//   3. Gerar token seguro, armazenar apenas o hash no banco e enviar o valor original por e-mail
-//   4. Definir prazo de expiração curto (1 hora)
-//
-// Etapa 2 — Redefinir senha:
-//   1. Verificar token CSRF
-//   2. Ler o token da URL, calcular o hash e comparar com o banco de forma segura
-//   3. Verificar prazo de validade e se ainda não foi usado
-//   4. A nova senha deve ser armazenada como hash bcrypt — nunca em texto plano
-//   5. Marcar o token como usado após a alteração
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    $acao = $_POST["acao"] ?? "";
+
+    if ($acao === "redefinir_senha") {
+
+        $token = $_POST["token"] ?? "";
+        $novaSenha = $_POST["nova_senha"] ?? "";
+
+        if (!$token || !$novaSenha) {
+            die("Dados inválidos");
+        }
+
+        // hash do token
+        $tokenHash = hash("sha256", $token);
+
+        // buscar token no banco
+        $sql = "SELECT * FROM tokens 
+                WHERE token_hash = :hash 
+                AND type = 'recovery'
+                AND used_at IS NULL
+                AND expires_at > NOW()
+                LIMIT 1";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(["hash" => $tokenHash]);
+
+        $tokenData = $stmt->fetch();
+
+        if (!$tokenData) {
+            die("Token inválido ou expirado");
+        }
+
+        $userId = $tokenData["user_id"];
+
+        // hash da nova senha
+        $senhaHash = password_hash($novaSenha, PASSWORD_BCRYPT, ["cost" => 13]);
+
+        // atualizar senha
+        $sql = "UPDATE users SET password = :senha WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            "senha" => $senhaHash,
+            "id" => $userId
+        ]);
+
+        // invalidar token
+        $sql = "UPDATE tokens SET used_at = NOW() WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(["id" => $tokenData["id"]]);
+
+        // redirecionar
+        header("Location: ../../frontend/pages/login.html?reset=success");
+        exit;
+    }
+}
