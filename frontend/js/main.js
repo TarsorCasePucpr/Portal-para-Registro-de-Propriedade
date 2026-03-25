@@ -1,29 +1,35 @@
 document.addEventListener('DOMContentLoaded', function () {
-
   const csrfInput = document.getElementById('csrf-token');
+
   if (csrfInput) {
     fetch('../../backend/auth/get_csrf.php')
       .then(function (res) { return res.json(); })
-      .then(function (data) { csrfInput.value = data.csrf || ''; })
-      .catch(function () { console.error('Não foi possível obter o token CSRF.'); });
+      .then(function (data) {
+        csrfInput.value = data.csrf || '';
+      })
+      .catch(function () {
+        console.error('Não foi possível obter o token CSRF.');
+      });
   }
 
-  configurarToggleSenha('toggle-senha',    'senha');
+  configurarToggleSenha('toggle-senha', 'senha');
   configurarToggleSenha('toggle-confirmar', 'confirmar-senha');
 
   function configurarToggleSenha(idBotao, idInput) {
     const botao = document.getElementById(idBotao);
     const input = document.getElementById(idInput);
+
     if (!botao || !input) return;
 
     botao.addEventListener('click', function () {
       const visivel = input.type === 'text';
-      input.type       = visivel ? 'password' : 'text';
+      input.type = visivel ? 'password' : 'text';
       botao.textContent = visivel ? 'Mostrar' : 'Ocultar';
     });
   }
 
   const campoCPF = document.getElementById('cpf');
+
   if (campoCPF) {
     campoCPF.addEventListener('input', function () {
       this.value = mascaraCPF(this.value);
@@ -39,23 +45,24 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   const campoSenhaCadastro = document.getElementById('senha');
-  const divForca           = document.getElementById('forca-senha');
+  const divForca = document.getElementById('forca-senha');
 
   if (campoSenhaCadastro && divForca) {
     campoSenhaCadastro.addEventListener('input', function () {
       if (this.value === '') {
-        divForca.textContent  = '';
-        divForca.className    = '';
+        divForca.textContent = '';
+        divForca.className = '';
         return;
       }
-      const resultado      = analisarForcaSenha(this.value);
+
+      const resultado = analisarForcaSenha(this.value);
       divForca.textContent = 'Senha: ' + resultado.texto;
-      divForca.className   = 'forca-' + resultado.nivel;
+      divForca.className = 'forca-' + resultado.nivel;
     });
   }
 
-  const checkLGPD      = document.getElementById('aceite-lgpd');
-  const btnCadastrar   = document.getElementById('btn-cadastrar');
+  const checkLGPD = document.getElementById('aceite-lgpd');
+  const btnCadastrar = document.getElementById('btn-cadastrar');
 
   if (checkLGPD && btnCadastrar) {
     checkLGPD.addEventListener('change', function () {
@@ -64,6 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   const formLogin = document.getElementById('form-login');
+
   if (formLogin) {
     formLogin.addEventListener('submit', function (e) {
       let valido = true;
@@ -93,22 +101,23 @@ document.addEventListener('DOMContentLoaded', function () {
       const btn = document.getElementById('btn-login');
       if (btn) {
         btn.textContent = 'Entrando...';
-        btn.disabled    = true;
+        btn.disabled = true;
       }
     });
   }
 
   const formCadastro = document.getElementById('form-cadastro');
+
   if (formCadastro) {
     formCadastro.addEventListener('submit', function (e) {
       let valido = true;
 
-      const nome     = document.getElementById('nome').value.trim();
-      const email    = document.getElementById('email').value.trim();
-      const cpf      = document.getElementById('cpf').value.trim();
-      const senha    = document.getElementById('senha').value;
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const cpf = document.getElementById('cpf').value.trim();
+      const senha = document.getElementById('senha').value;
       const confirma = document.getElementById('confirmar-senha').value;
-      const lgpd     = document.getElementById('aceite-lgpd').checked;
+      const lgpd = document.getElementById('aceite-lgpd').checked;
 
       if (nome === '' || nome.length > 100) {
         mostrarErro('erro-nome', 'Preencha seu nome completo.');
@@ -132,7 +141,10 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       if (!senhaValida(senha)) {
-        mostrarErro('erro-senha', 'Senha fraca. Use mínimo 12 caracteres com maiúscula, minúscula, número e símbolo.');
+        mostrarErro(
+          'erro-senha',
+          'Senha fraca. Use mínimo 12 caracteres com maiúscula, minúscula, número e símbolo.'
+        );
         valido = false;
       } else {
         limparErro('erro-senha');
@@ -160,9 +172,54 @@ document.addEventListener('DOMContentLoaded', function () {
       const btn = document.getElementById('btn-cadastrar');
       if (btn) {
         btn.textContent = 'Criando conta...';
-        btn.disabled    = true;
+        btn.disabled = true;
       }
     });
   }
-
 });
+
+// ===== PÁGINAS DE CONFIRMAÇÃO =====
+
+const params = new URLSearchParams(window.location.search);
+const status = params.get("status");
+
+const aguardando = document.getElementById("estado-aguardando");
+const sucesso = document.getElementById("estado-sucesso");
+const erro = document.getElementById("estado-erro");
+
+if (status === "success") {
+  if (aguardando) aguardando.style.display = "none";
+  if (sucesso) sucesso.style.display = "block";
+} else if (status === "error") {
+  if (aguardando) aguardando.style.display = "none";
+  if (erro) erro.style.display = "block";
+}
+
+const btnReenviar = document.getElementById("btn-reenviar");
+
+if (btnReenviar) {
+  btnReenviar.addEventListener("click", () => {
+    alert("Se o e-mail existir, um novo link será enviado.");
+  });
+}
+
+const formReenvio = document.getElementById("form-reenvio");
+
+if (formReenvio) {
+  formReenvio.addEventListener("submit", (e) => {
+    e.preventDefault();
+    alert("Se o e-mail existir, um novo link será enviado.");
+  });
+}
+
+const emailCadastro = localStorage.getItem("emailCadastro");
+
+if (emailCadastro) {
+  const mascarado = emailCadastro.replace(/(.{1}).+(@.+)/, "$1***$2");
+  const emailInfo = document.getElementById("email-info");
+
+  if (emailInfo) {
+    emailInfo.innerHTML =
+      `Enviamos um link de confirmação para <strong>${mascarado}</strong>`;
+  }
+}
