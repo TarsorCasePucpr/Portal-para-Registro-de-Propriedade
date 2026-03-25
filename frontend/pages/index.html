@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- TODO: Adicionar meta description e meta og: para SEO -->
   <title>SNGuard — Registro de Propriedade</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
@@ -11,62 +10,102 @@
 
   <!-- ===== CABEÇALHO / NAVEGAÇÃO ===== -->
   <header>
-    <!-- TODO: Logo SNGuard (docs/Logo.png) -->
-    <!-- TODO: Nav links: Busca Pública | Login | Cadastrar-se -->
+    <h1>SNGuard</h1>
+
+    <nav>
+      <a href="busca.html">Busca Pública</a> |
+      <a href="login.html">Login</a> |
+      <a href="cadastro-usuario.html">Cadastrar-se</a>
+    </nav>
   </header>
 
   <!-- ===== HERO SECTION ===== -->
   <main>
     <section id="hero">
-      <!-- TODO: Título principal: "Proteja seus objetos. Verifique antes de comprar." -->
-      <!-- TODO: Subtítulo explicando o propósito da plataforma -->
+      <h2>Proteja seus objetos. Verifique antes de comprar.</h2>
 
-      <!-- BUSCA PÚBLICA RÁPIDA — disponível sem login (LGPD: sem coleta de dados) -->
+      <p>
+        O SNGuard é uma plataforma que permite registrar e consultar objetos
+        por meio de seus números de série, ajudando a prevenir fraudes e
+        recuperar itens perdidos ou roubados.
+      </p>
+
+      <!-- BUSCA PÚBLICA -->
       <form id="form-busca-rapida" action="busca.html" method="GET">
-        <!-- TODO: Input número de série -->
-        <!-- <input type="text" name="serial" placeholder="Digite o número de série..." maxlength="100" required> -->
-        <!-- TODO: Botão Consultar -->
-        <!-- LGPD — Art. 7, IX: consulta pública sem necessidade de identificação do usuário -->
+        <input 
+          type="text" 
+          name="serial" 
+          placeholder="Digite o número de série..." 
+          maxlength="100" 
+          required
+        >
+        <button type="submit">Consultar</button>
       </form>
     </section>
 
-    <!-- ===== SEÇÃO DE FUNCIONALIDADES ===== -->
+    <!-- ===== FUNCIONALIDADES ===== -->
     <section id="funcionalidades">
-      <!-- TODO: Cards explicativos:
-           1. "Registre seu produto" → link para cadastro-usuario.html
-           2. "Verifique antes de comprar" → link para busca.html
-           3. "Marque como roubado" → link para login/dashboard
-      -->
+      <h2>O que você pode fazer</h2>
+
+      <ul>
+        <li>
+          <strong>Registrar seu produto:</strong>
+          <a href="cadastro-usuario.html">Criar conta</a> e vincular seus objetos.
+        </li>
+
+        <li>
+          <strong>Verificar antes de comprar:</strong>
+          <a href="busca.html">Consultar número de série</a> gratuitamente.
+        </li>
+
+        <li>
+          <strong>Marcar como roubado:</strong>
+          Faça <a href="login.html">login</a> e gerencie seus produtos.
+        </li>
+      </ul>
     </section>
 
-    <!-- ===== SEÇÃO DE CASOS DE USO ===== -->
+    <!-- ===== COMO FUNCIONA ===== -->
     <section id="como-funciona">
-      <!-- TODO: Diagrama visual dos 5 casos de uso (UC1–UC5 do README) -->
+      <h2>Como funciona</h2>
+
+      <ol>
+        <li>O usuário se cadastra na plataforma</li>
+        <li>Registra um produto com número de série</li>
+        <li>Outros usuários podem consultar esse número</li>
+        <li>Se necessário, o produto pode ser marcado como roubado</li>
+        <li>A plataforma ajuda na identificação e recuperação</li>
+      </ol>
     </section>
 
-    <!-- ===== AVISO LGPD / TRANSPARÊNCIA ===== -->
+    <!-- ===== LGPD ===== -->
     <section id="lgpd-info">
-      <!--
-        LGPD — Art. 9 (Transparência de informação):
-        TODO: Exibir parágrafo explicando quais dados são coletados,
-        para qual finalidade, por quanto tempo são retidos e como o usuário
-        pode exercer seus direitos (Art. 18 LGPD): acesso, correção, exclusão.
+      <h2>Transparência e Privacidade</h2>
 
-        Exemplo de texto:
-        "O SNGuard coleta apenas nome, e-mail e CPF para vincular a propriedade de
-        produtos ao titular. Seus dados não são compartilhados com terceiros.
-        Para exercer seus direitos de acesso ou exclusão, acesse seu perfil."
-      -->
+      <p>
+        O SNGuard coleta apenas dados essenciais como nome e e-mail para
+        vincular produtos aos seus proprietários. Nenhuma informação é
+        compartilhada com terceiros.
+      </p>
+
+      <p>
+        Você pode solicitar acesso, correção ou exclusão dos seus dados a
+        qualquer momento, conforme a LGPD.
+      </p>
     </section>
   </main>
 
   <!-- ===== RODAPÉ ===== -->
   <footer>
-    <!-- TODO: Links: Política de Privacidade | Termos de Uso | Contato -->
-    <!-- TODO: "Projeto acadêmico PUCPR — Bacharelado em Cibersegurança" -->
+    <p>
+      <a href="#">Política de Privacidade</a> |
+      <a href="#">Termos de Uso</a> |
+      <a href="#">Contato</a>
+    </p>
+
+    <p>Projeto acadêmico — Bacharelado em Cibersegurança</p>
   </footer>
 
-  <!-- Scripts no final do body com defer para não bloquear renderização -->
   <script src="../js/validacoes.js" defer></script>
   <script src="../js/main.js" defer></script>
 </body>
