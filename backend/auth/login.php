@@ -15,7 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('../../frontend/pages/login.html');
 }
 
-validateCsrfToken();
+if (!validateCsrfToken($_POST['csrf'] ?? '')) {
+    $_SESSION['login_erro'] = 'Token de segurança inválido.';
+    redirect('../../frontend/pages/login.html');
+}
 
 $pdo = getDb();
 $ip  = $_SERVER['REMOTE_ADDR'];
@@ -63,15 +66,17 @@ try {
     }
 
     session_regenerate_id(true);
-    $_SESSION['user_id']       = $usuario['id'];
     $_SESSION['user_agent']    = $_SERVER['HTTP_USER_AGENT'];
     $_SESSION['ip']            = $ip;
     $_SESSION['last_activity'] = time();
 
     if ((bool) $usuario['mfa_enabled']) {
+        $_SESSION['mfa_pending_user_id'] = $usuario['id'];
+        $_SESSION['mfa_pending_at']      = time();
         redirect('../../frontend/pages/mfa.html');
     }
 
+    $_SESSION['user_id'] = $usuario['id'];
     redirect('../../frontend/pages/dashboard.html');
 
 } catch (PDOException $e) {
