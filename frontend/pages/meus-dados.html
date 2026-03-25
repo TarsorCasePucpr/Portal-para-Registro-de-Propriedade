@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Meus Dados</title>
+</head>
+<body>
+
+  <h1>Meus Dados</h1>
+
+  <section>
+    <p><strong>Nome:</strong> <span id="nome"></span></p>
+    <p><strong>Email:</strong> <span id="email"></span></p>
+  </section>
+
+  <section>
+    <h2>Transparência (LGPD)</h2>
+    <p>
+      Seus dados são utilizados apenas para identificação e vínculo de propriedade
+      dos objetos cadastrados. Nenhuma informação é compartilhada com terceiros.
+    </p>
+  </section>
+
+  <script>
+    fetch("../../backend/auth/meus_dados.php")
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("nome").textContent = data.nome;
+        document.getElementById("email").textContent = data.email;
+      })
+      .catch(() => {
+        alert("Erro ao carregar dados");
+      });
+  </script>
+
+</body>
+</html>
