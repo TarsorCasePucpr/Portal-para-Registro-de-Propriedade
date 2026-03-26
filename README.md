@@ -68,18 +68,20 @@ Comprador consulta serial do objeto que vai adquirir. Se marcado como roubado �
 
 | # | Página | Arquivo | Status |
 |---|--------|---------|--------|
-| 1 | Home / Landing | `index.html` | 📋 Planejamento |
-| 2 | Busca pública por serial | `busca.html` | 📋 Planejamento |
-| 3 | Login | `login.html` | 📋 Planejamento |
-| 4 | Cadastro de usuário | `cadastro-usuario.html` | 📋 Planejamento |
-| 5 | Confirmação de cadastro (email) | `confirmacao.html` | 📋 Planejamento |
-| 6 | Autenticação MFA | `mfa.html` | 📋 Planejamento |
-| 7 | Recuperação de senha (solicitar link) | `recuperacao-senha.html` | 📋 Planejamento |
+| 1 | Home / Landing | `index.html` | ✅ Implementado |
+| 2 | Busca pública por serial | `busca.html` | ✅ Implementado |
+| 3 | Login | `login.html` | ✅ Implementado |
+| 4 | Cadastro de usuário | `cadastro-usuario.html` | ✅ Implementado |
+| 5 | Confirmação de cadastro (email) | `confirmacao-cadastro.html` | ✅ Implementado |
+| 6 | Autenticação MFA | `mfa.html` | ✅ Implementado |
+| 7 | Recuperação de senha (solicitar link) | `recuperacao-senha.html` | ⚠️ Parcial |
 | 8 | Redefinição de senha (nova senha via link) | `redefinicao-senha.html` | 📋 Planejamento |
-| 9 | Cadastro de produto | `cadastro-produto.html` | 📋 Planejamento |
+| 9 | Cadastro de produto | `cadastro-produto.html` | ⚠️ Parcial |
 | 10 | Dashboard do usuário | `dashboard.html` | 📋 Planejamento |
+| 11 | Meus dados (perfil) | `meus-dados.html` | ⚠️ Parcial |
+| 12 | Exclusão de conta (LGPD) | `exclusao-conta.html` | ✅ Implementado |
 
-> **Nota:** Os arquivos das páginas 1–7 e 9–10 existem no repositório como estrutura inicial. A página 8 (`redefinicao-senha.html`) ainda precisa ser criada. Nenhuma página está implementada — todas estão em fase de planejamento.
+> **Legenda:** ✅ Implementado e integrado · ⚠️ Parcial (estrutura criada, falta funcionalidade ou tem bugs pendentes) · 📋 Planejamento
 >
 > A página 7 (recuperacao-senha) e a página 8 (redefinicao-senha) são distintas: a 7 é o formulário onde o usuário informa o email para receber o link; a 8 é o formulário para definir a nova senha após clicar no link.
 
@@ -87,68 +89,76 @@ Comprador consulta serial do objeto que vai adquirir. Se marcado como roubado �
 
 ### Checklists por página
 
-**Home / index.html**
-- [ ] Título da organização: SNGuard
-- [ ] Botão para a página de login
-- [ ] Botão para acessar a página de consulta por S/N
-- [ ] Botão para página de cadastro
-- [ ] Descrição das atividades e objetivos sociais
+**Home / index.html** ✅
+- [x] Título da organização: SNGuard
+- [x] Botão para a página de login
+- [x] Botão para acessar a página de consulta por S/N
+- [x] Botão para página de cadastro
+- [x] Descrição das atividades e objetivos sociais
 
-**Busca por S/N (busca.html)**
-- [ ] Campo de busca por número de série
-- [ ] Exibir dono registrado e status do objeto (sem expor dados pessoais)
-- [ ] Sistema de contato / agendamento em delegacia
+**Busca por S/N (busca.html)** ✅
+- [x] Campo de busca por número de série
+- [x] Exibir status do objeto (sem expor dados pessoais — LGPD)
+- [x] Badges coloridos: verde (registrado), vermelho (alerta), cinza (não encontrado)
+- [x] Formulário de contato anônimo ao proprietário (quando roubado/perdido)
+- [x] Pré-preenchimento via `?serial=` na URL (integrado com index.html)
 
-**Cadastro de usuário (cadastro-usuario.html)**
-- [ ] Validação de email
-- [ ] Campo de senha oculto com opção de mostrar
-- [ ] Botões de login e registro
-- [ ] Conformidade com LGPD (consentimento)
+**Cadastro de usuário (cadastro-usuario.html)** ✅
+- [x] Validação de email
+- [x] Campo de senha oculto com opção de mostrar
+- [x] Botões de login e registro
+- [x] Conformidade com LGPD (consentimento)
 
-**Confirmação de cadastro (confirmacao.html)**
-- [ ] Envio de link por email
-- [ ] Mensagem de sucesso ao usuário
-- [ ] Redirecionamento para MFA após confirmação
+**Confirmação de cadastro (confirmacao-cadastro.html)** ✅
+- [x] Mensagem de sucesso ao usuário (via `?status=success`)
+- [x] Mensagem de erro quando token inválido (via `?status=error`)
+- [ ] Envio de email com link de confirmação (aguarda PHPMailer)
 
-**Autenticação MFA (mfa.html)**
-- [ ] Sugerir método (TOTP preferido / email OTP como fallback)
-- [ ] Apresentar campo para código
-- [ ] Validar código e redirecionar ao dashboard
+**Autenticação MFA (mfa.html)** ✅
+- [x] Seleção de método: TOTP (recomendado) ou Email OTP
+- [x] Campo para código de 6 dígitos
+- [x] Envio de email OTP via `?action=send_email`
+- [x] Validação do código e redirecionamento ao dashboard
+- [ ] Envio de email real (aguarda PHPMailer)
 
-**Recuperação de senha (recuperacao-senha.html)**
+**Exclusão de conta (exclusao-conta.html)** ✅
+- [x] Confirmação de senha antes de excluir
+- [x] Opção parcial (anonimizar dados) ou total (anonimizar + soft-delete objetos)
+- [x] Conformidade LGPD Art. 18, VI
+
+**Recuperação de senha (recuperacao-senha.html)** ⚠️
 - [ ] Input de email com validação
-- [ ] Lógica de envio de token/link
+- [ ] Lógica de envio de token/link (recover.php step 1 — a implementar)
 - [ ] Feedback visual de "E-mail enviado"
 
-**Redefinição de senha (redefinicao-senha.html) ← A CRIAR**
+**Redefinição de senha (redefinicao-senha.html)** 📋
 - [ ] Inputs de nova senha e confirmação com máscara
 - [ ] Verificação de igualdade entre os campos
-- [ ] Validação de requisitos (caracteres especiais, números, etc.)
+- [ ] Validação de requisitos (mínimo 8 chars, número, especial)
 - [ ] Atualização no banco de dados via token válido
 
-**Cadastro de produto (cadastro-produto.html)**
-- [ ] Formulário: nome do produto, marca/modelo, número de série (S/N)
-- [ ] Opção de upload de imagem ou comprovante (Nota Fiscal)
+**Cadastro de produto (cadastro-produto.html)** ⚠️
+- [x] Formulário: nome do produto, marca/modelo, número de série (S/N)
+- [ ] Integração com backend/produto/cadastrar.php (a implementar)
 - [ ] Vinculação automática com o ID do usuário logado
-- [ ] Botão de salvar cadastro
+- [ ] Resolver conflito de merge pendente
 
-**Dashboard (dashboard.html)**
+**Dashboard (dashboard.html)** 📋
 - [ ] Grid ou lista de produtos cadastrados
 - [ ] Status de cada item ("Protegido" ou "Alerta")
-- [ ] Sidebar de navegação
-- [ ] Resumo de notificações
+- [ ] Botão de logout com CSRF
 - [ ] Atalhos rápidos para novo cadastro e perfil
 
 ### Backend — Auth
 
 | Arquivo | Função | Status |
 |---------|--------|--------|
-| `auth/register.php` | Registro de usuário | 📋 Planejamento |
-| `auth/confirm.php` | Confirmação de email | 📋 Planejamento |
-| `auth/login.php` | Login + sessão | 📋 Planejamento |
-| `auth/logout.php` | Logout seguro | 📋 Planejamento |
-| `auth/mfa.php` | Verificação MFA | 📋 Planejamento |
-| `auth/recover.php` | Recuperação de senha | 📋 Planejamento |
+| `auth/register.php` | Registro de usuário + envio de confirmação | ✅ Implementado |
+| `auth/confirm.php` | Confirmação de email via token | ✅ Implementado |
+| `auth/login.php` | Login + sessão + redirecionamento MFA | ✅ Implementado |
+| `auth/logout.php` | Logout seguro com CSRF | ✅ Implementado |
+| `auth/mfa.php` | TOTP nativo RFC 6238 + Email OTP | ✅ Implementado |
+| `auth/recover.php` | Recuperação de senha (step 2 — redefinição) | ⚠️ Parcial |
 
 ### Backend — Produto
 
@@ -156,38 +166,46 @@ Comprador consulta serial do objeto que vai adquirir. Se marcado como roubado �
 |---------|--------|--------|
 | `produto/cadastrar.php` | Registrar objeto com serial | 📋 Planejamento |
 | `produto/listar.php` | Listar objetos do usuário | 📋 Planejamento |
-| `produto/buscar.php` | Busca pública por serial | 📋 Planejamento |
+| `produto/buscar.php` | Busca pública por serial | ✅ Implementado |
 | `produto/status.php` | Alterar status (roubado/perdido) | 📋 Planejamento |
-| `produto/contato.php` | Envio de mensagem ao dono via delegacia | 📋 Planejamento |
+| `produto/contato.php` | Envio de mensagem anônima ao dono | 📋 Planejamento |
+
+### Backend — LGPD
+
+| Arquivo | Função | Status |
+|---------|--------|--------|
+| `lgpd/delete_account.php` | Exclusão/anonimização de conta (Art. 18, VI) | ✅ Implementado |
 
 ### Backend — Middleware
 
 | Arquivo | Função | Status |
 |---------|--------|--------|
-| `middleware/auth_guard.php` | Proteger rotas autenticadas | 📋 Planejamento |
-| `middleware/csrf.php` | Geração e validação de token CSRF | 📋 Planejamento |
-| `middleware/rate_limiter.php` | Limite de tentativas por IP | 📋 Planejamento |
+| `middleware/auth_guard.php` | Proteção de rotas + expiração de sessão | ✅ Implementado |
+| `middleware/csrf.php` | Geração e validação de token CSRF | ✅ Implementado |
+| `middleware/rate_limiter.php` | Limite de tentativas por IP/ação | ✅ Implementado |
 
 ### Backend — Utils
 
 | Arquivo | Função | Status |
 |---------|--------|--------|
-| `utils/hash.php` | `hashPassword()` + `verifyPassword()` bcrypt 13 | 📋 Planejamento |
+| `utils/hash.php` | `hashPassword()` + `verifyPassword()` bcrypt 13 | ✅ Implementado |
 | `utils/mailer.php` | PHPMailer — envio de emails | 📋 Planejamento |
-| `utils/secrets.php` | Carregamento de credenciais (gitignoreado) | 📋 Planejamento |
-| `utils/response.php` | `jsonSuccess()` + `jsonError()` padronizados | 📋 Planejamento |
+| `utils/secrets.php` | Carregamento de credenciais (gitignoreado) | ✅ Implementado |
+| `utils/response.php` | `jsonSuccess()` + `jsonError()` padronizados | ✅ Implementado |
 
 ### Banco de dados
 
 | Tabela | Descrição | Status |
 |--------|-----------|--------|
-| `users` | Usuários cadastrados (com CPF para NF-e) | 📋 Planejamento |
-| `tokens` | Tokens de confirmação e recuperação | 📋 Planejamento |
-| `rate_limits` | Controle de tentativas por IP | 📋 Planejamento |
+| `users` | Usuários cadastrados (com CPF para NF-e) | ✅ Implementado |
+| `tokens` | Tokens de confirmação, recuperação e MFA | ✅ Implementado |
+| `rate_limits` | Controle de tentativas por IP/ação | ✅ Implementado |
+| `lgpd_consent` | Registro de consentimento LGPD | ✅ Implementado |
+| `lgpd_deletion_requests` | Solicitações de exclusão (purga em 30 dias) | ✅ Implementado |
 | `objects` | Objetos registrados por serial | 📋 Planejamento |
-| `contact_messages` | Mensagens de objetos encontrados | 📋 Planejamento |
+| `contact_messages` | Mensagens anônimas de objetos encontrados | 📋 Planejamento |
 
-> **Nota:** O schema das tabelas `users`, `tokens` e `rate_limits` já está definido em `database/schema.sql`. As tabelas `objects` e `contact_messages` estão documentadas como TODO no schema — ainda a modelar.
+> **Nota:** As tabelas `objects` e `contact_messages` precisam ser adicionadas ao `database/schema.sql` para que o cadastro e busca de produtos funcionem end-to-end.
 
 ---
 
@@ -202,43 +220,47 @@ Portal-para-Registro-de-Propriedade/
 │   │   ├── main.js
 │   │   └── validacoes.js
 │   └── pages/
-│       ├── index.html               # Home / Landing
-│       ├── busca.html               # Busca pública por serial
-│       ├── login.html               # Login
-│       ├── cadastro-usuario.html    # Cadastro de usuário
-│       ├── confirmacao.html         # Confirmação de cadastro por email
-│       ├── recuperacao-senha.html   # (7) Solicitar link de recuperação
-│       ├── redefinicao-senha.html   # (8) Definir nova senha via link ⏳ A criar
-│       ├── mfa.html                 # (6) Autenticação 2 fatores
-│       ├── cadastro-produto.html    # (9) Registro de objeto com serial
-│       └── dashboard.html           # (10) Painel do usuário
+│       ├── index.html               # ✅ Home / Landing
+│       ├── busca.html               # ✅ Busca pública por serial
+│       ├── login.html               # ✅ Login
+│       ├── cadastro-usuario.html    # ✅ Cadastro de usuário
+│       ├── confirmacao-cadastro.html # ✅ Confirmação de cadastro por email
+│       ├── mfa.html                 # ✅ Autenticação 2 fatores
+│       ├── exclusao-conta.html      # ✅ Exclusão de conta (LGPD)
+│       ├── meus-dados.html          # ⚠️ Perfil do usuário (parcial)
+│       ├── recuperacao-senha.html   # ⚠️ Solicitar link de recuperação (parcial)
+│       ├── redefinicao-senha.html   # 📋 Definir nova senha via link (a implementar)
+│       ├── cadastro-produto.html    # ⚠️ Registro de objeto com serial (parcial)
+│       └── dashboard.html           # 📋 Painel do usuário (a implementar)
 ├── backend/
 │   ├── config/
-│   │   └── db.php                   # Conexão PDO (singleton)
+│   │   └── db.php                   # ✅ Conexão PDO (singleton)
 │   ├── auth/
-│   │   ├── login.php
-│   │   ├── logout.php
-│   │   ├── register.php
-│   │   ├── confirm.php
-│   │   ├── recover.php
-│   │   └── mfa.php
-│   ├── middleware/                  # ⏳ A criar
-│   │   ├── auth_guard.php
-│   │   ├── csrf.php
-│   │   └── rate_limiter.php
+│   │   ├── login.php                # ✅
+│   │   ├── logout.php               # ✅
+│   │   ├── register.php             # ✅
+│   │   ├── confirm.php              # ✅
+│   │   ├── recover.php              # ⚠️ Step 2 implementado, step 1 pendente
+│   │   └── mfa.php                  # ✅ TOTP nativo + Email OTP
+│   ├── lgpd/
+│   │   └── delete_account.php       # ✅ Exclusão LGPD Art. 18, VI
+│   ├── middleware/
+│   │   ├── auth_guard.php           # ✅
+│   │   ├── csrf.php                 # ✅
+│   │   └── rate_limiter.php         # ✅
 │   ├── produto/
-│   │   ├── cadastrar.php
-│   │   ├── listar.php
-│   │   ├── buscar.php
-│   │   ├── status.php
-│   │   └── contato.php
+│   │   ├── cadastrar.php            # 📋 A implementar
+│   │   ├── listar.php               # 📋 A implementar
+│   │   ├── buscar.php               # ✅
+│   │   ├── status.php               # 📋 A implementar
+│   │   └── contato.php              # 📋 A implementar
 │   └── utils/
-│       ├── hash.php
-│       ├── mailer.php
-│       ├── secrets.php              # Gitignoreado — não commitar
-│       └── response.php             # ⏳ A criar
+│       ├── hash.php                 # ✅ bcrypt cost 13
+│       ├── mailer.php               # 📋 PHPMailer — a implementar
+│       ├── secrets.php              # ✅ Gitignoreado — não commitar
+│       └── response.php             # ✅ jsonSuccess() + jsonError()
 ├── database/
-│   └── schema.sql                   # users, tokens, rate_limits ✅ | objects, contact_messages ⏳
+│   └── schema.sql                   # ✅ users, tokens, rate_limits, lgpd_* | 📋 objects, contact_messages
 ├── docs/
 │   ├── Logo.png                     # Logo do SNGuard
 │   └── relatorio.tex                # Relatório da disciplina
@@ -652,6 +674,77 @@ O SNGuard foi projetado com **Privacidade por Design** (Privacy by Design) como 
 | XSS | `htmlspecialchars()` em todos os outputs |
 | Headers HTTP | CSP, X-Frame-Options, HSTS, etc. em `backend/config/db.php` |
 | Secrets | Isolados em `backend/utils/secrets.php` (gitignoreado) |
+
+---
+
+## Planejamento de Sprints (Entrega: 16/04/2026)
+
+### Sprint 1 — Fundação de Segurança e Cadastro
+**Período:** 19/03/2026 (qui) → 25/03/2026 (qua)
+
+| # | Atividade | Data | Status |
+|---|-----------|------|--------|
+| 1 | Arquitetura: Privacy by Design — revisar que a consulta pública de S/N não exponha dados pessoais | 19–20/03 | 🟡 Em andamento |
+| 2 | LGPD: Controle de Consentimento — aceite de termos no cadastro, log na DB | 19–20/03 | 🟡 Em andamento |
+| 3 | Segurança: Backend Hashing — configurar Argon2id/Bcrypt, proibir texto plano | 20–21/03 | 🟡 Em andamento |
+| 4 | Página de Cadastro de Usuário — e-mail, senha, validação, aceite LGPD | 21–22/03 | 🟡 Em andamento |
+| 5 | Exigência de Senha Forte — regex: mín. 8 chars, maiúscula, número, especial | 22–23/03 | 🟡 Em andamento |
+| 6 | Validação de Campos por Expressão Regular — todos os inputs do sistema | 23–25/03 | 🟡 Em andamento |
+
+> **Entregável:** Usuário cadastrado com senha segura (hash), consentimento LGPD registrado na DB.
+
+---
+
+### Sprint 2 — Autenticação Completa e Recuperação de Acesso
+**Período:** 26/03/2026 (qui) → 01/04/2026 (qua)
+
+| # | Atividade | Data | Status |
+|---|-----------|------|--------|
+| 7 | Página de Autenticação de Usuário (Login) | 26–27/03 | 📋 Pendente |
+| 8 | Página de Confirmação de Cadastro por E-mail | 27–28/03 | 📋 Pendente |
+| 9 | MFA obrigatório — TOTP/Google Authenticator (não por e-mail) | 28–30/03 | 📋 Pendente |
+| 10 | Recuperação de Senha por E-mail — link seguro, página de redefinição | 30–31/03 | 📋 Pendente |
+| 11 | Página de Cadastro de Nova Senha — senha forte, hash, redirect ao login | 31/03–01/04 | 📋 Pendente |
+
+> **Entregável:** Fluxo completo cadastro → confirmação → login → MFA → dashboard. Recuperação de senha funcional.
+
+---
+
+### Sprint 3 — Cadastro de Recursos e Dashboard
+**Período:** 02/04/2026 (qui) → 08/04/2026 (qua)
+
+| # | Atividade | Data | Status |
+|---|-----------|------|--------|
+| 12 | Cadastro de Recursos (Produto) — S/N, foto, NF-e, declaração de primeiro dono | 02–04/04 | 📋 Pendente |
+| 13 | Dashboard do Usuário — lista de produtos, alertas de roubo/perda | 04–06/04 | 📋 Pendente |
+| 14 | Página de Consulta Pública de S/N — busca sem expor dados pessoais, contato indireto | 06–08/04 | 📋 Pendente |
+
+> **Entregável:** Usuário autenticado cadastra produto e visualiza painel. Consulta pública de S/N funcional.
+
+---
+
+### Sprint 4 — LGPD Completa e Entrega Final
+**Período:** 09/04/2026 (qui) → 16/04/2026 (qui)
+
+| # | Atividade | Data | Status |
+|---|-----------|------|--------|
+| 15 | LGPD: Transparência — vista "Meus Dados" com todas as informações do usuário | 09–11/04 | 📋 Pendente |
+| 16 | LGPD: Direito ao Esquecimento — exclusão total/parcial, borrado seguro na DB | 11–13/04 | 📋 Pendente |
+| 17 | Testes de integração e correção de bugs | 13–15/04 | 📋 Pendente |
+| 18 | Entrega Final — deploy, documentação, apresentação | 16/04 | 📋 Pendente |
+
+> **Entregável:** Sistema completo com todos os 14 requisitos do professor, LGPD de ponta a ponta.
+
+---
+
+### Visão Consolidada
+
+| Sprint | Início | Fim | Foco |
+|--------|--------|-----|------|
+| Sprint 1 | 19/03/2026 | 25/03/2026 | Privacy by Design, hashing, cadastro de usuário, LGPD consentimento |
+| Sprint 2 | 26/03/2026 | 01/04/2026 | Login, confirmação por e-mail, MFA (TOTP), recuperação de senha |
+| Sprint 3 | 02/04/2026 | 08/04/2026 | Cadastro de produtos (NF-e), dashboard, consulta pública S/N |
+| Sprint 4 | 09/04/2026 | 16/04/2026 | LGPD: transparência e direito ao esquecimento, testes, entrega final |
 
 ---
 
