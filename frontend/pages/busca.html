@@ -8,101 +8,196 @@
 </head>
 <body>
 
-  <!-- ===== CABEÇALHO ===== -->
   <header>
-    <!-- TODO: Logo SNGuard + links: Home | Login | Cadastrar-se -->
+    <a href="index.html">
+      <img src="../img/logo.png" alt="SNGuard" onerror="this.style.display='none'">
+    </a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="login.html">Login</a>
+      <a href="cadastro-usuario.html">Cadastrar-se</a>
+    </nav>
   </header>
 
   <main>
     <section id="busca-section">
       <h1>Verificar número de série</h1>
+      <p>Consulte se um produto está registrado ou foi reportado como roubado/perdido.</p>
 
-      <!--
-        FORMULÁRIO DE BUSCA PÚBLICA
-        action → backend/produto/buscar.php (GET — sem estado, sem login necessário)
+      <form id="form-busca" novalidate>
+        <div class="campo">
+          <label for="serial">Número de série do produto</label>
+          <input
+            type="text"
+            id="serial"
+            name="serial"
+            required
+            maxlength="100"
+            autocomplete="off"
+            placeholder="Ex: SN1234567890"
+          >
+          <small>Encontrado na embalagem, etiqueta traseira ou nota fiscal.</small>
+          <span id="erro-serial" class="erro" role="alert"></span>
+        </div>
 
-        Segurança e LGPD:
-          - BUSCA PÚBLICA: qualquer pessoa pode usar SEM estar logada
-          - Resposta retorna APENAS: status do produto (normal/roubado/não encontrado)
-          - NUNCA expor: nome do dono, e-mail, CPF, telefone ou qualquer dado pessoal
-            (LGPD — Art. 9, § 1: limitação de finalidade e minimização de dados)
-          - Rate limiting: máx. 10 consultas / minuto por IP (prevenir scraping)
-          - Input sanitizado: strip_tags + trim + maxlength=100
-
-        LGPD — Art. 9 (Transparência de informação):
-          Informar ao usuário que:
-          - Nenhum dado pessoal é coletado ou exibido nesta busca
-          - O IP é registrado apenas para rate limiting (finalidade legítima — Art. 7, IX)
-          - Logs de acesso são eliminados após 30 dias
-      -->
-      <form id="form-busca" action="../../backend/produto/buscar.php" method="GET" novalidate>
-        <!-- TODO: Input número de série -->
-        <!-- <label for="serial">Número de série do produto</label>
-             <input type="text" id="serial" name="serial"
-                    required maxlength="100" placeholder="Ex: SN1234567890"
-                    autocomplete="off">
-             <small>Encontrado na embalagem, etiqueta traseira ou nota fiscal</small> -->
-
-        <!-- TODO: Botão buscar -->
-        <!-- <button type="submit">Verificar</button> -->
+        <button type="submit" id="btn-buscar">Verificar</button>
       </form>
 
-      <!-- ===== RESULTADO DA BUSCA ===== -->
-      <div id="resultado-busca" aria-live="polite">
-        <!--
-          TODO: Exibir resultado (via redirect PHP com parâmetro ou AJAX):
+      <!-- Resultado da busca -->
+      <div id="resultado-busca" aria-live="polite" hidden></div>
 
-          Estado 1 — Serial registrado, sem alerta:
-            Badge verde "REGISTRADO"
-            "Este produto está registrado. Nenhum alerta ativo."
+      <!-- Contato anônimo — visível só quando produto é roubado/perdido -->
+      <div id="contato-anonimo" hidden>
+        <h2>Enviar mensagem ao proprietário</h2>
+        <p>Sua mensagem será enviada de forma anônima. Nenhum dado seu será revelado.</p>
 
-          Estado 2 — Serial marcado como roubado/perdido:
-            Badge vermelho "ALERTA — PRODUTO REPORTADO"
-            "Este produto foi marcado como roubado ou perdido. Não adquira."
-            → Exibir formulário de contato anônimo abaixo
+        <form id="form-contato" action="../../backend/produto/contato.php" method="POST" novalidate>
+          <input type="hidden" id="csrf-contato" name="csrf">
+          <input type="hidden" id="serial-contato" name="serial">
 
-          Estado 3 — Serial não encontrado:
-            Badge cinza "NÃO ENCONTRADO"
-            "Este número de série não está registrado no sistema."
+          <div class="campo">
+            <label for="mensagem">Sua mensagem</label>
+            <textarea
+              id="mensagem"
+              name="mensagem"
+              maxlength="500"
+              required
+              placeholder="Descreva onde/como encontrou o objeto..."
+            ></textarea>
+            <span id="erro-mensagem" class="erro" role="alert"></span>
+          </div>
 
-          CRÍTICO: Nenhum dos 3 estados deve revelar dados pessoais do proprietário.
-        -->
+          <button type="submit" id="btn-contato">Enviar mensagem</button>
+        </form>
+
+        <div id="msg-contato" role="alert" aria-live="polite"></div>
       </div>
 
-      <!-- ===== FORMULÁRIO DE CONTATO ANÔNIMO ===== -->
-      <div id="contato-anonimo" style="display:none;">
-        <!--
-          Visível APENAS quando produto está marcado como roubado/perdido.
-          action → backend/produto/contato.php (POST)
-
-          Segurança:
-            - CSRF token obrigatório
-            - Rate limiting: máx. 3 mensagens / hora por serial por IP
-            - Mensagem enviada ao dono via e-mail SEM revelar dados do remetente
-              (sistema intermediário anônimo — LGPD Art. 9)
-            - Sem campo de e-mail do remetente (por design)
-
-          LGPD — Art. 6, III (Minimização de dados):
-            Coletar apenas o mínimo: texto da mensagem + serial.
-            IP registrado apenas para rate limiting, eliminado em 30 dias.
-        -->
-        <!-- TODO: <form id="form-contato" action="../../backend/produto/contato.php" method="POST">
-               <input type="hidden" name="csrf" value="[...]">
-               <input type="hidden" name="serial" value="[serial da busca]">
-               <label for="mensagem">Sua mensagem (anônima)</label>
-               <textarea id="mensagem" name="mensagem" maxlength="500" required
-                         placeholder="Descreva onde/como encontrou o objeto..."></textarea>
-               <button type="submit">Enviar mensagem ao proprietário</button>
-             </form> -->
-      </div>
     </section>
   </main>
 
   <footer>
-    <!-- TODO: Links: Política de Privacidade | Termos de Uso -->
+    <a href="politica_privavidade.html">Política de Privacidade</a>
+    <a href="termo_de_uso.html">Termos de Uso</a>
   </footer>
 
   <script src="../js/validacoes.js" defer></script>
-  <script src="../js/main.js" defer></script>
+  <script defer>
+    (function () {
+      const form        = document.getElementById('form-busca');
+      const btnBuscar   = document.getElementById('btn-buscar');
+      const resultado   = document.getElementById('resultado-busca');
+      const contatoDiv  = document.getElementById('contato-anonimo');
+      const formContato = document.getElementById('form-contato');
+      const msgContato  = document.getElementById('msg-contato');
+      const erroSerial  = document.getElementById('erro-serial');
+
+      // Pré-preencher serial se vier da index.html via GET
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('serial')) {
+        document.getElementById('serial').value = params.get('serial');
+        form.dispatchEvent(new Event('submit'));
+      }
+
+      // Buscar CSRF para o form de contato
+      fetch('../../backend/auth/get_csrf.php')
+        .then(r => r.json())
+        .then(d => { if (d.csrf) document.getElementById('csrf-contato').value = d.csrf; });
+
+      // ── Submeter busca ──────────────────────────────────────────────────
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const serial = document.getElementById('serial').value.trim();
+
+        if (!serial) {
+          erroSerial.textContent = 'Informe o número de série.';
+          return;
+        }
+        erroSerial.textContent = '';
+
+        btnBuscar.disabled    = true;
+        btnBuscar.textContent = 'Verificando...';
+        resultado.hidden      = true;
+        contatoDiv.hidden     = true;
+
+        fetch('../../backend/produto/buscar.php?serial=' + encodeURIComponent(serial))
+          .then(r => r.json())
+          .then(function (d) {
+            resultado.hidden = false;
+
+            if (!d.success) {
+              resultado.innerHTML = '<p class="erro">' + (d.error || 'Erro ao consultar.') + '</p>';
+              return;
+            }
+
+            if (!d.encontrado) {
+              resultado.innerHTML =
+                '<span class="badge badge-cinza">NÃO ENCONTRADO</span>' +
+                '<p>Este número de série não está registrado no sistema.</p>';
+              return;
+            }
+
+            if (d.status === 'roubado' || d.status === 'perdido') {
+              resultado.innerHTML =
+                '<span class="badge badge-vermelho">ALERTA — PRODUTO REPORTADO</span>' +
+                '<p>Este produto foi marcado como ' + d.status + '. Não adquira.</p>';
+              document.getElementById('serial-contato').value = serial;
+              contatoDiv.hidden = false;
+              return;
+            }
+
+            resultado.innerHTML =
+              '<span class="badge badge-verde">REGISTRADO</span>' +
+              '<p>Este produto está registrado. Nenhum alerta ativo.</p>';
+          })
+          .catch(function () {
+            resultado.hidden = false;
+            resultado.innerHTML = '<p class="erro">Erro de conexão. Tente novamente.</p>';
+          })
+          .finally(function () {
+            btnBuscar.disabled    = false;
+            btnBuscar.textContent = 'Verificar';
+          });
+      });
+
+      // ── Submeter contato anônimo ─────────────────────────────────────────
+      formContato.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const mensagem    = document.getElementById('mensagem').value.trim();
+        const erroMsg     = document.getElementById('erro-mensagem');
+        const btnContato  = document.getElementById('btn-contato');
+
+        if (!mensagem) {
+          erroMsg.textContent = 'Escreva uma mensagem antes de enviar.';
+          return;
+        }
+        erroMsg.textContent   = '';
+        btnContato.disabled   = true;
+        btnContato.textContent = 'Enviando...';
+
+        try {
+          const body = new FormData(formContato);
+          const resp = await fetch('../../backend/produto/contato.php', {
+            method: 'POST', body
+          });
+          const data = await resp.json();
+
+          if (data.success) {
+            msgContato.textContent = 'Mensagem enviada. O proprietário será notificado.';
+            formContato.hidden = true;
+          } else {
+            msgContato.textContent = data.error || 'Erro ao enviar. Tente novamente.';
+            btnContato.disabled   = false;
+            btnContato.textContent = 'Enviar mensagem';
+          }
+        } catch (_) {
+          msgContato.textContent = 'Erro de conexão. Tente novamente.';
+          btnContato.disabled   = false;
+          btnContato.textContent = 'Enviar mensagem';
+        }
+      });
+    })();
+  </script>
+
 </body>
 </html>
