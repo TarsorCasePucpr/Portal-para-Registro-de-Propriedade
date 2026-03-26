@@ -1,11 +1,21 @@
 <?php
 declare(strict_types=1);
 
-// logout.php — Encerramento de sessão
-//
-// Fluxo esperado:
-//   1. Validar o token CSRF mesmo no logout — links de logout podem ser explorados por terceiros
-//   2. Limpar todas as variáveis de sessão
-//   3. Destruir a sessão no servidor
-//   4. Remover o cookie de sessão do navegador do usuário
-//   5. Redirecionar para a página inicial — nunca para uma URL recebida como parâmetro
+ini_set('session.cookie_httponly', '1');
+ini_set('session.cookie_samesite', 'Strict');
+session_start();
+
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../middleware/csrf.php';
+require_once __DIR__ . '/../utils/response.php';
+
+// Validar CSRF mesmo no logout — evita logout forçado por terceiros
+if (!validateCsrfToken($_GET['csrf'] ?? '')) {
+    redirect('../../frontend/pages/dashboard.html');
+}
+
+session_unset();
+session_destroy();
+setcookie(session_name(), '', time() - 3600, '/', '', true, true);
+
+redirect('../../frontend/pages/index.html');
