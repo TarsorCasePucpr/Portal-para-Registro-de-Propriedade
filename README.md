@@ -75,7 +75,7 @@ Comprador consulta serial do objeto que vai adquirir. Se marcado como roubado �
 | 5 | Confirmação de cadastro (email) | `confirmacao-cadastro.html` | ✅ Implementado |
 | 6 | Autenticação MFA | `mfa.html` | ✅ Implementado |
 | 7 | Recuperação de senha (solicitar link) | `recuperacao-senha.html` | ⚠️ Parcial |
-| 8 | Redefinição de senha (nova senha via link) | `redefinicao-senha.html` | 📋 Planejamento |
+| 8 | Redefinição de senha (nova senha via link) | `redefinicao-senha.html` | ✅ Implementado |
 | 9 | Cadastro de produto | `cadastro-produto.html` | ⚠️ Parcial |
 | 10 | Dashboard do usuário | `dashboard.html` | 📋 Planejamento |
 | 11 | Meus dados (perfil) | `meus-dados.html` | ⚠️ Parcial |
@@ -127,21 +127,24 @@ Comprador consulta serial do objeto que vai adquirir. Se marcado como roubado �
 - [x] Conformidade LGPD Art. 18, VI
 
 **Recuperação de senha (recuperacao-senha.html)** ⚠️
-- [ ] Input de email com validação
-- [ ] Lógica de envio de token/link (recover.php step 1 — a implementar)
-- [ ] Feedback visual de "E-mail enviado"
+- [x] Input de email com validação
+- [x] Lógica de envio de token/link (recover.php step 1 — backend implementado)
+- [x] Anti-enumeration: sempre responde `?msg=ok` independente do email existir
+- [ ] Feedback visual de "E-mail enviado" no frontend (HTML pendente)
 
-**Redefinição de senha (redefinicao-senha.html)** 📋
-- [ ] Inputs de nova senha e confirmação com máscara
-- [ ] Verificação de igualdade entre os campos
-- [ ] Validação de requisitos (mínimo 8 chars, número, especial)
-- [ ] Atualização no banco de dados via token válido
+**Redefinição de senha (redefinicao-senha.html)** ✅
+- [x] Inputs de nova senha e confirmação com máscara
+- [x] Verificação de igualdade entre os campos (validacoes.js)
+- [x] Validação de requisitos (mín. 12 chars, maiúscula, número, especial)
+- [x] Leitura do token via URL e submissão ao backend
+- [x] Atualização no banco de dados via token válido (recover.php)
 
 **Cadastro de produto (cadastro-produto.html)** ⚠️
-- [x] Formulário: nome do produto, marca/modelo, número de série (S/N)
-- [ ] Integração com backend/produto/cadastrar.php (a implementar)
+- [x] Formulário: descrição, número de série (S/N), fotos, data de compra
+- [x] Campo para chave NF-e (44 dígitos)
+- [x] Declaração de responsabilidade legal
+- [ ] Integração com backend/produto/cadastrar.php (pendente — Gustavo)
 - [ ] Vinculação automática com o ID do usuário logado
-- [ ] Resolver conflito de merge pendente
 
 **Dashboard (dashboard.html)** 📋
 - [ ] Grid ou lista de produtos cadastrados
@@ -158,7 +161,7 @@ Comprador consulta serial do objeto que vai adquirir. Se marcado como roubado �
 | `auth/login.php` | Login + sessão + redirecionamento MFA | ✅ Implementado |
 | `auth/logout.php` | Logout seguro com CSRF | ✅ Implementado |
 | `auth/mfa.php` | TOTP nativo RFC 6238 + Email OTP | ✅ Implementado |
-| `auth/recover.php` | Recuperação de senha (step 2 — redefinição) | ⚠️ Parcial |
+| `auth/recover.php` | Recuperação de senha (step 1 + step 2 completos) | ✅ Implementado |
 
 ### Backend — Produto
 
