@@ -16,24 +16,24 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 if (!validateCsrfToken($_POST['csrf'] ?? '')) {
-    $_SESSION['login_erro'] = 'Token de segurança inválido.';
-    redirect('../../frontend/pages/login.html');
+    redirect('../../frontend/pages/login.html?erro=' .
+        urlencode('Token de segurança inválido.'));
 }
 
 $pdo = getDb();
 $ip  = $_SERVER['REMOTE_ADDR'];
 
 if (!checkRateLimit($pdo, $ip, 'login', 5, 15)) {
-    $_SESSION['login_erro'] = 'Muitas tentativas de login. Aguarde 15 minutos e tente novamente.';
-    redirect('../../frontend/pages/login.html');
+    redirect('../../frontend/pages/login.html?erro=' .
+        urlencode('Muitas tentativas de login. Aguarde 15 minutos e tente novamente.'));
 }
 
 $email = trim(strtolower($_POST['email'] ?? ''));
 $senha = $_POST['senha'] ?? '';
 
 if (empty($email) || empty($senha)) {
-    $_SESSION['login_erro'] = 'Preencha e-mail e senha.';
-    redirect('../../frontend/pages/login.html');
+    redirect('../../frontend/pages/login.html?erro=' .
+        urlencode('Preencha e-mail e senha.'));
 }
 
 try {
@@ -50,13 +50,13 @@ try {
         : '$2y$13$invalidhashfortimingprotect0000000000000000000000000000000u';
 
     if (!$usuario || !verifyPassword($senha, $hashVerificacao)) {
-        $_SESSION['login_erro'] = 'E-mail ou senha incorretos.';
-        redirect('../../frontend/pages/login.html');
+        redirect('../../frontend/pages/login.html?erro=' .
+            urlencode('E-mail ou senha incorretos.'));
     }
 
     if (!(bool) $usuario['is_active']) {
-        $_SESSION['login_erro'] = 'Conta não confirmada. Verifique seu e-mail.';
-        redirect('../../frontend/pages/login.html');
+        redirect('../../frontend/pages/login.html?erro=' .
+            urlencode('Conta não confirmada. Verifique seu e-mail.'));
     }
 
     if (needsRehash($usuario['password_hash'])) {
@@ -81,6 +81,6 @@ try {
 
 } catch (PDOException $e) {
     error_log('login.php: ' . $e->getMessage());
-    $_SESSION['login_erro'] = 'Erro interno. Tente novamente mais tarde.';
-    redirect('../../frontend/pages/login.html');
+    redirect('../../frontend/pages/login.html?erro=' .
+        urlencode('Erro interno. Tente novamente mais tarde.'));
 }
