@@ -14,7 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('../../frontend/pages/cadastro-usuario.html');
 }
 
-validateCsrfToken();
+if (!validateCsrfToken($_POST['csrf'] ?? '')) {
+    redirect('../../frontend/pages/cadastro-usuario.html?erro=' .
+        urlencode('Token de segurança inválido.'));
+}
 
 $nome  = trim(htmlspecialchars($_POST['nome']  ?? '', ENT_QUOTES, 'UTF-8'));
 $email = trim(strtolower($_POST['email'] ?? ''));
@@ -51,8 +54,8 @@ if ($lgpd !== '1') {
 }
 
 if (!empty($erros)) {
-    $_SESSION['cadastro_erros'] = $erros;
-    redirect('../../frontend/pages/cadastro-usuario.html');
+    redirect('../../frontend/pages/cadastro-usuario.html?erro=' .
+        urlencode(implode(' ', $erros)));
 }
 
 try {
@@ -62,8 +65,8 @@ try {
     $stmt->execute(['email' => $email, 'cpf' => $cpf]);
 
     if ($stmt->fetch()) {
-        $_SESSION['cadastro_erros'] = ['Não foi possível criar a conta. Verifique seus dados.'];
-        redirect('../../frontend/pages/cadastro-usuario.html');
+        redirect('../../frontend/pages/cadastro-usuario.html?erro=' .
+            urlencode('Não foi possível criar a conta. Verifique seus dados.'));
     }
 
     $hashSenha = hashPassword($senha);
@@ -94,11 +97,10 @@ try {
          VALUES (:uid, :ip, '1.0')"
     )->execute(['uid' => $userId, 'ip' => $_SERVER['REMOTE_ADDR']]);
 
-    $_SESSION['cadastro_sucesso'] = 'Conta criada! Verifique seu e-mail para confirmar.';
-    redirect('../../frontend/pages/confirmacao.html');
+    redirect('../../frontend/pages/confirmacao-cadastro.html');
 
 } catch (PDOException $e) {
     error_log('register.php: ' . $e->getMessage());
-    $_SESSION['cadastro_erros'] = ['Erro interno. Tente novamente mais tarde.'];
-    redirect('../../frontend/pages/cadastro-usuario.html');
+    redirect('../../frontend/pages/cadastro-usuario.html?erro=' .
+        urlencode('Erro interno. Tente novamente mais tarde.'));
 }
