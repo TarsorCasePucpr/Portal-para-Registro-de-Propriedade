@@ -170,7 +170,7 @@ try {
 
     // 5. Enviar e-mail de confirmação
     $linkConfirmacao = rtrim(BASE_URL ?? 'http://localhost', '/') .
-        '/backend/auth/confirmar_email.php?token=' . urlencode($tokenRaw);
+        '/backend/auth/confirm.php?token=' . urlencode($tokenRaw);
 
     enviarEmail(
         destinatario: $email,

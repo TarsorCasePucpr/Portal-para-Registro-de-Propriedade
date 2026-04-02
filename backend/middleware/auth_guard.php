@@ -8,6 +8,8 @@ declare(strict_types=1);
  *      requireAuth();
  */
 
+require_once __DIR__ . '/../utils/response.php';
+
 function startSessionSafe(): void
 {
     if (session_status() === PHP_SESSION_NONE) {
