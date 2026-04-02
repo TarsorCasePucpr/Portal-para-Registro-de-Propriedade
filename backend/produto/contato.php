@@ -47,10 +47,11 @@ $metodo = $_SERVER['REQUEST_METHOD'];
 
 // ════════════════════════════════════════════════════════════════
 //  GET — listar mensagens pendentes (dashboard do dono)
+//  Autenticação obrigatória apenas aqui — POST é anônimo por design
 // ════════════════════════════════════════════════════════════════
 if ($metodo === 'GET' && ($_GET['acao'] ?? '') === 'listar_pendentes') {
 
-    requireAuth();
+    requireAuth(); // ← guard só neste bloco, não no topo do arquivo
     $userId = (int) $_SESSION['user_id'];
 
     try {
@@ -71,9 +72,9 @@ if ($metodo === 'GET' && ($_GET['acao'] ?? '') === 'listar_pendentes') {
         $stmt->execute(['uid' => $userId]);
         $mensagens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Marcar como lidas (lida = 1) após listar
+        // Marcar como lidas após listar — IDs vêm do banco, mas força intval por padrão
         if (!empty($mensagens)) {
-            $ids = implode(',', array_column($mensagens, 'id'));
+            $ids = implode(',', array_map('intval', array_column($mensagens, 'id')));
             $pdo->exec(
                 "UPDATE contact_messages SET lida = 1
                  WHERE id IN ({$ids})"
