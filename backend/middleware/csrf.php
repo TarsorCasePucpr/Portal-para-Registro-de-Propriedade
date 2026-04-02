@@ -1,13 +1,8 @@
 <?php
 declare(strict_types=1);
 
-function startSessionSafe(): void {
-    if (session_status() !== PHP_SESSION_NONE) return;
-    ini_set('session.cookie_httponly', '1');
-    ini_set('session.cookie_secure', '1');
-    ini_set('session.cookie_samesite', 'Strict');
-    session_start();
-}
+// startSessionSafe() é definida em auth_guard.php — incluir esse arquivo antes de csrf.php
+// quando ambos forem necessários, para evitar redefinição.
 
 function generateCsrfToken(): string {
     startSessionSafe();
