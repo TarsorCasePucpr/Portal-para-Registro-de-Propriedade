@@ -19,7 +19,6 @@
   <main>
     <section id="redef-section">
 
-      <!-- ══ Estado: Token inválido / ausente ════════════════════ -->
       <div id="estado-token-invalido" hidden>
         <div class="card" style="text-align:center; padding:2rem;">
           <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.5" style="margin:0 auto .875rem;">
@@ -34,7 +33,6 @@
         </div>
       </div>
 
-      <!-- ══ Estado: Formulário de nova senha ════════════════════ -->
       <div id="estado-formulario" hidden>
         <h1>Criar nova senha</h1>
         <p>Escolha uma senha forte para proteger sua conta.</p>
@@ -44,7 +42,6 @@
           <input type="hidden" name="token" id="campo-token">
           <input type="hidden" id="csrf-redef" name="csrf">
 
-          <!-- Nova senha -->
           <div class="campo">
             <label for="nova-senha">Nova senha</label>
             <div class="campo-senha">
@@ -63,7 +60,6 @@
             <div id="forca-senha" aria-live="polite"></div>
             <small>Mín. 12 caracteres · maiúscula · minúscula · número · símbolo (@$!%*?&)</small>
 
-            <!-- Requisitos visuais -->
             <ul id="requisitos" style="list-style:none; margin-top:.5rem; display:flex; flex-direction:column; gap:.25rem;">
               <li data-req="length"  class="req">✗ Mínimo 12 caracteres</li>
               <li data-req="upper"   class="req">✗ Uma letra maiúscula</li>
@@ -73,7 +69,6 @@
             </ul>
           </div>
 
-          <!-- Confirmar senha -->
           <div class="campo">
             <label for="confirmar-nova-senha">Confirmar nova senha</label>
             <div class="campo-senha">
@@ -95,7 +90,6 @@
         </form>
       </div>
 
-      <!-- ══ Estado: Sucesso ═════════════════════════════════════ -->
       <div id="estado-sucesso" hidden>
         <div class="card" style="text-align:center; padding:2rem;">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" style="margin:0 auto .875rem;">
@@ -138,7 +132,6 @@
     const estadoFormulario = document.getElementById('estado-formulario');
     const estadoSucesso    = document.getElementById('estado-sucesso');
 
-    // ── 1. Ler e validar token da URL ───────────────────────────
     const params = new URLSearchParams(window.location.search);
     const token  = params.get('token');
 
@@ -150,12 +143,10 @@
     document.getElementById('campo-token').value = token;
     estadoFormulario.hidden = false;
 
-    // ── 2. CSRF ─────────────────────────────────────────────────
     fetch('../../backend/auth/get_csrf.php')
       .then(r => r.json())
       .then(d => { if (d.csrf) document.getElementById('csrf-redef').value = d.csrf; });
 
-    // ── 3. Toggle visibilidade de senha ─────────────────────────
     function setupToggle(btnId, inputId) {
       const btn   = document.getElementById(btnId);
       const input = document.getElementById(inputId);
@@ -169,7 +160,6 @@
     setupToggle('toggle-nova', 'nova-senha');
     setupToggle('toggle-confirmar', 'confirmar-nova-senha');
 
-    // ── 4. Indicador de força + requisitos ──────────────────────
     const inputSenha = document.getElementById('nova-senha');
     const forcaEl    = document.getElementById('forca-senha');
     const reqs = {
@@ -208,7 +198,6 @@
       }
     });
 
-    // ── 5. Validação no submit ───────────────────────────────────
     document.getElementById('form-nova-senha').addEventListener('submit', async function (e) {
       e.preventDefault();
 

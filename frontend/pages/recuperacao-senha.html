@@ -20,14 +20,12 @@
   <main>
     <section id="recuperacao-section">
 
-      <!-- Indicador de passo -->
       <div class="steps" id="steps-indicator" aria-label="Etapas">
         <div class="step-dot active" id="dot-1"></div>
         <div class="step-dot" id="dot-2"></div>
         <div class="step-dot" id="dot-3"></div>
       </div>
 
-      <!-- ══ PASSO 1 — Informar e-mail ═══════════════════════════ -->
       <div id="passo-1">
         <h1>Recuperar senha</h1>
         <p>Informe o e-mail cadastrado. Você receberá um link para redefinir sua senha.</p>
@@ -57,7 +55,6 @@
         </form>
       </div>
 
-      <!-- ══ PASSO 2 — MFA (se habilitado) ═══════════════════════ -->
       <div id="passo-2" hidden>
         <h1>Verificação em duas etapas</h1>
         <p>Insira o código de 6 dígitos do seu aplicativo autenticador para confirmar sua identidade.</p>
@@ -88,7 +85,6 @@
         </div>
       </div>
 
-      <!-- ══ PASSO 3 — Confirmação de envio ═══════════════════════ -->
       <div id="passo-3" hidden>
         <div class="card" style="text-align:center; padding:2rem;">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" style="margin: 0 auto .875rem;">
@@ -124,7 +120,6 @@
   <script src="../js/validacoes.js" defer></script>
   <script defer>
   (function () {
-    // ── Elementos ───────────────────────────────────────────────
     const passo1 = document.getElementById('passo-1');
     const passo2 = document.getElementById('passo-2');
     const passo3 = document.getElementById('passo-3');
@@ -137,7 +132,6 @@
     let emailGlobal = '';
     let mfaObrigatorio = false;
 
-    // ── Helpers de UI ───────────────────────────────────────────
     function irParaPasso(n) {
       [passo1, passo2, passo3].forEach((el, i) => {
         el.hidden = i !== n - 1;
@@ -157,7 +151,6 @@
       btn.textContent = txt;
     }
 
-    // ── CSRF ─────────────────────────────────────────────────────
     fetch('../../backend/auth/get_csrf.php')
       .then(r => r.json())
       .then(d => {
@@ -167,7 +160,6 @@
         }
       });
 
-    // ══ PASSO 1 — Envio do e-mail ══════════════════════════════
     document.getElementById('form-recuperacao').addEventListener('submit', async function (e) {
       e.preventDefault();
       const email    = document.getElementById('email').value.trim();
@@ -193,25 +185,20 @@
         const data = await res.json();
 
         if (data.mfa_required) {
-          // Usuário tem MFA ativo — pedir código antes de enviar link
           mfaObrigatorio = true;
           document.getElementById('email-mfa').value = email;
           irParaPasso(2);
           document.getElementById('mfa-0').focus();
         } else {
-          // Não tem MFA — vai direto para confirmação
           mostrarConfirmacao(email);
         }
       } catch (_) {
-        // Não revelar se o e-mail existe ou não (segurança)
         mostrarConfirmacao(email);
       } finally {
         resetBtn(btn, 'Enviar link de recuperação');
       }
     });
 
-    // ══ PASSO 2 — MFA ══════════════════════════════════════════
-    // Navegação entre inputs do código
     const mfaInputs = Array.from(document.querySelectorAll('.mfa-digits input'));
     mfaInputs.forEach((input, idx) => {
       input.addEventListener('input', function () {
@@ -277,7 +264,6 @@
 
     document.getElementById('btn-voltar-mfa').addEventListener('click', () => irParaPasso(1));
 
-    // ══ PASSO 3 — Confirmação ══════════════════════════════════
     function mostrarConfirmacao(email) {
       const mascarado = email.replace(/(.{1}).+(@.+)/, '$1***$2');
       document.getElementById('msg-email-enviado').innerHTML =
@@ -286,7 +272,6 @@
       irParaPasso(3);
     }
 
-    // Reenvio
     let reenvioCount = 0;
     document.getElementById('btn-reenviar').addEventListener('click', async function () {
       const msgEl = document.getElementById('msg-reenvio');
@@ -305,7 +290,6 @@
         const fd = new FormData();
         fd.append('acao', 'reenviar');
         fd.append('email', emailGlobal);
-        // CSRF não necessário em reenvio (sem estado, e-mail já validado no passo anterior)
 
         await fetch('../../backend/auth/recover.php', { method: 'POST', body: fd });
         msgEl.style.color = 'var(--primary)';

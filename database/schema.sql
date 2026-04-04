@@ -103,10 +103,6 @@ CREATE TABLE IF NOT EXISTS objects (
     serial_number VARCHAR(100)        NOT NULL UNIQUE,
     status        ENUM('normal','roubado','perdido') NOT NULL DEFAULT 'normal',
 
-    -- Fotos armazenadas fora do webroot; colunas guardam apenas o caminho relativo
-    foto_produto  VARCHAR(512)        NULL,
-    foto_serial   VARCHAR(512)        NULL,
-
     -- Dados opcionais da Nota Fiscal
     nfe_chave     VARCHAR(44)         NULL,    -- chave de acesso da NF-e (44 dígitos)
     nfe_validada  TINYINT(1)          NOT NULL DEFAULT 0,

@@ -1,18 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * me.php — Retorna dados básicos do usuário autenticado
- *
- * GET /backend/auth/me.php
- *
- * Resposta JSON:
- *   { "success": true, "name": "...", "email": "...", "mfa_enabled": false }
- *   { "success": false, "error": "Não autenticado." }
- *
- * Usado pelo dashboard para carregar saudação e estado do 2FA.
- */
-
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store');

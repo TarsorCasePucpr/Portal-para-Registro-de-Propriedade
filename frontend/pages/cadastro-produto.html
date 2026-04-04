@@ -29,60 +29,15 @@
         <p>Adicione seu produto ao SNGuard para protegê-lo e provar sua propriedade.</p>
       </div>
 
-      <form id="form-produto" novalidate enctype="multipart/form-data"
+      <form id="form-produto" novalidate
             action="../../backend/produto/cadastrar.php" method="POST">
 
         <input type="hidden" id="csrf-produto" name="csrf">
 
-        <!-- ══════════════════════════════════════════════════════
-             BLOCO 1 — Importar via Nota Fiscal
-             ══════════════════════════════════════════════════════ -->
-        <div class="nf-section">
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.25rem;">
-            <h2 style="font-size:1rem;">Importar via Nota Fiscal</h2>
-            <span class="score-pill">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
-              </svg>
-              Aumenta seu score
-            </span>
-          </div>
-          <p>
-            Consultar a chave da nota fiscal valida sua propriedade e eleva a confiabilidade do registro.
-          </p>
-
-          <div class="campo">
-            <label for="nfe-chave">Chave da Nota Fiscal (44 dígitos)</label>
-            <div style="display:flex; gap:.625rem;">
-              <input
-                type="text"
-                id="nfe-chave"
-                name="nfe_chave"
-                maxlength="44"
-                inputmode="numeric"
-                autocomplete="off"
-                placeholder="00000000000000000000000000000000000000000000"
-                style="flex:1; font-family:monospace; letter-spacing:.05em;"
-              >
-              <button type="button" id="btn-consultar-nf" class="btn-secondary" style="width:auto; white-space:nowrap;">
-                Consultar
-              </button>
-            </div>
-            <small>44 dígitos numéricos — encontrado na nota fiscal ou DANFE.</small>
-            <span id="erro-nfe" class="erro" role="alert"></span>
-          </div>
-
-          <div id="nf-status" class="nf-status" hidden></div>
-        </div>
-
-        <!-- ══════════════════════════════════════════════════════
-             BLOCO 2 — Informações do Produto
-             ══════════════════════════════════════════════════════ -->
-        <h2 style="margin-bottom:1rem; font-size:1rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; font-size:.8125rem;">
+        <h2 style="margin-bottom:1rem; font-size:.8125rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em;">
           Informações do produto
         </h2>
 
-        <!-- Descrição -->
         <div class="campo">
           <label for="descricao">Descrição do produto <span style="color:var(--danger)">*</span></label>
           <textarea
@@ -96,7 +51,6 @@
           <span id="erro-descricao" class="erro" role="alert"></span>
         </div>
 
-        <!-- Número de série -->
         <div class="campo">
           <label for="serial">Número de série <span style="color:var(--danger)">*</span></label>
           <input
@@ -112,7 +66,6 @@
           <span id="erro-serial" class="erro" role="alert"></span>
         </div>
 
-        <!-- Data de compra -->
         <div class="campo">
           <label for="data-compra">Data de compra</label>
           <input
@@ -124,41 +77,22 @@
           <span id="erro-data" class="erro" role="alert"></span>
         </div>
 
-        <!-- Foto do produto -->
         <div class="campo">
-          <label>Foto do produto</label>
-          <div class="upload-box" id="box-foto-produto">
-            <input type="file" id="foto-produto" name="foto_produto" accept="image/jpeg,image/png,image/webp" aria-label="Foto do produto">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/>
-            </svg>
-            <p>Clique ou arraste para adicionar foto</p>
-            <small>JPG, PNG ou WebP — máx. 5MB</small>
-            <img class="upload-preview" id="preview-produto" alt="Pré-visualização do produto">
-          </div>
-          <span id="erro-foto-produto" class="erro" role="alert"></span>
+          <label for="nfe-chave">Chave da Nota Fiscal (opcional)</label>
+          <input
+            type="text"
+            id="nfe-chave"
+            name="nfe_chave"
+            maxlength="44"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="44 dígitos numéricos"
+            style="font-family:monospace; letter-spacing:.05em;"
+          >
+          <small>Informar a chave NF-e aumenta o score de confiabilidade do seu registro.</small>
+          <span id="erro-nfe" class="erro" role="alert"></span>
         </div>
 
-        <!-- Foto do número de série -->
-        <div class="campo">
-          <label>Foto do número de série</label>
-          <div class="upload-box" id="box-foto-serial">
-            <input type="file" id="foto-serial" name="foto_serial" accept="image/jpeg,image/png,image/webp" aria-label="Foto do número de série">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z"/>
-            </svg>
-            <p>Foto da etiqueta com o número de série</p>
-            <small>JPG, PNG ou WebP — máx. 5MB</small>
-            <img class="upload-preview" id="preview-serial" alt="Pré-visualização do número de série">
-          </div>
-          <span id="erro-foto-serial" class="erro" role="alert"></span>
-        </div>
-
-        <!-- ══════════════════════════════════════════════════════
-             BLOCO 3 — Declaração de responsabilidade
-             ══════════════════════════════════════════════════════ -->
         <div class="declaracao-legal">
           <p>
             <strong style="color:var(--warn);">⚠ Declaração de responsabilidade</strong><br><br>
@@ -179,14 +113,12 @@
         </div>
         <span id="erro-termos" class="erro" role="alert"></span>
 
-        <!-- Status público -->
         <div class="alert alert-info" style="margin-bottom:1rem;">
           <strong>Visibilidade:</strong> o status do produto (registrado / alerta) será
           acessível publicamente pela busca de número de série. Seus dados pessoais
           nunca serão exibidos.
         </div>
 
-        <!-- ══ AÇÕES ═══════════════════════════════════════════════ -->
         <button type="submit" id="btn-cadastrar-produto" disabled>
           Registrar produto
         </button>
@@ -208,118 +140,22 @@
   <script defer>
   (function () {
 
-    // ── CSRF ─────────────────────────────────────────────────────
     fetch('../../backend/auth/get_csrf.php')
       .then(r => r.json())
       .then(d => { if (d.csrf) document.getElementById('csrf-produto').value = d.csrf; });
 
-    // ── Data máxima = hoje ────────────────────────────────────────
     document.getElementById('data-compra').max = new Date().toISOString().split('T')[0];
 
-    // ── Contador de caracteres (descrição) ────────────────────────
     const txtDescricao = document.getElementById('descricao');
     const contadorEl   = document.getElementById('contador-descricao');
     txtDescricao.addEventListener('input', function () {
       contadorEl.textContent = this.value.length + ' / 500 caracteres';
     });
 
-    // ── Aceite libera botão de submit ─────────────────────────────
     document.getElementById('aceite-termos').addEventListener('change', function () {
       document.getElementById('btn-cadastrar-produto').disabled = !this.checked;
     });
 
-    // ── Upload preview genérico ───────────────────────────────────
-    function setupUpload(inputId, previewId, erroId) {
-      const input   = document.getElementById(inputId);
-      const preview = document.getElementById(previewId);
-      const erroEl  = document.getElementById(erroId);
-
-      input.addEventListener('change', function () {
-        const file = this.files[0];
-        erroEl.textContent = '';
-
-        if (!file) { preview.style.display = 'none'; return; }
-
-        const tipos = ['image/jpeg', 'image/png', 'image/webp'];
-        if (!tipos.includes(file.type)) {
-          erroEl.textContent = 'Formato inválido. Use JPG, PNG ou WebP.';
-          this.value = '';
-          preview.style.display = 'none';
-          return;
-        }
-        if (file.size > 5 * 1024 * 1024) {
-          erroEl.textContent = 'Arquivo muito grande. Máximo 5MB.';
-          this.value = '';
-          preview.style.display = 'none';
-          return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          preview.src = e.target.result;
-          preview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    setupUpload('foto-produto', 'preview-produto', 'erro-foto-produto');
-    setupUpload('foto-serial',  'preview-serial',  'erro-foto-serial');
-
-    // ── Consulta de nota fiscal ───────────────────────────────────
-    document.getElementById('btn-consultar-nf').addEventListener('click', async function () {
-      const chave  = document.getElementById('nfe-chave').value.replace(/\D/g, '');
-      const erroEl = document.getElementById('erro-nfe');
-      const status = document.getElementById('nf-status');
-
-      erroEl.textContent = '';
-      status.hidden = true;
-
-      if (chave.length !== 44) {
-        erroEl.textContent = 'A chave da NF deve ter exatamente 44 dígitos numéricos.';
-        return;
-      }
-
-      this.disabled    = true;
-      this.textContent = 'Consultando...';
-
-      try {
-        const fd = new FormData();
-        fd.append('acao', 'consultar_nf');
-        fd.append('chave', chave);
-        fd.append('csrf', document.getElementById('csrf-produto').value);
-
-        const res  = await fetch('../../backend/produto/cadastrar.php', { method: 'POST', body: fd });
-        const data = await res.json();
-
-        status.hidden = false;
-
-        if (data.success && data.produto) {
-          status.innerHTML =
-            '<span class="badge badge-verde">NF validada</span>' +
-            '<p style="font-size:.875rem; margin-top:.375rem;">Produto identificado: <strong style="color:var(--text);">' +
-            (data.produto.descricao || 'Sem descrição') + '</strong></p>';
-
-          // Pré-preencher campos se vierem da NF
-          if (data.produto.serial) document.getElementById('serial').value = data.produto.serial;
-          if (data.produto.descricao) txtDescricao.value = data.produto.descricao;
-          if (data.produto.data_emissao) document.getElementById('data-compra').value = data.produto.data_emissao;
-          contadorEl.textContent = txtDescricao.value.length + ' / 500 caracteres';
-        } else {
-          status.innerHTML =
-            '<span class="badge badge-cinza">NF não encontrada</span>' +
-            '<p style="font-size:.875rem; margin-top:.375rem;">Preencha os campos manualmente.</p>';
-        }
-      } catch (_) {
-        status.hidden = false;
-        status.innerHTML = '<p class="erro">Erro ao consultar. Preencha os campos manualmente.</p>';
-      } finally {
-        this.disabled    = false;
-        this.textContent = 'Consultar';
-      }
-    });
-
-    // ── Submit do formulário de produto ───────────────────────────
     document.getElementById('form-produto').addEventListener('submit', async function (e) {
       e.preventDefault();
 
@@ -331,8 +167,7 @@
       const btn       = document.getElementById('btn-cadastrar-produto');
       const msgEl     = document.getElementById('msg-cadastro');
 
-      // Limpar erros
-      ['erro-descricao', 'erro-serial', 'erro-termos'].forEach(id => {
+      ['erro-descricao', 'erro-serial', 'erro-termos', 'erro-nfe'].forEach(id => {
         document.getElementById(id).textContent = '';
       });
       msgEl.textContent = '';
@@ -345,6 +180,13 @@
         document.getElementById('erro-serial').textContent = 'Informe o número de série.';
         valido = false;
       }
+
+      const nfeChave = document.getElementById('nfe-chave').value.replace(/\D/g, '');
+      if (nfeChave.length > 0 && nfeChave.length !== 44) {
+        document.getElementById('erro-nfe').textContent = 'A chave NF-e deve ter exatamente 44 dígitos ou ficar em branco.';
+        valido = false;
+      }
+
       if (!aceite) {
         document.getElementById('erro-termos').textContent = 'Você deve aceitar a declaração de responsabilidade.';
         valido = false;
@@ -378,7 +220,6 @@
       }
     });
 
-    // ── Logout com CSRF ───────────────────────────────────────────
     document.getElementById('btn-logout').addEventListener('click', function (e) {
       e.preventDefault();
       const csrf = document.getElementById('csrf-produto').value;

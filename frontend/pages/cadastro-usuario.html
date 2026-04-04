@@ -18,26 +18,12 @@
     <section id="cadastro-section">
       <h1>Criar conta SNGuard</h1>
 
-      <!-- Mensagem de erro do servidor -->
       <div id="msg-servidor" role="alert"></div>
 
-      <!--
-        Segurança:
-          - Token CSRF preenchido via JS antes de submeter
-          - Validações client-side em validacoes.js (formato e-mail, CPF, senha forte)
-          - Confirmação de senha validada SOMENTE no client — não enviada ao PHP
-          - Senha hasheada com bcrypt cost 13 no backend (register.php)
-        LGPD:
-          - Art. 7, I: Consentimento explícito via checkbox obrigatório
-          - Art. 9: Cada campo explica por que o dado é coletado
-          - Art. 18: Link para política de privacidade
-      -->
       <form id="form-cadastro" action="../../backend/auth/register.php" method="POST" novalidate>
 
-        <!-- Token CSRF — preenchido pelo JavaScript antes de submeter -->
         <input type="hidden" id="csrf-token" name="csrf" value="">
 
-        <!-- Nome completo -->
         <div class="campo">
           <label for="nome">Nome completo</label>
           <input
@@ -52,7 +38,6 @@
           <span class="erro" id="erro-nome" role="alert"></span>
         </div>
 
-        <!-- E-mail -->
         <div class="campo">
           <label for="email">E-mail</label>
           <input
@@ -67,7 +52,6 @@
           <span class="erro" id="erro-email" role="alert"></span>
         </div>
 
-        <!-- CPF — usado para vincular NF-e e comprovar propriedade -->
         <div class="campo">
           <label for="cpf">CPF</label>
           <input
@@ -84,7 +68,6 @@
           <span class="erro" id="erro-cpf" role="alert"></span>
         </div>
 
-        <!-- Senha com indicador de força e botão mostrar/ocultar -->
         <div class="campo">
           <label for="senha">Senha</label>
           <div class="campo-senha">
@@ -106,7 +89,6 @@
           <span class="erro" id="erro-senha" role="alert"></span>
         </div>
 
-        <!-- Confirmar senha — validado apenas no client, NÃO enviado ao servidor -->
         <div class="campo">
           <label for="confirmar-senha">Confirmar senha</label>
           <div class="campo-senha">
@@ -125,7 +107,6 @@
           <span class="erro" id="erro-confirmar" role="alert"></span>
         </div>
 
-        <!-- Consentimento LGPD — Art. 7, I -->
         <div id="consentimento-lgpd" class="campo">
           <label class="label-checkbox">
             <input type="checkbox" id="aceite-lgpd" name="aceite_lgpd" value="1" required>
@@ -136,10 +117,8 @@
           <span class="erro" id="erro-lgpd" role="alert"></span>
         </div>
 
-        <!-- Mensagem de erro geral -->
         <div id="msg-erro" role="alert" aria-live="polite"></div>
 
-        <!-- Botão submit — desabilitado até aceitar LGPD -->
         <button type="submit" id="btn-cadastrar" disabled>Criar conta</button>
 
         <div class="links-aux">

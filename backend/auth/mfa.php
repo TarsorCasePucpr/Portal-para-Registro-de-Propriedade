@@ -10,8 +10,6 @@ require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/response.php';
 
-// ── TOTP nativo (RFC 6238) — sem dependência externa ─────────────────────────
-
 function base32Decode(string $base32): string {
     $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     $base32   = strtoupper(rtrim($base32, '='));
@@ -52,8 +50,6 @@ function verifyTotp(string $secret, string $code, int $window = 2): bool {
     return false;
 }
 
-// ── Verificar sessão MFA pendente ─────────────────────────────────────────────
-
 $pendingId = isset($_SESSION['mfa_pending_user_id'])
     ? (int) $_SESSION['mfa_pending_user_id']
     : 0;
@@ -62,7 +58,6 @@ if ($pendingId === 0) {
     redirect('../../frontend/pages/login.html');
 }
 
-// Sessão MFA pendente expira em 5 minutos
 if (isset($_SESSION['mfa_pending_at']) &&
     time() - (int) $_SESSION['mfa_pending_at'] > 300) {
     session_unset();
@@ -73,57 +68,6 @@ if (isset($_SESSION['mfa_pending_at']) &&
 
 $pdo = getDb();
 $ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-
-// ── GET ?action=send_email — gerar OTP e registrar no banco ──────────────────
-
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    if (trim($_GET['action'] ?? '') !== 'send_email') {
-        redirect('../../frontend/pages/mfa.html');
-    }
-
-    try {
-        $stmt = $pdo->prepare(
-            'SELECT email, name FROM users WHERE id = :id AND deleted_at IS NULL'
-        );
-        $stmt->execute(['id' => $pendingId]);
-        $usuario = $stmt->fetch();
-    } catch (PDOException $e) {
-        error_log('[mfa] DB fetch user: ' . $e->getMessage());
-        jsonError('Erro interno. Tente novamente.', 500);
-    }
-
-    if (!$usuario) {
-        session_unset();
-        session_destroy();
-        jsonError('Sessão inválida.', 401);
-    }
-
-    $otp       = random_int(100000, 999999);
-    $otpHash   = hash('sha256', (string) $otp);
-    $expiresAt = date('Y-m-d H:i:s', time() + 300);
-
-    try {
-        $pdo->prepare(
-            "DELETE FROM tokens WHERE user_id = :uid AND type = 'mfa_email'"
-        )->execute(['uid' => $pendingId]);
-
-        $pdo->prepare(
-            "INSERT INTO tokens (user_id, token_hash, type, expires_at)
-             VALUES (:uid, :hash, 'mfa_email', :exp)"
-        )->execute(['uid' => $pendingId, 'hash' => $otpHash, 'exp' => $expiresAt]);
-    } catch (PDOException $e) {
-        error_log('[mfa] DB insert token: ' . $e->getMessage());
-        jsonError('Erro ao gerar código. Tente novamente.', 500);
-    }
-
-    // TODO: enviar via PHPMailer quando SMTP estiver configurado
-    // Exemplo: $mailer->sendMfaCode($usuario['email'], $usuario['name'], $otp);
-    error_log('[mfa] OTP gerado para user ' . $pendingId . ' (dev only — remover em prod)');
-
-    jsonSuccess(['message' => 'Código enviado para seu e-mail.']);
-}
-
-// ── POST — validar código MFA ─────────────────────────────────────────────────
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('../../frontend/pages/mfa.html');
@@ -139,11 +83,10 @@ if (!checkRateLimit($pdo, $ip, 'mfa', 3, 10)) {
         urlencode('Muitas tentativas incorretas. Aguarde 10 minutos.'));
 }
 
-$method = trim($_POST['method'] ?? '');
-$code   = trim($_POST['code']   ?? '');
+$code = trim($_POST['code'] ?? '');
 
-if (!in_array($method, ['totp', 'email'], true) || !preg_match('/^\d{6}$/', $code)) {
-    redirect('../../frontend/pages/mfa.html?erro=' . urlencode('Dados inválidos.'));
+if (!preg_match('/^\d{6}$/', $code)) {
+    redirect('../../frontend/pages/mfa.html?erro=' . urlencode('Código inválido.'));
 }
 
 try {
@@ -164,48 +107,15 @@ if (!$usuario) {
     redirect('../../frontend/pages/login.html');
 }
 
-$valido = false;
-
-if ($method === 'totp') {
-    if (empty($usuario['mfa_secret'])) {
-        redirect('../../frontend/pages/mfa.html?erro=' .
-            urlencode('App autenticador não configurado. Use o código por e-mail.'));
-    }
-    $valido = verifyTotp($usuario['mfa_secret'], $code);
-
-} else {
-    try {
-        $stmt = $pdo->prepare(
-            "SELECT id, token_hash FROM tokens
-             WHERE user_id = :uid AND type = 'mfa_email'
-               AND expires_at > NOW() AND used_at IS NULL
-             ORDER BY created_at DESC LIMIT 1"
-        );
-        $stmt->execute(['uid' => $pendingId]);
-        $token = $stmt->fetch();
-    } catch (PDOException $e) {
-        error_log('[mfa] DB fetch token: ' . $e->getMessage());
-        redirect('../../frontend/pages/mfa.html?erro=' .
-            urlencode('Erro interno. Tente novamente.'));
-    }
-
-    if ($token && hash_equals($token['token_hash'], hash('sha256', $code))) {
-        try {
-            $pdo->prepare('UPDATE tokens SET used_at = NOW() WHERE id = :id')
-                ->execute(['id' => $token['id']]);
-        } catch (PDOException $e) {
-            error_log('[mfa] DB mark token used: ' . $e->getMessage());
-        }
-        $valido = true;
-    }
+if (empty($usuario['mfa_secret'])) {
+    redirect('../../frontend/pages/mfa.html?erro=' .
+        urlencode('App autenticador não configurado. Contate o suporte.'));
 }
 
-if (!$valido) {
+if (!verifyTotp($usuario['mfa_secret'], $code)) {
     redirect('../../frontend/pages/mfa.html?erro=' .
         urlencode('Código incorreto ou expirado. Tente novamente.'));
 }
-
-// ── Código válido — completar login ───────────────────────────────────────────
 
 $userId = $pendingId;
 unset($_SESSION['mfa_pending_user_id'], $_SESSION['mfa_pending_at']);

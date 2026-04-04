@@ -23,7 +23,6 @@
       <h1>Verificar número de série</h1>
       <p>Consulte se um produto está registrado ou foi reportado como roubado / perdido.</p>
 
-      <!-- ══ FORMULÁRIO DE BUSCA ════════════════════════════════ -->
       <form id="form-busca" novalidate>
 
         <div class="campo">
@@ -52,10 +51,8 @@
 
       </form>
 
-      <!-- ══ RESULTADO DA BUSCA ══════════════════════════════════ -->
       <div id="resultado-busca" aria-live="polite" hidden></div>
 
-      <!-- ══ CONTATO ANÔNIMO — só quando roubado/perdido ════════ -->
       <div id="contato-anonimo" hidden>
 
         <div style="display:flex; align-items:center; gap:.625rem; margin-bottom:.375rem;">
@@ -108,7 +105,6 @@
 
       </div>
 
-      <!-- ══ LINK PARA REGISTRAR (usuário não logado) ════════════ -->
       <div id="cta-registro" style="
         margin-top:2rem;
         padding:1.25rem;
@@ -163,25 +159,21 @@
     const txtMsg      = document.getElementById('mensagem');
     const contadorMsg = document.getElementById('contador-msg');
 
-    // ── Pré-preencher serial se vier via GET (?serial=...) ───────
     const params = new URLSearchParams(window.location.search);
     if (params.get('serial')) {
       document.getElementById('serial').value = params.get('serial');
       form.dispatchEvent(new Event('submit'));
     }
 
-    // ── CSRF ──────────────────────────────────────────────────────
     fetch('../../backend/auth/get_csrf.php')
       .then(r => r.json())
       .then(d => { if (d.csrf) document.getElementById('csrf-contato').value = d.csrf; })
       .catch(() => {});
 
-    // ── Contador de caracteres da mensagem ────────────────────────
     txtMsg.addEventListener('input', function () {
       contadorMsg.textContent = this.value.length + ' / 500 caracteres';
     });
 
-    // ══ BUSCA ════════════════════════════════════════════════════
     form.addEventListener('submit', function (e) {
       e.preventDefault();
 
@@ -208,16 +200,14 @@
         .then(r => r.json())
         .then(function (d) {
           resultado.hidden = false;
-          resultado.className = ''; // reset classes
+          resultado.className = '';
 
-          // ── Erro de servidor ─────────────────────────────────
           if (!d.success) {
             resultado.innerHTML =
               '<p class="erro">' + (escHtml(d.error) || 'Erro ao consultar. Tente novamente.') + '</p>';
             return;
           }
 
-          // ── Não encontrado ────────────────────────────────────
           if (!d.encontrado) {
             resultado.innerHTML =
               '<span class="badge badge-cinza">NÃO ENCONTRADO</span>' +
@@ -227,7 +217,6 @@
             return;
           }
 
-          // ── Roubado ou perdido ────────────────────────────────
           if (d.status === 'roubado' || d.status === 'perdido') {
             resultado.innerHTML =
               '<span class="badge badge-vermelho">⚠ ALERTA — PRODUTO REPORTADO COMO ' +
@@ -242,7 +231,6 @@
             return;
           }
 
-          // ── Registrado / normal ───────────────────────────────
           resultado.innerHTML =
             '<span class="badge badge-verde">REGISTRADO — NENHUM ALERTA ATIVO</span>' +
             '<p style="margin-top:.625rem;">Este produto está registrado no SNGuard e não possui nenhuma ocorrência ativa. ' +
@@ -262,7 +250,6 @@
         });
     });
 
-    // ══ CONTATO ANÔNIMO ══════════════════════════════════════════
     formContato.addEventListener('submit', async function (e) {
       e.preventDefault();
 
@@ -316,7 +303,6 @@
       }
     });
 
-    // ── Utilitário ────────────────────────────────────────────────
     function escHtml(str) {
       return String(str || '')
         .replace(/&/g, '&amp;').replace(/</g, '&lt;')

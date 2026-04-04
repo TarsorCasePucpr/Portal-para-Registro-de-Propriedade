@@ -5,6 +5,7 @@ require_once "../middleware/rate_limiter.php";
 require_once "../config/db.php";
 require_once "../utils/hash.php";
 require_once "../utils/response.php";
+require_once "../utils/mailer.php";
 
 startSessionSafe();
 
@@ -18,7 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $acao = $_POST['acao'] ?? '';
 
-    // ─── SOLICITAR LINK ───────────────────────────────────────────────────────
     if ($acao === 'solicitar_link') {
 
         if (!validateCsrfToken($_POST['csrf'] ?? '')) {
@@ -33,13 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $email = trim($_POST['email'] ?? '');
 
-        // Anti-enumeration: sempre redirecionar com msg=ok
         if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             header('Location: ../../frontend/pages/recuperacao-senha.html?msg=ok');
             exit;
         }
 
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE email = :email AND deleted_at IS NULL LIMIT 1');
+        $stmt = $pdo->prepare('SELECT id, name FROM users WHERE email = :email AND deleted_at IS NULL LIMIT 1');
         $stmt->execute(['email' => $email]);
         $user = $stmt->fetch();
 
@@ -55,15 +54,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $link = $baseUrl . '/frontend/pages/redefinicao-senha.html?token=' . urlencode($token);
 
-            // TODO: enviar por email via PHPMailer
-            error_log("[recover] Link de recuperação para {$email}: {$link}");
+            try {
+                enviarEmail(
+                    destinatario: $email,
+                    nome:         $user['name'],
+                    assunto:      'SNGuard — Redefinição de senha',
+                    corpo:        "Olá, {$user['name']}!\n\n" .
+                                  "Recebemos uma solicitação para redefinir a senha da sua conta.\n\n" .
+                                  "Clique no link abaixo para criar uma nova senha (válido por 1 hora):\n\n" .
+                                  "{$link}\n\n" .
+                                  "Se você não solicitou isso, ignore esta mensagem — sua senha permanece a mesma.\n\n" .
+                                  "— Equipe SNGuard"
+                );
+            } catch (Throwable $e) {
+                error_log('[recover] Falha ao enviar email para ' . $email . ': ' . $e->getMessage());
+            }
         }
 
         header('Location: ../../frontend/pages/recuperacao-senha.html?msg=ok');
         exit;
     }
 
-    // ─── REDEFINIR SENHA ─────────────────────────────────────────────────────
     if ($acao === 'redefinir_senha') {
 
         if (!validateCsrfToken($_POST['csrf'] ?? '')) {
@@ -84,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        if (!preg_match('/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}/', $novaSenha)) {
+        if (!(bool) preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}$/', $novaSenha)) {
             header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('A senha não atende aos requisitos mínimos.'));
             exit;
         }
