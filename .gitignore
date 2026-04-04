@@ -5,6 +5,7 @@ CLAUDE.md
 *.log
 /vendor/
 node_modules/
+backend/lib/
 .DS_Store
 Thumbs.db
 *.swp
