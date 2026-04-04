@@ -14,9 +14,9 @@ function enviarEmail(
     string $assunto,
     string $corpo
 ): void {
-    $user     = $_ENV['MAIL_USER']      ?? '';
-    $pass     = $_ENV['MAIL_PASS']      ?? '';
-    $fromName = $_ENV['MAIL_FROM_NAME'] ?? 'SNGuard';
+    $user     = $_ENV['MAIL_USER']      ?? getenv('MAIL_USER')      ?: '';
+    $pass     = $_ENV['MAIL_PASS']      ?? getenv('MAIL_PASS')      ?: '';
+    $fromName = $_ENV['MAIL_FROM_NAME'] ?? getenv('MAIL_FROM_NAME') ?: 'SNGuard';
 
     if ($user === '' || $pass === '') {
         throw new \RuntimeException('Credenciais de e-mail não configuradas.');

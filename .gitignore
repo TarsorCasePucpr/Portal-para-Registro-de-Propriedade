@@ -11,3 +11,7 @@ Thumbs.db
 *.swp
 *.swo
 /uploads/
+docker-compose.yml
+Dockerfile
+docker/
+db_data/
