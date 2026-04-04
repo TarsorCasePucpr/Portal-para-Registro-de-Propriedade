@@ -1,17 +1,9 @@
-/* ============================================================
-   SNGuard — Folha de estilos principal
-   Stack: PHP + MySQL + HTML/CSS/JS vanilla
-   Paleta: azul (#1a56db) + cinza escuro (#1e293b) + branco
-   ============================================================ */
-
-/* ── Reset básico ── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* ── Variáveis ── */
 :root {
   --azul:        #1a56db;
   --azul-escuro: #1140a8;
@@ -34,7 +26,6 @@
   --fonte:       'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
-/* ── Base ── */
 html { scroll-behavior: smooth; }
 
 body {
@@ -62,7 +53,6 @@ h3 { font-size: 1.1rem;  font-weight: 600; color: var(--texto); margin-bottom: .
 
 small { font-size: .82rem; color: var(--texto-leve); }
 
-/* ── Header ── */
 header {
   background: var(--branco);
   border-bottom: 1px solid var(--borda);
@@ -106,10 +96,8 @@ header nav a:hover {
   text-decoration: none;
 }
 
-/* ── Main / Conteúdo ── */
 main { flex: 1; padding: 2rem 1.5rem; max-width: 1100px; margin: 0 auto; width: 100%; }
 
-/* ── Footer ── */
 footer {
   background: var(--branco);
   border-top: 1px solid var(--borda);
@@ -126,11 +114,6 @@ footer {
 footer a { color: var(--texto-leve); }
 footer a:hover { color: var(--azul); }
 
-/* ─────────────────────────────────────
-   FORMULÁRIOS
-───────────────────────────────────── */
-
-/* Card de formulário centralizado (login, cadastro, recuperação) */
 .form-card {
   background: var(--branco);
   border: 1px solid var(--borda);
@@ -148,7 +131,6 @@ footer a:hover { color: var(--azul); }
   margin-bottom: 1.5rem;
 }
 
-/* Seções de login / cadastro (usam .form-card via JS) */
 #login-section,
 #cadastro-section,
 #recuperacao-section,
@@ -181,7 +163,6 @@ footer a:hover { color: var(--azul); }
   gap: 1rem;
 }
 
-/* Campo individual */
 .campo {
   display: flex;
   flex-direction: column;
@@ -218,7 +199,6 @@ footer a:hover { color: var(--azul); }
   border-color: var(--erro);
 }
 
-/* Campo senha com botão mostrar/ocultar */
 .campo-senha {
   display: flex;
   gap: .5rem;
@@ -258,14 +238,12 @@ footer a:hover { color: var(--azul); }
   color: var(--azul);
 }
 
-/* Mensagem de erro por campo */
 .erro {
   font-size: .82rem;
   color: var(--erro);
   min-height: 1rem;
 }
 
-/* Indicador de força de senha */
 #forca-senha {
   font-size: .82rem;
   font-weight: 600;
@@ -275,7 +253,6 @@ footer a:hover { color: var(--azul); }
 .forca-média  { color: var(--alerta); }
 .forca-forte  { color: var(--sucesso); }
 
-/* LGPD consent */
 #consentimento-lgpd .label-checkbox {
   display: flex;
   align-items: flex-start;
@@ -292,7 +269,6 @@ footer a:hover { color: var(--azul); }
   flex-shrink: 0;
 }
 
-/* Mensagem de erro geral */
 #msg-erro,
 #msg-servidor {
   background: var(--erro-fundo);
@@ -306,7 +282,6 @@ footer a:hover { color: var(--azul); }
 #msg-erro:not(:empty),
 #msg-servidor:not(:empty) { display: block; }
 
-/* Links auxiliares (recuperar senha / criar conta) */
 .links-aux {
   display: flex;
   flex-direction: column;
@@ -315,10 +290,6 @@ footer a:hover { color: var(--azul); }
   font-size: .88rem;
   color: var(--texto-leve);
 }
-
-/* ─────────────────────────────────────
-   BOTÕES
-───────────────────────────────────── */
 
 button[type="submit"],
 .btn-primario {
@@ -366,10 +337,6 @@ button[type="submit"]:disabled,
   text-decoration: none;
 }
 
-/* ─────────────────────────────────────
-   INDEX — HERO
-───────────────────────────────────── */
-
 #hero {
   text-align: center;
   padding: 3rem 1rem 2rem;
@@ -416,10 +383,6 @@ button[type="submit"]:disabled,
   font-size: .95rem;
 }
 
-/* ─────────────────────────────────────
-   INDEX — FUNCIONALIDADES (cards)
-───────────────────────────────────── */
-
 #funcionalidades {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -448,10 +411,6 @@ button[type="submit"]:disabled,
   color: var(--texto-leve);
   margin-top: .4rem;
 }
-
-/* ─────────────────────────────────────
-   INDEX — COMO FUNCIONA
-───────────────────────────────────── */
 
 #como-funciona {
   padding: 2rem 0;
@@ -488,10 +447,6 @@ button[type="submit"]:disabled,
   flex-shrink: 0;
 }
 
-/* ─────────────────────────────────────
-   INDEX — AVISO LGPD
-───────────────────────────────────── */
-
 #lgpd-info {
   background: var(--azul-claro);
   border: 1px solid #93c5fd;
@@ -502,10 +457,6 @@ button[type="submit"]:disabled,
   color: #1e40af;
 }
 #lgpd-info strong { display: block; margin-bottom: .35rem; }
-
-/* ─────────────────────────────────────
-   BUSCA
-───────────────────────────────────── */
 
 #busca-section {
   max-width: 600px;
@@ -524,7 +475,6 @@ button[type="submit"]:disabled,
   gap: 1rem;
 }
 
-/* Resultado da busca */
 #resultado-busca {
   margin-top: 1.5rem;
   border-radius: var(--raio);
@@ -573,10 +523,6 @@ button[type="submit"]:disabled,
 }
 #contato-anonimo h3 { margin-bottom: 1rem; }
 
-/* ─────────────────────────────────────
-   CONFIRMAÇÃO DE E-MAIL
-───────────────────────────────────── */
-
 #confirmacao-section {
   text-align: center;
   max-width: 500px;
@@ -599,10 +545,6 @@ button[type="submit"]:disabled,
 #estado-sucesso { color: var(--sucesso); }
 #estado-erro    { color: var(--erro); }
 
-/* ─────────────────────────────────────
-   RECUPERAÇÃO DE SENHA
-───────────────────────────────────── */
-
 #msg-enviado {
   background: var(--sucesso-fundo);
   border: 1px solid #86efac;
@@ -615,10 +557,6 @@ button[type="submit"]:disabled,
   display: none;
 }
 #msg-enviado.visivel { display: block; }
-
-/* ─────────────────────────────────────
-   DASHBOARD
-───────────────────────────────────── */
 
 body.dashboard-page {
   display: grid;
@@ -670,7 +608,6 @@ body.dashboard-page {
 #dashboard-header h2 { font-size: 1.5rem; }
 #dashboard-header p   { color: var(--texto-leve); }
 
-/* Cards de produto */
 .grid-produtos {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -691,10 +628,6 @@ body.dashboard-page {
 .card-produto .status-badge {
   align-self: flex-start;
 }
-
-/* ─────────────────────────────────────
-   POLÍTICA / TERMOS (páginas legais)
-───────────────────────────────────── */
 
 .pagina-legal {
   max-width: 760px;
@@ -750,10 +683,6 @@ body.dashboard-page {
   margin: 1rem 0;
 }
 
-/* ─────────────────────────────────────
-   RESPONSIVO
-───────────────────────────────────── */
-
 @media (max-width: 640px) {
   main { padding: 1.25rem 1rem; }
 
@@ -773,5 +702,5 @@ body.dashboard-page {
   body.dashboard-page {
     grid-template-columns: 1fr;
   }
-  #sidebar { display: none; } /* simplificado para mobile */
+  #sidebar { display: none; }
 }

@@ -18,15 +18,12 @@
     <section id="login-section">
       <h1>Entrar na sua conta</h1>
 
-      <!-- Mensagem de erro do servidor (PHP via session) -->
       <div id="msg-servidor" role="alert"></div>
 
       <form id="form-login" action="../../backend/auth/login.php" method="POST" novalidate>
 
-        <!-- Token CSRF — preenchido pelo JavaScript antes de submeter -->
         <input type="hidden" id="csrf-token" name="csrf" value="">
 
-        <!-- Campo E-mail -->
         <div class="campo">
           <label for="email">E-mail</label>
           <input
@@ -41,7 +38,6 @@
           <span class="erro" id="erro-email" role="alert"></span>
         </div>
 
-        <!-- Campo Senha com botão mostrar/ocultar -->
         <div class="campo">
           <label for="senha">Senha</label>
           <div class="campo-senha">
@@ -61,13 +57,10 @@
           <span class="erro" id="erro-senha" role="alert"></span>
         </div>
 
-        <!-- Mensagem de erro client-side -->
         <div id="msg-erro" role="alert" aria-live="polite"></div>
 
-        <!-- Botão principal -->
         <button type="submit" id="btn-login">Entrar</button>
 
-        <!-- Links auxiliares -->
         <div class="links-aux">
           <a href="recuperacao-senha.html">Esqueceu sua senha?</a>
           <a href="cadastro-usuario.html">Criar conta</a>
@@ -85,7 +78,6 @@
   <script src="../js/validacoes.js" defer></script>
   <script src="../js/main.js" defer></script>
 
-  <!-- Mostrar erros do servidor que chegam via URL params (set pelo PHP via session) -->
   <script>
     const params = new URLSearchParams(window.location.search);
     const erroServidor = params.get('erro');

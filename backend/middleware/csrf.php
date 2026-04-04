@@ -1,9 +1,6 @@
 <?php
 declare(strict_types=1);
 
-// startSessionSafe() é definida em auth_guard.php — incluir esse arquivo antes de csrf.php
-// quando ambos forem necessários, para evitar redefinição.
-
 function generateCsrfToken(): string {
     startSessionSafe();
     if (empty($_SESSION['csrf'])) {

@@ -1,13 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * meus_dados.php — Exibição e atualização dos dados do usuário autenticado
- *
- * GET  → retorna dados do perfil
- * POST → atualiza nome e/ou senha
- */
-
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Strict');
 if (session_status() === PHP_SESSION_NONE) {
@@ -28,18 +21,15 @@ require_once __DIR__ . '/../utils/response.php';
 requireAuth();
 $userId = (int) $_SESSION['user_id'];
 
-$pdo = getDb(); // ← definido aqui, disponível em todo o arquivo
+$pdo = getDb();
 
-// ════════════════════════════════════════════════════════════════
-//  GET — retornar dados do perfil
-// ════════════════════════════════════════════════════════════════
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     try {
         $stmt = $pdo->prepare(
-            'SELECT name, email, cpf, mfa_enabled,
-                    DATE_FORMAT(created_at, \'%d/%m/%Y\') AS membro_desde
+            "SELECT name, email, cpf, mfa_enabled,
+                    DATE_FORMAT(created_at, '%d/%m/%Y') AS membro_desde
              FROM   users
-             WHERE  id = :id AND deleted_at IS NULL'
+             WHERE  id = :id AND deleted_at IS NULL"
         );
         $stmt->execute(['id' => $userId]);
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -48,10 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             jsonError('Usuário não encontrado.', 404);
         }
 
-        // Mascarar CPF para exibição: 000.***.***-00
         $cpf = $usuario['cpf'];
         $usuario['cpf_mascarado'] = substr($cpf, 0, 4) . '***.***-' . substr($cpf, -2);
-        unset($usuario['cpf']); // não expor CPF completo na resposta
+        unset($usuario['cpf']);
 
         $usuario['mfa_enabled'] = (bool) $usuario['mfa_enabled'];
 
@@ -63,9 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 }
 
-// ════════════════════════════════════════════════════════════════
-//  POST — atualizar dados do perfil
-// ════════════════════════════════════════════════════════════════
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido.', 405);
 }
@@ -76,7 +62,6 @@ if (!validateCsrfToken($_POST['csrf'] ?? '')) {
 
 $acao = trim($_POST['acao'] ?? 'atualizar_nome');
 
-// ── Atualizar nome ────────────────────────────────────────────────
 if ($acao === 'atualizar_nome') {
 
     $novoNome = trim(htmlspecialchars($_POST['nome'] ?? '', ENT_QUOTES, 'UTF-8'));
@@ -98,7 +83,6 @@ if ($acao === 'atualizar_nome') {
     }
 }
 
-// ── Atualizar senha ───────────────────────────────────────────────
 if ($acao === 'atualizar_senha') {
 
     $senhaAtual = $_POST['senha_atual']    ?? '';
@@ -109,12 +93,10 @@ if ($acao === 'atualizar_senha') {
         jsonError('Informe sua senha atual.');
     }
 
-    $senhaOk =
-        mb_strlen($novaSenha) >= 12 &&
-        preg_match('/[a-z]/', $novaSenha) &&
-        preg_match('/[A-Z]/', $novaSenha) &&
-        preg_match('/[0-9]/', $novaSenha) &&
-        preg_match('/[@$!%*?&]/', $novaSenha);
+    $senhaOk = (bool) preg_match(
+        '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}$/',
+        $novaSenha
+    );
 
     if (!$senhaOk) {
         jsonError('Nova senha fraca. Use mínimo 12 caracteres com maiúscula, minúscula, número e símbolo.');
@@ -125,7 +107,6 @@ if ($acao === 'atualizar_senha') {
     }
 
     try {
-        // Buscar hash atual para verificar senha antiga
         $stmt = $pdo->prepare(
             'SELECT password_hash FROM users WHERE id = :id AND deleted_at IS NULL'
         );

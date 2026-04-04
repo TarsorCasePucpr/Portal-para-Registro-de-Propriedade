@@ -8,17 +8,15 @@
 </head>
 <body>
 
-  <!-- ===== CABEÇALHO ===== -->
   <header>
     <div class="container">
-      <h2>SNGuard</h2> <!-- Substituir por logo futuramente -->
+      <h2>SNGuard</h2>
     </div>
   </header>
 
   <main>
     <section id="confirmacao-section" class="container">
 
-      <!-- ===== ESTADO 1: AGUARDANDO CONFIRMAÇÃO ===== -->
       <div id="estado-aguardando">
         <div class="card">
           <div class="icon">📩</div>
@@ -36,7 +34,6 @@
         </div>
       </div>
 
-      <!-- ===== ESTADO 2: SUCESSO ===== -->
       <div id="estado-sucesso" style="display:none;">
         <div class="card">
           <div class="icon success">✅</div>
@@ -47,7 +44,6 @@
         </div>
       </div>
 
-      <!-- ===== ESTADO 3: ERRO ===== -->
       <div id="estado-erro" style="display:none;">
         <div class="card">
           <div class="icon error">⚠️</div>
@@ -55,10 +51,10 @@
           <p>Solicite um novo link informando seu e-mail abaixo.</p>
 
           <form id="form-reenvio">
-            <input 
-              type="email" 
-              id="email" 
-              name="email" 
+            <input
+              type="email"
+              id="email"
+              name="email"
               placeholder="Seu e-mail"
               required
             >
@@ -73,7 +69,7 @@
   <footer>
     <div class="container">
       <p>
-        <a href="#">Política de Privacidade</a> | 
+        <a href="#">Política de Privacidade</a> |
         <a href="#">Termos de Uso</a>
       </p>
     </div>

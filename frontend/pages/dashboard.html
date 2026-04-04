@@ -8,9 +8,6 @@
 </head>
 <body class="dashboard-body">
 
-  <!-- ═══════════════════════════════════════════════════════════
-       SIDEBAR
-       ═══════════════════════════════════════════════════════════ -->
   <nav id="sidebar" aria-label="Navegação principal">
 
     <div class="sidebar-logo">
@@ -73,12 +70,8 @@
 
   </nav>
 
-  <!-- ═══════════════════════════════════════════════════════════
-       CONTEÚDO PRINCIPAL
-       ═══════════════════════════════════════════════════════════ -->
   <div id="dashboard-main">
 
-    <!-- ── Header ──────────────────────────────────────────────── -->
     <header id="dashboard-header">
       <div>
         <h1 id="saudacao" style="font-size:1.25rem; margin-bottom:.125rem;">Olá! 👋</h1>
@@ -99,7 +92,6 @@
 
     <div class="dashboard-content">
 
-      <!-- ── Busca rápida ─────────────────────────────────────── -->
       <section aria-label="Busca rápida de serial">
         <h2 style="font-size:.875rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:.75rem;">Consulta rápida de serial</h2>
         <div class="dash-busca">
@@ -116,7 +108,6 @@
         <div id="dash-resultado" aria-live="polite" style="margin-top:.75rem;"></div>
       </section>
 
-      <!-- ── Stats ───────────────────────────────────────────────  -->
       <div class="stats-bar" id="stats-bar">
         <div class="stat-card">
           <div class="stat-label">Produtos registrados</div>
@@ -132,13 +123,11 @@
         </div>
       </div>
 
-      <!-- ── Notificações (mensagens anônimas recebidas) ─────────  -->
       <section id="secao-notificacoes" aria-label="Notificações" hidden>
         <h2 style="font-size:.875rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:.75rem;">Mensagens recebidas</h2>
         <div id="lista-notificacoes"></div>
       </section>
 
-      <!-- ── Meus produtos ───────────────────────────────────────  -->
       <section aria-label="Meus produtos registrados">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.875rem;">
           <h2 style="font-size:.875rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em;">Meus produtos</h2>
@@ -152,7 +141,6 @@
         </div>
       </section>
 
-      <!-- ── Ações rápidas ───────────────────────────────────────  -->
       <section aria-label="Ações rápidas">
         <h2 style="font-size:.875rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:.75rem;">Ações rápidas</h2>
         <div class="acoes-grid">
@@ -190,7 +178,6 @@
         </div>
       </section>
 
-      <!-- ── LGPD / Exclusão de conta ───────────────────────────  -->
       <section id="exclusao-conta" aria-label="Exclusão de conta">
         <h2>Privacidade e exclusão de dados</h2>
         <p>Em conformidade com a LGPD (Art. 18, VI), você pode solicitar a exclusão completa dos seus dados pessoais. A conta e todos os registros associados serão removidos permanentemente após 30 dias.</p>
@@ -201,13 +188,11 @@
         </a>
       </section>
 
-    </div><!-- /.dashboard-content -->
-  </div><!-- /#dashboard-main -->
+    </div>
+  </div>
 
-  <!-- FAB — Novo produto -->
   <a href="cadastro-produto.html" class="fab" title="Registrar novo produto" aria-label="Registrar novo produto">+</a>
 
-  <!-- ── Modal confirmação de status ─────────────────────────── -->
   <div id="modal-status" hidden style="
     position:fixed; inset:0;
     background:rgba(0,0,0,.65);
@@ -235,18 +220,15 @@
     let csrfToken = '';
     let produtoAtualId = null;
 
-    // ── CSRF ─────────────────────────────────────────────────────
     fetch('../../backend/auth/get_csrf.php')
       .then(r => r.json())
       .then(d => { csrfToken = d.csrf || ''; });
 
-    // ── Logout com CSRF ───────────────────────────────────────────
     document.getElementById('btn-logout').addEventListener('click', function (e) {
       e.preventDefault();
       window.location.href = '../../backend/auth/logout.php?csrf=' + encodeURIComponent(csrfToken);
     });
 
-    // ── Carregar dados do usuário ──────────────────────────────────
     fetch('../../backend/auth/me.php')
       .then(r => r.json())
       .then(function (d) {
@@ -256,7 +238,6 @@
         }
         document.getElementById('saudacao').textContent = 'Olá, ' + (d.name || 'usuário') + '! 👋';
 
-        // Mostrar ação de 2FA se não ativo
         if (!d.mfa_enabled) {
           document.getElementById('link-mfa').hidden   = false;
           document.getElementById('acao-mfa').hidden   = false;
@@ -269,7 +250,6 @@
         window.location.href = 'login.html';
       });
 
-    // ── Carregar produtos ──────────────────────────────────────────
     function carregarProdutos() {
       fetch('../../backend/produto/listar.php')
         .then(r => r.json())
@@ -296,7 +276,6 @@
             produtos.map(renderCard).join('') +
           '</div>';
 
-          // Eventos nos cards
           lista.querySelectorAll('[data-btn-status]').forEach(function (btn) {
             btn.addEventListener('click', function () {
               produtoAtualId = this.dataset.id;
@@ -364,7 +343,6 @@
       document.getElementById('stat-alertas').textContent = alertas;
     }
 
-    // ── Carregar notificações (mensagens anônimas) ─────────────────
     function carregarNotificacoes() {
       fetch('../../backend/produto/contato.php?acao=listar_pendentes')
         .then(r => r.json())
@@ -396,7 +374,6 @@
         });
     }
 
-    // ── Alterar status via modal ───────────────────────────────────
     const modal     = document.getElementById('modal-status');
     const modalErro = document.getElementById('modal-erro');
 
@@ -427,7 +404,6 @@
         .catch(function () { modalErro.textContent = 'Erro de conexão.'; });
     }
 
-    // ── Excluir produto ───────────────────────────────────────────
     function excluirProduto(id) {
       const fd = new FormData();
       fd.append('acao', 'excluir');
@@ -443,7 +419,6 @@
         .catch(function () { alert('Erro de conexão.'); });
     }
 
-    // ── Busca rápida de serial ─────────────────────────────────────
     document.getElementById('dash-btn-buscar').addEventListener('click', function () {
       const serial    = document.getElementById('dash-serial-input').value.trim();
       const resultado = document.getElementById('dash-resultado');
@@ -486,12 +461,10 @@
         });
     });
 
-    // Enter na busca rápida
     document.getElementById('dash-serial-input').addEventListener('keydown', function (e) {
       if (e.key === 'Enter') document.getElementById('dash-btn-buscar').click();
     });
 
-    // ── Utilitário: escape HTML ───────────────────────────────────
     function escHtml(str) {
       return String(str)
         .replace(/&/g, '&amp;')
@@ -503,82 +476,5 @@
   })();
   </script>
 
-  <!-- TODO: JS deve verificar sessão ao carregar; se não logado → redirecionar para login.html -->
-
-  <!-- ===== SIDEBAR / NAVEGAÇÃO LATERAL ===== -->
-  <nav id="sidebar">
-    <!-- TODO: Logo SNGuard -->
-    <!-- TODO: Links:
-         - Dashboard (ativo)
-         - Novo produto → cadastro-produto.html
-         - Consultar serial → busca.html
-         - Sair → backend/auth/logout.php (GET com token CSRF para prevenir logout CSRF)
-    -->
-  </nav>
-
-  <!-- ===== CONTEÚDO PRINCIPAL ===== -->
-  <main id="dashboard-main">
-
-    <!-- ===== BOAS-VINDAS ===== -->
-    <header id="dashboard-header">
-      <!-- TODO: "Olá, [nome do usuário]!" — carregado via PHP na sessão -->
-      <!-- TODO: Resumo: X produtos registrados | Y com alerta ativo -->
-    </header>
-
-    <!-- ===== NOTIFICAÇÕES ===== -->
-    <section id="notificacoes">
-      <!--
-        TODO: Mensagens recebidas via contato anônimo (alguém encontrou um produto seu).
-        Carregar via fetch → backend/produto/contato.php?acao=listar_pendentes
-        LGPD: Mensagens intermediadas anonimamente — remetente sem dados pessoais expostos.
-      -->
-    </section>
-
-    <!-- ===== LISTA DE PRODUTOS ===== -->
-    <section id="meus-produtos">
-      <h2>Meus produtos registrados</h2>
-
-      <!--
-        TODO: Grid/lista de cards de produtos.
-        Carregar via fetch → backend/produto/listar.php (retorna apenas produtos do usuário logado).
-
-        Cada card exibe:
-          - Nome + categoria
-          - Número de série (truncado por segurança visual)
-          - Status: badge "Protegido" (normal) | "Alerta" (roubado/perdido)
-          - Botão "Alterar status" → backend/produto/status.php (POST + CSRF)
-          - Botão "Excluir produto" → soft delete via backend/produto/cadastrar.php?acao=excluir
-
-        Segurança:
-          - listar.php filtra SEMPRE por $_SESSION['user_id'] — usuário vê apenas seus produtos
-          - Todas ações POST incluem CSRF token
-
-        LGPD — Art. 18, VI (Exclusão de dados):
-          "Excluir produto" → soft delete (objects.deleted_at = NOW()).
-          Exclusão permanente agendada por cron job após 30 dias.
-          Log de exclusão mantido por 30 dias para auditoria.
-      -->
-
-      <!-- TODO: Estado vazio: "Nenhum produto registrado ainda." + botão "Registrar primeiro produto" -->
-      <!-- TODO: Botão flutuante "+" → cadastro-produto.html -->
-    </section>
-
-    <!-- ===== AÇÕES RÁPIDAS ===== -->
-    <section id="acoes-rapidas">
-      <!-- TODO: Card "Consultar serial" → busca.html -->
-      <!-- TODO: Card "Registrar produto" → cadastro-produto.html -->
-      <!-- TODO: Card "Configurar 2FA" (visível se mfa_enabled = 0) → mfa.html -->
-    </section>
-
-    <!-- ===== EXCLUSÃO DE CONTA (LGPD Art. 18) ===== -->
-    <section id="exclusao-conta">
-      <h2>Privacidade e exclusão de dados</h2>
-      <p>Em conformidade com a LGPD (Art. 18, VI), você pode solicitar a exclusão dos seus dados pessoais.</p>
-      <a href="exclusao-conta.html" id="btn-exclusao-conta">Solicitar exclusão da minha conta</a>
-    </section>
-  </main>
-
-  <script src="../js/validacoes.js" defer></script>
-  <script src="../js/main.js" defer></script>
 </body>
 </html>

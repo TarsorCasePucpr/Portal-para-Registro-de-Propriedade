@@ -1,28 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * contato.php — Mensagens anônimas ao proprietário de objeto reportado
- *
- * POST /backend/produto/contato.php
- *   Campos: csrf, serial, mensagem
- *   → Envia e-mail anônimo ao dono e salva no banco
- *
- * GET /backend/produto/contato.php?acao=listar_pendentes
- *   → Retorna mensagens não lidas do usuário autenticado (dashboard)
- *
- * Segurança:
- *   - CSRF obrigatório no POST
- *   - Rate limit por IP: 3 mensagens / 10 min por serial
- *   - Objeto precisa ter status roubado/perdido para aceitar mensagem
- *   - E-mail do proprietário nunca é retornado ao remetente
- *   - Remetente é 100% anônimo — apenas IP é registrado para rate limit
- *
- * LGPD:
- *   - Nenhum dado pessoal do remetente é coletado ou armazenado além do IP
- *   - O IP é registrado apenas em rate_limits (TTL: 1h) e em contact_messages para auditoria
- */
-
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Strict');
 if (session_status() === PHP_SESSION_NONE) {
@@ -45,13 +23,9 @@ $pdo    = getDb();
 $ip     = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 $metodo = $_SERVER['REQUEST_METHOD'];
 
-// ════════════════════════════════════════════════════════════════
-//  GET — listar mensagens pendentes (dashboard do dono)
-//  Autenticação obrigatória apenas aqui — POST é anônimo por design
-// ════════════════════════════════════════════════════════════════
 if ($metodo === 'GET' && ($_GET['acao'] ?? '') === 'listar_pendentes') {
 
-    requireAuth(); // ← guard só neste bloco, não no topo do arquivo
+    requireAuth();
     $userId = (int) $_SESSION['user_id'];
 
     try {
@@ -72,13 +46,9 @@ if ($metodo === 'GET' && ($_GET['acao'] ?? '') === 'listar_pendentes') {
         $stmt->execute(['uid' => $userId]);
         $mensagens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Marcar como lidas após listar — IDs vêm do banco, mas força intval por padrão
         if (!empty($mensagens)) {
             $ids = implode(',', array_map('intval', array_column($mensagens, 'id')));
-            $pdo->exec(
-                "UPDATE contact_messages SET lida = 1
-                 WHERE id IN ({$ids})"
-            );
+            $pdo->exec("UPDATE contact_messages SET lida = 1 WHERE id IN ({$ids})");
         }
 
         jsonSuccess(['mensagens' => $mensagens]);
@@ -89,27 +59,20 @@ if ($metodo === 'GET' && ($_GET['acao'] ?? '') === 'listar_pendentes') {
     }
 }
 
-// ════════════════════════════════════════════════════════════════
-//  POST — enviar mensagem anônima
-// ════════════════════════════════════════════════════════════════
 if ($metodo !== 'POST') {
     jsonError('Método não permitido.', 405);
 }
 
-// ── CSRF ─────────────────────────────────────────────────────────
 if (!validateCsrfToken($_POST['csrf'] ?? '')) {
     jsonError('Token de segurança inválido.', 403);
 }
 
-// ── Sanitizar entradas ────────────────────────────────────────────
 $serial   = trim(strip_tags($_POST['serial']   ?? ''));
 $mensagem = trim(htmlspecialchars($_POST['mensagem'] ?? '', ENT_QUOTES, 'UTF-8'));
 
-// Remover caracteres de controle
 $serial   = preg_replace('/[\x00-\x1F\x7F]/u', '', $serial);
-$mensagem = preg_replace('/[\x00-\x08\x0B-\x1F\x7F]/u', '', $mensagem); // mantém \n e \r
+$mensagem = preg_replace('/[\x00-\x08\x0B-\x1F\x7F]/u', '', $mensagem);
 
-// ── Validação ────────────────────────────────────────────────────
 if ($serial === '' || mb_strlen($serial) > 100) {
     jsonError('Número de série inválido.');
 }
@@ -122,13 +85,11 @@ if (mb_strlen($mensagem) > 500) {
     jsonError('Mensagem muito longa (máximo 500 caracteres).');
 }
 
-// ── Rate limit por IP + serial: 3 mensagens / 10 min ─────────────
-$acaoRL = 'contato_' . hash('crc32', $serial); // ação única por serial
+$acaoRL = 'contato_' . hash('crc32', $serial);
 if (!checkRateLimit($pdo, $ip, $acaoRL, 3, 10)) {
     jsonError('Muitas mensagens para este serial. Aguarde alguns minutos.', 429);
 }
 
-// ── Buscar objeto e seu proprietário ─────────────────────────────
 try {
     $stmt = $pdo->prepare(
         'SELECT o.id        AS object_id,
@@ -152,7 +113,6 @@ try {
     jsonError('Erro interno. Tente novamente.', 500);
 }
 
-// ── Verificar se objeto existe e está com alerta ──────────────────
 if (!$objeto) {
     jsonError('Número de série não encontrado.');
 }
@@ -161,7 +121,6 @@ if (!in_array($objeto['status'], ['roubado', 'perdido'], true)) {
     jsonError('Este produto não possui alerta ativo. Mensagem não enviada.');
 }
 
-// ── Salvar mensagem no banco ──────────────────────────────────────
 try {
     $pdo->prepare(
         'INSERT INTO contact_messages (object_id, mensagem, ip_remetente)
@@ -177,10 +136,10 @@ try {
     jsonError('Erro interno ao salvar mensagem.', 500);
 }
 
-// ── Enviar e-mail ao proprietário (sem revelar remetente) ─────────
 $statusFormatado = ucfirst($objeto['status']);
-$descricaoObj    = htmlspecialchars($objeto['descricao'], ENT_QUOTES, 'UTF-8');
-$msgFormatada    = nl2br(htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8'));
+
+$baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+         . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
 
 $corpo = "Olá, {$objeto['dono_nome']}!\n\n"
        . "Alguém encontrou um objeto seu registrado no SNGuard e enviou uma mensagem.\n\n"
@@ -189,8 +148,7 @@ $corpo = "Olá, {$objeto['dono_nome']}!\n\n"
        . "--- MENSAGEM (remetente anônimo) ---\n"
        . strip_tags($mensagem) . "\n"
        . "------------------------------------\n\n"
-       . "Acesse seu painel para visualizar e responder se necessário:\n"
-       . (BASE_URL ?? 'http://localhost') . "/frontend/pages/dashboard.html\n\n"
+       . "Acesse seu painel: {$baseUrl}/frontend/pages/dashboard.html\n\n"
        . "— Equipe SNGuard\n\n"
        . "Este e-mail foi gerado automaticamente. Nenhum dado do remetente foi coletado.";
 
@@ -202,7 +160,6 @@ try {
         corpo:        $corpo
     );
 } catch (Throwable $e) {
-    // Falha no e-mail não impede sucesso — mensagem já está salva no banco
     error_log('[contato.php/email] ' . $e->getMessage());
 }
 

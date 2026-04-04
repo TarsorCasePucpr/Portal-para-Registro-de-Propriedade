@@ -178,8 +178,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
-// ===== PÁGINAS DE CONFIRMAÇÃO =====
-
 const params = new URLSearchParams(window.location.search);
 const status = params.get("status");
 
