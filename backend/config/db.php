@@ -34,11 +34,11 @@ function getDb(): PDO {
     $base = dirname(__DIR__, 2);
     loadEnv($base . '/.env');
 
-    $host = $_ENV['DB_HOST'] ?? 'localhost';
-    $port = $_ENV['DB_PORT'] ?? '3306';
-    $name = $_ENV['DB_NAME'] ?? 'portal_propriedade';
-    $user = $_ENV['DB_USER'] ?? '';
-    $pass = $_ENV['DB_PASS'] ?? '';
+    $host = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: 'localhost';
+    $port = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: '3306';
+    $name = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: 'portal_propriedade';
+    $user = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: '';
+    $pass = $_ENV['DB_PASS'] ?? getenv('DB_PASS') ?: '';
 
     $pdo = new PDO(
         "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4",
