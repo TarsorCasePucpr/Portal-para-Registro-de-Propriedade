@@ -4,9 +4,9 @@ declare(strict_types=1);
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require __DIR__ . "/../../PHPMailer/src/PHPMailer.php";
-require __DIR__ . "/../../PHPMailer/src/Exception.php";
-require __DIR__ . "/../../PHPMailer/src/SMTP.php";
+require __DIR__ . "/../lib/PHPMailer/src/PHPMailer.php";
+require __DIR__ . "/../lib/PHPMailer/src/Exception.php";
+require __DIR__ . "/../lib/PHPMailer/src/SMTP.php";
 
 function enviarEmail(
     string $destinatario,

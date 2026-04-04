@@ -66,70 +66,71 @@ database/
 
 ## Divisão de Responsabilidades
 
-### Gerard — Autenticação & Segurança
+> Cada membro responde por ~5 páginas e ~7 arquivos PHP.
 
-**Páginas:**
+### Gerard — Login, MFA & Recuperação de Senha
+
+**Páginas (5):**
 - `login.html` — formulário de login com validação client-side
 - `mfa.html` — verificação TOTP (6 dígitos, max 3 tentativas/10min)
 - `recuperacao-senha.html` — solicitação de link + passo MFA opcional
 - `redefinicao-senha.html` — nova senha via token de URL
 - `exclusao-conta.html` — exclusão parcial/total com confirmação de senha
-- `confirmacao-email.html` — confirmação de cadastro por token
 
-**Backend:**
+**Backend (8 arquivos):**
 - `auth/login.php` — bcrypt verify + session hardening + rate limit
 - `auth/mfa.php` — TOTP nativo RFC 6238 (HMAC-SHA1 + base32)
-- `auth/recover.php` — token hasheado (SHA-256) + anti-enumeration
-- `auth/confirm.php` — hash_equals, token único de uso
+- `auth/recover.php` — token hasheado SHA-256 + anti-enumeration
+- `auth/confirm.php` — hash_equals, token de uso único
 - `auth/logout.php` — session_unset + session_destroy + limpeza de cookie
-- `auth/me.php` — endpoint de perfil autenticado
 - `lgpd/delete_account.php` — anonimização parcial/total LGPD Art. 18
 - `utils/mailer.php` — PHPMailer Gmail SMTP SSL porta 465
 - `utils/hash.php` — hashPassword / verifyPassword bcrypt cost 13
-- `middleware/auth_guard.php` — requireAuth() protege rotas autenticadas
-- `middleware/csrf.php` — generateCsrfToken / validateCsrfToken
-- `middleware/rate_limiter.php` — checkRateLimit por IP+action
 
 ---
 
-### Gustavo — Produtos & Painel
+### Gustavo — Produtos, Dashboard & Busca
 
-**Páginas:**
+**Páginas (5):**
 - `dashboard.html` — painel com lista de produtos, stats, modal de status, busca rápida
 - `cadastro-produto.html` — registro de produto com NF-e, score de confiabilidade
 - `busca.html` — busca pública por serial + contato anônimo ao proprietário
 - `politica_privavidade.html` — Política de Privacidade (LGPD)
 - `termo_de_uso.html` — Termos de Uso
 
-**Backend:**
+**Backend (7 arquivos):**
 - `produto/cadastrar.php` — INSERT + score NF-e/data/descrição + soft delete
 - `produto/listar.php` — listagem paginada filtrada por user_id da sessão
 - `produto/buscar.php` — consulta pública por serial (sem expor dados pessoais)
 - `produto/status.php` — alteração normal/perdido/roubado + verificação de propriedade
 - `produto/contato.php` — mensagens anônimas ao proprietário via email
+- `middleware/auth_guard.php` — requireAuth() protege todas as rotas autenticadas
+- `middleware/rate_limiter.php` — checkRateLimit por IP+action (login, MFA, contato)
 
 ---
 
 ### Kauã — Cadastro, Perfil & Infraestrutura
 
-**Páginas:**
+**Páginas (5):**
 - `index.html` — landing page com busca rápida, funcionalidades e info LGPD
 - `cadastro-usuario.html` — registro com CPF, senha forte, consentimento LGPD
 - `confirmacao-cadastro.html` — estados: aguardando / sucesso / erro de token
 - `meus-dados.html` — perfil completo: alterar nome, alterar senha, transparência LGPD
-- `confirmacao.html` — página de confirmação genérica
+- `confirmacao-email.html` — confirmação de e-mail por token
 
-**Backend:**
-- `auth/register.php` — bcrypt cost 13 + token de confirmação SHA-256 + email
+**Backend (7 arquivos):**
+- `auth/register.php` — bcrypt cost 13 + token SHA-256 + envio de email
+- `auth/me.php` — endpoint de sessão ativa (verifica autenticação)
 - `auth/meus_dados.php` — atualização de nome e senha autenticada
+- `middleware/csrf.php` — generateCsrfToken / validateCsrfToken
 - `config/db.php` — PDO singleton com ATTR_EMULATE_PREPARES=false
-- `utils/validadores.php` — 8 funções centralizadas, 1 preg_match cada
+- `utils/validadores.php` — 8 validadores centralizados, 1 preg_match cada
 - `utils/response.php` — jsonSuccess / jsonError padronizados
 
 **Infraestrutura:**
 - `database/schema.sql` — schema completo (users, objects, tokens, rate_limits, lgpd_*)
-- `frontend/css/style.css` — folha de estilos principal (706 linhas)
-- `frontend/js/validacoes.js` — validações reutilizáveis (email, CPF, senha, força)
+- `frontend/css/style.css` — folha de estilos principal
+- `frontend/js/validacoes.js` — validações reutilizáveis (email, CPF, senha forte)
 - `frontend/js/main.js` — comportamentos globais (CSRF, toggle senha, indicador de força)
 
 ---
@@ -209,10 +210,11 @@ MAIL_FROM_NAME=SNGuard
 mysql -u root -p < database/schema.sql
 ```
 
-**3. PHPMailer** (sem Composer — clonar na raiz):
+**3. PHPMailer** (sem Composer — clonar dentro de `backend/lib/`):
 
 ```bash
-git clone https://github.com/PHPMailer/PHPMailer
+mkdir -p backend/lib
+git clone https://github.com/PHPMailer/PHPMailer backend/lib/PHPMailer
 ```
 
 **4. Servidor local:**
