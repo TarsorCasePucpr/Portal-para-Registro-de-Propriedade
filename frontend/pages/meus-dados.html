@@ -1,110 +1,57 @@
+<?php
+session_start();
+if (empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+$_csrf = $_SESSION['csrf'];
+session_write_close();
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SNGuard — Meus Dados</title>
+  <title>SNGuard — Meu Perfil</title>
   <link rel="stylesheet" href="../css/style.css">
-  <style>
-    .perfil-card {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      padding: 1.25rem 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-    .perfil-card .campo-info {
-      display: flex;
-      flex-direction: column;
-      gap: .25rem;
-      padding: .6rem 0;
-      border-bottom: 1px solid #f3f4f6;
-    }
-    .perfil-card .campo-info:last-child { border-bottom: none; }
-    .perfil-card .label-info {
-      font-size: .75rem;
-      font-weight: 600;
-      color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-    }
-    .perfil-card .valor-info {
-      font-size: 1rem;
-      color: #111827;
-    }
-    .badge-mfa-on  { display:inline-block; background:#dcfce7; color:#166534; border-radius:4px; padding:.15rem .5rem; font-size:.75rem; font-weight:700; }
-    .badge-mfa-off { display:inline-block; background:#fef3c7; color:#92400e; border-radius:4px; padding:.15rem .5rem; font-size:.75rem; font-weight:700; }
-    .secao-titulo {
-      font-size:.8125rem; font-weight:700; text-transform:uppercase;
-      letter-spacing:.06em; color:var(--text-muted); margin:1.75rem 0 .875rem;
-    }
-    .lgpd-box {
-      background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px;
-      padding:1rem 1.25rem; font-size:.875rem; color:#1e40af; margin-top:1.5rem;
-    }
-    .lgpd-box ul { margin:.5rem 0 0 1.25rem; }
-    .lgpd-box li { margin-bottom:.3rem; }
-  </style>
 </head>
 <body>
 
   <header>
-    <a href="dashboard.html" class="logo-text">SN<span style="color:#fff">Guard</span></a>
+    <a href="dashboard.html" class="logo-texto">SNGuard</a>
     <nav>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="meus-dados.html" class="active">Perfil</a>
-      <a href="../../backend/auth/logout.php" id="btn-logout" style="color:var(--danger); font-size:.875rem;">Sair</a>
+      <a href="cadastro-produto.html">Novo Produto</a> |
+      <a href="busca.html">Busca Pública</a> |
+      <a href="meus-dados.html">Meu Perfil</a> |
+      <a href="#" id="btn-logout">Sair</a>
     </nav>
   </header>
 
-  <main style="align-items:flex-start; justify-content:center;">
-    <section style="max-width:560px; width:100%;">
+  <main>
+    <section style="max-width: 500px; margin: 0 auto;">
 
-      <div style="margin-bottom:1.5rem;">
-        <a href="dashboard.html" style="font-size:.875rem; color:var(--text-muted); display:inline-flex; align-items:center; gap:.375rem; margin-bottom:.875rem;">
-          ← Voltar ao painel
-        </a>
-        <h1>Meus dados</h1>
-      </div>
+      <h1>Meu Perfil</h1>
 
-      <div id="msg-global" role="alert" aria-live="polite"></div>
+      <div id="msg-global" class="erro" role="alert" aria-live="polite" style="margin: 1rem 0;"></div>
 
-      <p class="secao-titulo">Informações da conta</p>
+      <h2 style="margin-top: 1.5rem;">Informações da conta</h2>
 
-      <div class="perfil-card" id="card-perfil">
-        <div class="campo-info">
-          <span class="label-info">Nome</span>
-          <span class="valor-info" id="info-nome">—</span>
-        </div>
-        <div class="campo-info">
-          <span class="label-info">E-mail</span>
-          <span class="valor-info" id="info-email">—</span>
-        </div>
-        <div class="campo-info">
-          <span class="label-info">CPF</span>
-          <span class="valor-info" id="info-cpf">—</span>
-        </div>
-        <div class="campo-info">
-          <span class="label-info">2FA (Autenticação em dois fatores)</span>
-          <span class="valor-info" id="info-mfa">—</span>
-        </div>
-        <div class="campo-info">
-          <span class="label-info">Membro desde</span>
-          <span class="valor-info" id="info-desde">—</span>
-        </div>
-      </div>
+      <table style="width:100%; border-collapse:collapse; margin: .75rem 0 1.5rem; font-size:.95rem;">
+        <tr><td style="padding:.4rem 0; color:var(--texto-leve); width:130px;">Nome</td><td id="info-nome">—</td></tr>
+        <tr><td style="padding:.4rem 0; color:var(--texto-leve);">E-mail</td><td id="info-email">—</td></tr>
+        <tr><td style="padding:.4rem 0; color:var(--texto-leve);">CPF</td><td id="info-cpf">—</td></tr>
+        <tr><td style="padding:.4rem 0; color:var(--texto-leve);">Membro desde</td><td id="info-desde">—</td></tr>
+      </table>
 
-      <p class="secao-titulo">Alterar nome</p>
+      <h2>Alterar nome</h2>
 
-      <form id="form-nome" novalidate>
-        <input type="hidden" id="csrf-nome" name="csrf">
+      <form id="form-nome" novalidate style="margin-top:.75rem;">
+        <input type="hidden" id="csrf-nome" name="csrf" value="<?= htmlspecialchars($_csrf, ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="acao" value="atualizar_nome">
 
         <div class="campo">
           <label for="novo-nome">Novo nome</label>
-          <input type="text" id="novo-nome" name="nome"
-                 maxlength="100" autocomplete="name"
-                 placeholder="Seu nome completo">
+          <input type="text" id="novo-nome" name="nome" maxlength="100"
+                 autocomplete="name" placeholder="Seu nome completo">
           <span id="erro-nome" class="erro" role="alert"></span>
         </div>
 
@@ -112,10 +59,10 @@
         <div id="msg-nome" role="alert" aria-live="polite" style="margin-top:.5rem; font-size:.875rem;"></div>
       </form>
 
-      <p class="secao-titulo">Alterar senha</p>
+      <h2 style="margin-top: 1.75rem;">Alterar senha</h2>
 
-      <form id="form-senha" novalidate>
-        <input type="hidden" id="csrf-senha" name="csrf">
+      <form id="form-senha" novalidate style="margin-top:.75rem;">
+        <input type="hidden" id="csrf-senha" name="csrf" value="<?= htmlspecialchars($_csrf, ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="acao" value="atualizar_senha">
 
         <div class="campo">
@@ -128,11 +75,14 @@
 
         <div class="campo">
           <label for="nova-senha">Nova senha</label>
-          <input type="password" id="nova-senha" name="nova_senha"
-                 maxlength="255" autocomplete="new-password"
-                 placeholder="Mínimo 12 caracteres">
-          <small>Mín. 12 caracteres: maiúscula, minúscula, número e símbolo (@$!%*?&)</small>
-          <div id="forca-senha-perfil" aria-live="polite" style="font-size:.8rem; margin-top:.25rem;"></div>
+          <div class="campo-senha">
+            <input type="password" id="nova-senha" name="nova_senha"
+                   maxlength="255" autocomplete="new-password"
+                   placeholder="Mínimo 12 caracteres">
+            <button type="button" id="toggle-nova-senha" aria-label="Mostrar senha">Mostrar</button>
+          </div>
+          <small>Mín. 12 caracteres: maiúscula, minúscula, número e símbolo.</small>
+          <div id="forca-senha-perfil" aria-live="polite" style="font-size:.82rem; margin-top:.25rem;"></div>
           <span id="erro-nova-senha" class="erro" role="alert"></span>
         </div>
 
@@ -148,29 +98,33 @@
         <div id="msg-senha" role="alert" aria-live="polite" style="margin-top:.5rem; font-size:.875rem;"></div>
       </form>
 
-      <p class="secao-titulo">Transparência (LGPD — Art. 9)</p>
+      <h2 style="margin-top: 1.75rem;">Autenticação em dois fatores (2FA)</h2>
 
-      <div class="lgpd-box">
-        <strong>Por que coletamos seus dados:</strong>
-        <ul>
-          <li><strong>Nome e e-mail:</strong> identificação da conta e envio de notificações.</li>
-          <li><strong>CPF:</strong> vinculação de propriedade via Nota Fiscal Eletrônica.</li>
-          <li><strong>Dados dos produtos:</strong> rastreamento e comprovação de posse.</li>
-        </ul>
-        <p style="margin-top:.75rem;">
-          Nenhuma informação pessoal é compartilhada com terceiros.
-          O status dos seus objetos (normal/roubado/perdido) é público por finalidade do sistema.
-          Seus dados pessoais nunca aparecem na busca pública.
-        </p>
+      <div style="margin-top:.75rem;">
+        <p>Status: <span id="info-mfa">—</span></p>
+        <div id="bloco-ativar-mfa" hidden style="margin-top:.75rem;">
+          <p style="font-size:.9rem; color:var(--texto-leve); margin-bottom:.75rem;">
+            O 2FA adiciona uma camada extra de segurança. Após ativar, você precisará
+            de um app autenticador (Google Authenticator, Authy) ao fazer login.
+          </p>
+          <a href="configurar-mfa.html" class="btn-secundario" style="font-size:.875rem;">Ativar 2FA</a>
+        </div>
+        <div id="bloco-mfa-ativo" hidden style="margin-top:.5rem;">
+          <small>2FA está ativo. Para desativar, entre em contato com o suporte.</small>
+        </div>
       </div>
 
-      <p class="secao-titulo" style="color:var(--danger);">Zona de perigo</p>
+      <h2 style="margin-top: 1.75rem; color: var(--erro);">Excluir conta</h2>
 
+      <p style="font-size:.9rem; color:var(--texto-leve); margin:.5rem 0 .75rem;">
+        Em conformidade com a LGPD (Art. 18, VI), você pode solicitar a exclusão
+        completa dos seus dados. A conta será removida após 30 dias.
+      </p>
       <a href="exclusao-conta.html"
-         style="display:inline-block; padding:.6rem 1.25rem; border:1.5px solid var(--danger);
-                color:var(--danger); border-radius:6px; font-size:.875rem; font-weight:600;
+         style="display:inline-block; padding:.5rem 1.25rem; border:1.5px solid var(--erro);
+                color:var(--erro); border-radius:4px; font-size:.875rem; font-weight:600;
                 text-decoration:none;">
-        Solicitar exclusão de conta (LGPD Art. 18, VI)
+        Solicitar exclusão de conta
       </a>
 
     </section>
@@ -184,9 +138,9 @@
   <script defer>
   (function () {
 
-    const msgGlobal = document.getElementById('msg-global');
+    const csrfInicial = document.getElementById('csrf-nome').value;
 
-    function carregarCsrf() {
+    function refreshCsrf() {
       return fetch('../../backend/auth/get_csrf.php')
         .then(r => r.json())
         .then(d => {
@@ -206,45 +160,56 @@
         .then(data => {
           if (!data || !data.success) return;
           const u = data.usuario;
-          document.getElementById('info-nome').textContent   = u.name           || '—';
-          document.getElementById('info-email').textContent  = u.email          || '—';
-          document.getElementById('info-cpf').textContent    = u.cpf_mascarado  || '—';
-          document.getElementById('info-desde').textContent  = u.membro_desde   || '—';
+          document.getElementById('info-nome').textContent  = u.name          || '—';
+          document.getElementById('info-email').textContent = u.email         || '—';
+          document.getElementById('info-cpf').textContent   = u.cpf_mascarado || '—';
+          document.getElementById('info-desde').textContent = u.membro_desde  || '—';
+          document.getElementById('novo-nome').value        = u.name          || '';
+
           const mfaEl = document.getElementById('info-mfa');
           if (u.mfa_enabled) {
-            mfaEl.innerHTML = '<span class="badge-mfa-on">Ativado</span>';
+            mfaEl.innerHTML = '<span class="badge badge-verde">Ativado</span>';
+            document.getElementById('bloco-mfa-ativo').hidden = false;
           } else {
-            mfaEl.innerHTML = '<span class="badge-mfa-off">Desativado</span>';
+            mfaEl.innerHTML = '<span class="badge badge-cinza">Desativado</span>';
+            document.getElementById('bloco-ativar-mfa').hidden = false;
           }
-          document.getElementById('novo-nome').value = u.name || '';
         })
         .catch(() => {
-          msgGlobal.textContent = 'Erro ao carregar seus dados. Recarregue a página.';
+          document.getElementById('msg-global').textContent = 'Erro ao carregar seus dados. Recarregue a página.';
         });
     }
 
-    document.getElementById('nova-senha').addEventListener('input', function () {
+    const novaSenhaInput = document.getElementById('nova-senha');
+    novaSenhaInput.addEventListener('input', function () {
       const forca = document.getElementById('forca-senha-perfil');
       const v = this.value;
+      if (!v) { forca.textContent = ''; return; }
       let pts = 0;
-      if (v.length >= 12) pts++;
-      if (/[a-z]/.test(v)) pts++;
-      if (/[A-Z]/.test(v)) pts++;
-      if (/\d/.test(v))    pts++;
-      if (/[@$!%*?&]/.test(v)) pts++;
+      if (v.length >= 12)           pts++;
+      if (/[a-z]/.test(v))          pts++;
+      if (/[A-Z]/.test(v))          pts++;
+      if (/\d/.test(v))             pts++;
+      if (/[^a-zA-Z0-9]/.test(v))   pts++;
       const niveis = ['', 'Muito fraca', 'Fraca', 'Média', 'Boa', 'Forte'];
-      const cores  = ['', '#dc2626',     '#f59e0b','#f59e0b','#16a34a','#15803d'];
-      forca.textContent  = v.length > 0 ? ('Força: ' + (niveis[pts] || 'Forte')) : '';
-      forca.style.color  = cores[Math.min(pts, 5)] || '';
+      const cores  = ['', '#dc2626', '#f59e0b', '#f59e0b', '#16a34a', '#15803d'];
+      forca.textContent = 'Força: ' + (niveis[pts] || 'Forte');
+      forca.style.color = cores[Math.min(pts, 5)] || '';
+    });
+
+    const toggleNovaSenha = document.getElementById('toggle-nova-senha');
+    toggleNovaSenha.addEventListener('click', function () {
+      const visivel = novaSenhaInput.type === 'text';
+      novaSenhaInput.type = visivel ? 'password' : 'text';
+      this.textContent = visivel ? 'Mostrar' : 'Ocultar';
     });
 
     document.getElementById('form-nome').addEventListener('submit', async function (e) {
       e.preventDefault();
-
-      const nome    = document.getElementById('novo-nome').value.trim();
-      const erroEl  = document.getElementById('erro-nome');
-      const msgEl   = document.getElementById('msg-nome');
-      const btn     = document.getElementById('btn-salvar-nome');
+      const nome   = document.getElementById('novo-nome').value.trim();
+      const erroEl = document.getElementById('erro-nome');
+      const msgEl  = document.getElementById('msg-nome');
+      const btn    = document.getElementById('btn-salvar-nome');
 
       erroEl.textContent = '';
       msgEl.textContent  = '';
@@ -254,44 +219,40 @@
         return;
       }
 
-      btn.disabled    = true;
-      btn.textContent = 'Salvando...';
+      btn.disabled = true; btn.textContent = 'Salvando...';
 
       try {
         const fd  = new FormData(this);
         const res = await fetch('../../backend/auth/meus_dados.php', { method: 'POST', body: fd });
         const d   = await res.json();
-
         if (d.success) {
-          msgEl.style.color = 'var(--primary)';
+          msgEl.style.color = 'var(--sucesso)';
           msgEl.textContent = 'Nome atualizado com sucesso.';
           document.getElementById('info-nome').textContent = nome;
-          await carregarCsrf();
+          await refreshCsrf();
         } else {
-          msgEl.style.color = 'var(--danger)';
+          msgEl.style.color = 'var(--erro)';
           msgEl.textContent = d.error || 'Erro ao atualizar.';
         }
       } catch (_) {
-        msgEl.style.color = 'var(--danger)';
+        msgEl.style.color = 'var(--erro)';
         msgEl.textContent = 'Erro de conexão. Tente novamente.';
       } finally {
-        btn.disabled    = false;
-        btn.textContent = 'Salvar nome';
+        btn.disabled = false; btn.textContent = 'Salvar nome';
       }
     });
 
     document.getElementById('form-senha').addEventListener('submit', async function (e) {
       e.preventDefault();
+      const senhaAtual = document.getElementById('senha-atual').value;
+      const novaSenha  = document.getElementById('nova-senha').value;
+      const confirmar  = document.getElementById('confirmar-nova-senha').value;
+      const msgEl      = document.getElementById('msg-senha');
+      const btn        = document.getElementById('btn-salvar-senha');
 
-      const senhaAtual   = document.getElementById('senha-atual').value;
-      const novaSenha    = document.getElementById('nova-senha').value;
-      const confirmar    = document.getElementById('confirmar-nova-senha').value;
-      const msgEl        = document.getElementById('msg-senha');
-      const btn          = document.getElementById('btn-salvar-senha');
-
-      document.getElementById('erro-senha-atual').textContent   = '';
-      document.getElementById('erro-nova-senha').textContent    = '';
-      document.getElementById('erro-confirmar-senha').textContent = '';
+      ['erro-senha-atual', 'erro-nova-senha', 'erro-confirmar-senha'].forEach(id => {
+        document.getElementById(id).textContent = '';
+      });
       msgEl.textContent = '';
 
       let valido = true;
@@ -300,54 +261,47 @@
         document.getElementById('erro-senha-atual').textContent = 'Informe sua senha atual.';
         valido = false;
       }
-
-      if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}$/.test(novaSenha)) {
+      if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{12,}$/.test(novaSenha)) {
         document.getElementById('erro-nova-senha').textContent =
-          'Senha fraca. Use mín. 12 chars com maiúscula, minúscula, número e símbolo.';
+          'Senha fraca. Use mín. 12 caracteres com maiúscula, minúscula, número e símbolo.';
         valido = false;
       }
-
       if (novaSenha !== confirmar) {
         document.getElementById('erro-confirmar-senha').textContent = 'As senhas não coincidem.';
         valido = false;
       }
-
       if (!valido) return;
 
-      btn.disabled    = true;
-      btn.textContent = 'Alterando...';
+      btn.disabled = true; btn.textContent = 'Alterando...';
 
       try {
         const fd  = new FormData(this);
         const res = await fetch('../../backend/auth/meus_dados.php', { method: 'POST', body: fd });
         const d   = await res.json();
-
         if (d.success) {
-          msgEl.style.color = 'var(--primary)';
+          msgEl.style.color = 'var(--sucesso)';
           msgEl.textContent = 'Senha alterada com sucesso.';
           this.reset();
           document.getElementById('forca-senha-perfil').textContent = '';
-          await carregarCsrf();
+          await refreshCsrf();
         } else {
-          msgEl.style.color = 'var(--danger)';
+          msgEl.style.color = 'var(--erro)';
           msgEl.textContent = d.error || 'Erro ao alterar senha.';
         }
       } catch (_) {
-        msgEl.style.color = 'var(--danger)';
+        msgEl.style.color = 'var(--erro)';
         msgEl.textContent = 'Erro de conexão. Tente novamente.';
       } finally {
-        btn.disabled    = false;
-        btn.textContent = 'Alterar senha';
+        btn.disabled = false; btn.textContent = 'Alterar senha';
       }
     });
 
     document.getElementById('btn-logout').addEventListener('click', function (e) {
       e.preventDefault();
-      const csrf = document.getElementById('csrf-nome').value;
+      const csrf = document.getElementById('csrf-nome').value || csrfInicial;
       window.location.href = '../../backend/auth/logout.php?csrf=' + encodeURIComponent(csrf);
     });
 
-    carregarCsrf();
     carregarPerfil();
 
   })();

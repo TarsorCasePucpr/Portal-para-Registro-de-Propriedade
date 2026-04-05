@@ -9,9 +9,12 @@
 <body>
 
   <header>
-    <a href="index.html">
-      <img src="../img/logo.png" alt="SNGuard" onerror="this.style.display='none'">
-    </a>
+    <a href="index.html" class="logo-texto">SNGuard</a>
+    <nav>
+      <a href="busca.html">Busca Pública</a> |
+      <a href="login.html">Login</a> |
+      <a href="cadastro-usuario.html">Cadastrar-se</a>
+    </nav>
   </header>
 
   <main>
@@ -85,7 +88,7 @@
             </button>
           </div>
           <div id="forca-senha" aria-live="polite"></div>
-          <small>Mín. 12 caracteres: maiúscula, minúscula, número e símbolo (@$!%*?&)</small>
+          <small>Mín. 12 caracteres: maiúscula, minúscula, número e pelo menos 1 símbolo</small>
           <span class="erro" id="erro-senha" role="alert"></span>
         </div>
 
@@ -95,6 +98,7 @@
             <input
               type="password"
               id="confirmar-senha"
+              name="confirmar_senha"
               required
               maxlength="255"
               autocomplete="new-password"
@@ -136,6 +140,13 @@
 
   <script src="../js/validacoes.js" defer></script>
   <script src="../js/main.js" defer></script>
+
+  <script>
+    const erroServidor = new URLSearchParams(window.location.search).get('erro');
+    if (erroServidor) {
+      document.getElementById('msg-servidor').textContent = decodeURIComponent(erroServidor);
+    }
+  </script>
 
 </body>
 </html>

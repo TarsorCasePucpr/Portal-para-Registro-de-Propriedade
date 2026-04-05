@@ -7,5 +7,7 @@ session_start();
 
 require_once __DIR__ . '/../middleware/csrf.php';
 
+$token = generateCsrfToken();
+session_write_close();
 header('Content-Type: application/json');
-echo json_encode(['csrf' => generateCsrfToken()]);
+echo json_encode(['csrf' => $token]);
