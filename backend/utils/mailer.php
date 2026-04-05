@@ -41,12 +41,16 @@ function enviarEmail(
         $mail->addAddress($destinatario, $nome);
 
         $mail->Subject = $assunto;
-        $htmlCorpo = nl2br(htmlspecialchars($corpo, ENT_QUOTES, 'UTF-8'));
-        $htmlCorpo = preg_replace(
-            '/(https?:\/\/\S+)/',
-            '<a href="$1">$1</a>',
-            $htmlCorpo
-        );
+        $parts = preg_split('/(https?:\/\/\S+)/', $corpo, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $htmlCorpo = '';
+        foreach ($parts as $i => $part) {
+            if ($i % 2 === 1) {
+                $url = htmlspecialchars($part, ENT_QUOTES, 'UTF-8');
+                $htmlCorpo .= '<a href="' . $url . '">' . $url . '</a>';
+            } else {
+                $htmlCorpo .= nl2br(htmlspecialchars($part, ENT_QUOTES, 'UTF-8'));
+            }
+        }
         $mail->msgHTML($htmlCorpo);
         $mail->AltBody = $corpo;
 
