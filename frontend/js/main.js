@@ -1,15 +1,13 @@
 document.addEventListener('DOMContentLoaded', function () {
   const csrfInput = document.getElementById('csrf-token');
 
-  if (csrfInput) {
+  if (csrfInput && !csrfInput.value) {
     fetch('../../backend/auth/get_csrf.php')
       .then(function (res) { return res.json(); })
       .then(function (data) {
         csrfInput.value = data.csrf || '';
       })
-      .catch(function () {
-        console.error('Não foi possível obter o token CSRF.');
-      });
+      .catch(function () {});
   }
 
   configurarToggleSenha('toggle-senha', 'senha');
@@ -93,6 +91,13 @@ document.addEventListener('DOMContentLoaded', function () {
         limparErro('erro-senha');
       }
 
+      const csrf = document.getElementById('csrf-token');
+      if (!csrf || !csrf.value) {
+        e.preventDefault();
+        mostrarErro('erro-email', 'Carregando segurança da página, aguarde um instante e tente novamente.');
+        return;
+      }
+
       if (!valido) {
         e.preventDefault();
         return;
@@ -168,6 +173,8 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
         return;
       }
+
+      localStorage.setItem('emailCadastro', email);
 
       const btn = document.getElementById('btn-cadastrar');
       if (btn) {

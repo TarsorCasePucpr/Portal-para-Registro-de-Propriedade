@@ -1,3 +1,12 @@
+<?php
+session_start();
+$_logado = !empty($_SESSION['user_id']);
+if ($_logado && empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+$_csrf_busca = $_logado ? $_SESSION['csrf'] : '';
+session_write_close();
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -9,11 +18,18 @@
 <body>
 
   <header>
-    <a href="index.html" class="logo-text">SN<span style="color:#fff">Guard</span></a>
+    <a href="<?= $_logado ? 'dashboard.html' : 'index.html' ?>" class="logo-texto">SNGuard</a>
     <nav>
-      <a href="index.html">Home</a>
-      <a href="login.html">Login</a>
-      <a href="cadastro-usuario.html">Cadastrar-se</a>
+      <?php if ($_logado): ?>
+        <a href="cadastro-produto.html">Novo Produto</a> |
+        <a href="busca.html">Busca Pública</a> |
+        <a href="meus-dados.html">Meu Perfil</a> |
+        <a href="../../backend/auth/logout.php?csrf=<?= urlencode($_csrf_busca) ?>">Sair</a>
+      <?php else: ?>
+        <a href="busca.html">Busca Pública</a> |
+        <a href="login.html">Login</a> |
+        <a href="cadastro-usuario.html">Cadastrar-se</a>
+      <?php endif; ?>
     </nav>
   </header>
 
@@ -54,6 +70,10 @@
       <div id="resultado-busca" aria-live="polite" hidden></div>
 
       <div id="contato-anonimo" hidden>
+
+        <p id="status-produto-label" style="margin-bottom:.75rem; font-size:.875rem; color:var(--texto-leve);">
+          Status do produto: <span id="badge-status-contato"></span>
+        </p>
 
         <div style="display:flex; align-items:center; gap:.625rem; margin-bottom:.375rem;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.75">
@@ -105,6 +125,7 @@
 
       </div>
 
+      <?php if (!$_logado): ?>
       <div id="cta-registro" style="
         margin-top:2rem;
         padding:1.25rem;
@@ -136,6 +157,7 @@
           </a>
         </div>
       </div>
+      <?php endif; ?>
 
     </section>
   </main>
@@ -226,6 +248,10 @@
               '<strong>Não adquira este item</strong> — pode ser produto de origem ilícita.</p>' +
               '<p style="margin-top:.5rem; font-size:.875rem;">Se você o encontrou, use o formulário abaixo para entrar em contato com o dono de forma anônima.</p>';
 
+            document.getElementById('badge-status-contato').innerHTML =
+              d.status === 'roubado'
+                ? '<span class="badge badge-vermelho">Roubado</span>'
+                : '<span class="badge badge-warn">Perdido</span>';
             document.getElementById('serial-contato').value = serial;
             contatoDiv.hidden = false;
             return;

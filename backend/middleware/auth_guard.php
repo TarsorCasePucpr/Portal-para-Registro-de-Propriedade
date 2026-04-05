@@ -3,12 +3,14 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../utils/response.php';
 
-function startSessionSafe(): void
-{
-    if (session_status() === PHP_SESSION_NONE) {
-        ini_set('session.cookie_httponly', '1');
-        ini_set('session.cookie_samesite', 'Strict');
-        session_start();
+if (!function_exists('startSessionSafe')) {
+    function startSessionSafe(): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            ini_set('session.cookie_httponly', '1');
+            ini_set('session.cookie_samesite', 'Strict');
+            session_start();
+        }
     }
 }
 

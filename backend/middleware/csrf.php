@@ -1,6 +1,16 @@
 <?php
 declare(strict_types=1);
 
+if (!function_exists('startSessionSafe')) {
+    function startSessionSafe(): void {
+        if (session_status() === PHP_SESSION_NONE) {
+            ini_set('session.cookie_httponly', '1');
+            ini_set('session.cookie_samesite', 'Strict');
+            session_start();
+        }
+    }
+}
+
 function generateCsrfToken(): string {
     startSessionSafe();
     if (empty($_SESSION['csrf'])) {

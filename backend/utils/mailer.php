@@ -41,7 +41,13 @@ function enviarEmail(
         $mail->addAddress($destinatario, $nome);
 
         $mail->Subject = $assunto;
-        $mail->msgHTML(nl2br(htmlspecialchars($corpo, ENT_QUOTES, 'UTF-8')));
+        $htmlCorpo = nl2br(htmlspecialchars($corpo, ENT_QUOTES, 'UTF-8'));
+        $htmlCorpo = preg_replace(
+            '/(https?:\/\/\S+)/',
+            '<a href="$1">$1</a>',
+            $htmlCorpo
+        );
+        $mail->msgHTML($htmlCorpo);
         $mail->AltBody = $corpo;
 
         $mail->send();

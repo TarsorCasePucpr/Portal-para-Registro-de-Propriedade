@@ -32,7 +32,7 @@ function analisarForcaSenha(senha) {
 }
 
 function senhaValida(senha) {
-  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}$/.test(senha);
+  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{12,}$/.test(senha);
 }
 
 function mostrarErro(idErro, mensagem) {
