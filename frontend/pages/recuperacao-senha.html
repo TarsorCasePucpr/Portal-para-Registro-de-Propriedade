@@ -8,13 +8,88 @@
 </head>
 <body>
 
+<<<<<<< HEAD
+  <header>
+    <a href="index.html" class="logo-text">SN<span style="color:#fff">Guard</span></a>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="login.html">Login</a>
+      <a href="cadastro-usuario.html">Cadastrar-se</a>
+    </nav>
+=======
   <!-- ===== CABEÇALHO ===== -->
   <header>
     <!-- TODO: Logo SNGuard + link para login.html -->
+>>>>>>> origin/develop
   </header>
 
   <main>
     <section id="recuperacao-section">
+<<<<<<< HEAD
+
+      <!-- Indicador de passo -->
+      <div class="steps" id="steps-indicator" aria-label="Etapas">
+        <div class="step-dot active" id="dot-1"></div>
+        <div class="step-dot" id="dot-2"></div>
+      </div>
+
+      <!-- ══ PASSO 1 — Informar e-mail ═══════════════════════════ -->
+      <div id="passo-1">
+        <h1>Recuperar senha</h1>
+        <p>Informe o e-mail cadastrado. Você receberá um link para redefinir sua senha.</p>
+
+        <form id="form-recuperacao" novalidate>
+          <input type="hidden" name="acao" value="solicitar_link">
+          <input type="hidden" id="csrf-recuperacao" name="csrf">
+
+          <div class="campo">
+            <label for="email">E-mail cadastrado</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              maxlength="255"
+              autocomplete="email"
+              placeholder="seu@email.com"
+            >
+            <span id="erro-email" class="erro" role="alert"></span>
+          </div>
+
+          <button type="submit" id="btn-enviar">Enviar link de recuperação</button>
+
+          <div style="text-align:center; margin-top:1rem;">
+            <a href="login.html" style="font-size:.875rem; color:var(--text-muted);">← Voltar ao login</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- ══ PASSO 2 — Confirmação de envio ═══════════════════════ -->
+      <div id="passo-2" hidden>
+        <div class="card" style="text-align:center; padding:2rem;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" style="margin: 0 auto .875rem;">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25H4.5a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5H4.5a2.25 2.25 0 00-2.25 2.25m19.5 0l-9.75 6.75L2.25 6.75"/>
+          </svg>
+          <h1 style="font-size:1.375rem; margin-bottom:.5rem;">Link enviado!</h1>
+          <p id="msg-email-enviado" style="margin-bottom:1.5rem;">
+            Se o e-mail existir em nosso sistema, um link de recuperação foi enviado.
+            Verifique também a pasta de spam.
+          </p>
+          <p style="font-size:.8125rem; color:var(--text-dim);">O link expira em <strong style="color:var(--text-muted);">1 hora</strong>.</p>
+
+          <div style="margin-top:1.5rem; display:flex; flex-direction:column; gap:.625rem;">
+            <button type="button" class="btn-secondary" id="btn-reenviar">
+              Reenviar e-mail
+            </button>
+            <a href="login.html" style="font-size:.875rem; color:var(--text-muted); text-align:center; display:block; margin-top:.25rem;">← Voltar ao login</a>
+          </div>
+
+          <div id="msg-reenvio" role="alert" style="margin-top:.75rem; font-size:.8125rem;"></div>
+        </div>
+      </div>
+
+=======
       <h1>Recuperar senha</h1>
 
       <!--
@@ -57,10 +132,140 @@
         <!-- TODO: "O link expira em 1 hora." -->
         <!-- TODO: Link "Voltar para o login" → login.html -->
       </div>
+>>>>>>> origin/develop
     </section>
   </main>
 
   <footer>
+<<<<<<< HEAD
+    <a href="politica_privavidade.html">Política de Privacidade</a>
+    <a href="termo_de_uso.html">Termos de Uso</a>
+  </footer>
+
+  <script src="../js/validacoes.js" defer></script>
+  <script defer>
+  (function () {
+    // ── Elementos ───────────────────────────────────────────────
+    const passo1 = document.getElementById('passo-1');
+    const passo2 = document.getElementById('passo-2');
+    const dots   = [
+      document.getElementById('dot-1'),
+      document.getElementById('dot-2'),
+    ];
+
+    let emailGlobal = '';
+
+    // ── Helpers de UI ───────────────────────────────────────────
+    function irParaPasso(n) {
+      [passo1, passo2].forEach((el, i) => {
+        el.hidden = i !== n - 1;
+      });
+      dots.forEach((d, i) => {
+        d.classList.toggle('done',   i < n - 1);
+        d.classList.toggle('active', i === n - 1);
+      });
+    }
+
+    function setLoading(btn, txt) {
+      btn.disabled = true;
+      btn.textContent = txt;
+    }
+    function resetBtn(btn, txt) {
+      btn.disabled = false;
+      btn.textContent = txt;
+    }
+
+    // ── CSRF ─────────────────────────────────────────────────────
+    fetch('../../backend/auth/get_csrf.php')
+      .then(r => r.json())
+      .then(d => {
+        if (d.csrf) {
+          document.getElementById('csrf-recuperacao').value = d.csrf;
+        }
+      });
+
+    // ══ PASSO 1 — Envio do e-mail ══════════════════════════════
+    document.getElementById('form-recuperacao').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const email    = document.getElementById('email').value.trim();
+      const erroEl   = document.getElementById('erro-email');
+      const btn      = document.getElementById('btn-enviar');
+
+      erroEl.textContent = '';
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        erroEl.textContent = 'Digite um e-mail válido.';
+        return;
+      }
+
+      emailGlobal = email;
+      setLoading(btn, 'Enviando...');
+
+  try {
+    const fd = new FormData(this);
+    await fetch('../../backend/auth/recover.php', {
+      method: 'POST',
+      body: fd
+    });
+
+    // Sempre mostra confirmação (segurança)
+    mostrarConfirmacao(email);
+
+  } catch (e) {
+    mostrarConfirmacao(email);
+
+  } finally {
+    resetBtn(btn, 'Enviar link de recuperação');
+  }
+  });
+
+    // ══ PASSO 1 — Confirmação ══════════════════════════════════
+    function mostrarConfirmacao(email) {
+      const mascarado = email.replace(/(.{1}).+(@.+)/, '$1***$2');
+      document.getElementById('msg-email-enviado').innerHTML =
+        'Se o endereço <strong>' + mascarado + '</strong> estiver cadastrado, ' +
+        'um link de recuperação foi enviado. Verifique também a pasta de spam.';
+      irParaPasso(2);
+    }
+
+    // Reenvio
+    let reenvioCount = 0;
+    document.getElementById('btn-reenviar').addEventListener('click', async function () {
+      const msgEl = document.getElementById('msg-reenvio');
+      const btn   = this;
+
+      if (reenvioCount >= 3) {
+        msgEl.style.color = 'var(--danger)';
+        msgEl.textContent = 'Limite de reenvios atingido. Aguarde alguns minutos.';
+        return;
+      }
+
+      setLoading(btn, 'Reenviando...');
+      reenvioCount++;
+
+      try {
+        const fd = new FormData();
+        fd.append('acao', 'reenviar');
+        fd.append('email', emailGlobal);
+        // CSRF não necessário em reenvio (sem estado, e-mail já validado no passo anterior)
+
+        await fetch('../../backend/auth/recover.php', { method: 'POST', body: fd });
+        msgEl.style.color = 'var(--primary)';
+        msgEl.textContent = 'E-mail reenviado! Verifique sua caixa de entrada.';
+      } catch (_) {
+        msgEl.style.color = 'var(--text-muted)';
+        msgEl.textContent = 'Não foi possível reenviar. Tente novamente.';
+      } finally {
+        resetBtn(btn, 'Reenviar e-mail');
+      }
+    });
+
+  })();
+  </script>
+
+</body>
+</html>
+=======
     <!-- TODO: Links: Política de Privacidade | Termos de Uso -->
   </footer>
 
@@ -68,3 +273,4 @@
   <script src="../js/main.js" defer></script>
 </body>
 </html>
+>>>>>>> origin/develop

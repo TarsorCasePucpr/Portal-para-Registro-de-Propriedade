@@ -1,10 +1,109 @@
 <?php
 declare(strict_types=1);
 
+<<<<<<< HEAD
+/**
+ * buscar.php — Consulta pública de número de série
+ *
+ * GET /backend/produto/buscar.php?serial=XXXXXX
+ *
+ * Respostas JSON:
+ *   { "success": true,  "encontrado": false }
+ *   { "success": true,  "encontrado": true, "status": "normal"|"roubado"|"perdido" }
+ *   { "success": false, "error": "mensagem" }
+ *
+ * Segurança:
+ *   - Rate limit por IP: 10 consultas / minuto
+ *   - Serial sanitizado (strip_tags + trim + mb_strlen)
+ *   - Query parametrizada (sem risco de SQL injection)
+ *   - Nenhum dado pessoal do proprietário é retornado
+ *   - Headers de segurança definidos
+ *
+ * LGPD:
+ *   - Endpoint público por design — apenas o STATUS do objeto é exposto
+ *   - Nome, CPF, e-mail ou qualquer dado do dono NUNCA aparecem na resposta
+ */
+
+// ── Headers de segurança ─────────────────────────────────────────
+header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Cache-Control: no-store');
+
+// ── Apenas GET ───────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'error' => 'Método não permitido.']);
+    exit;
+}
+
+// ── Dependências ─────────────────────────────────────────────────
+=======
+>>>>>>> origin/develop
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/response.php';
 
+<<<<<<< HEAD
+// ── Rate limiting ────────────────────────────────────────────────
+$pdo = getDb();
+$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+if (!checkRateLimit($pdo, $ip, 'busca_serial', 10, 1)) {
+    jsonError('Muitas consultas. Aguarde 1 minuto e tente novamente.', 429);
+}
+
+// ── Sanitização do serial ────────────────────────────────────────
+$serial = trim(strip_tags($_GET['serial'] ?? ''));
+
+if ($serial === '') {
+    jsonError('Informe o número de série.');
+}
+
+if (mb_strlen($serial) > 100) {
+    jsonError('Número de série inválido.');
+}
+
+// Remover caracteres de controle invisíveis
+$serial = preg_replace('/[\x00-\x1F\x7F]/u', '', $serial);
+
+// ── Consulta ao banco ─────────────────────────────────────────────
+try {
+    $stmt = $pdo->prepare(
+        'SELECT status
+         FROM   objects
+         WHERE  serial_number = :serial
+           AND  deleted_at    IS NULL
+         LIMIT  1'
+    );
+    $stmt->execute(['serial' => $serial]);
+    $objeto = $stmt->fetch(PDO::FETCH_ASSOC);
+
+} catch (PDOException $e) {
+    error_log('[buscar.php] DB error: ' . $e->getMessage());
+    jsonError('Erro interno. Tente novamente mais tarde.', 500);
+}
+
+// ── Resposta ──────────────────────────────────────────────────────
+if (!$objeto) {
+    // Número de série não está no sistema — resposta neutra (não revelar motivo)
+    jsonSuccess([
+        'encontrado' => false,
+        'status'     => null,
+    ]);
+}
+
+// Normalizar status para garantir valor esperado pelo frontend
+$statusPermitidos = ['normal', 'roubado', 'perdido'];
+$status = in_array($objeto['status'], $statusPermitidos, true)
+    ? $objeto['status']
+    : 'normal';
+
+jsonSuccess([
+    'encontrado' => true,
+    'status'     => $status,
+]);
+=======
 $pdo = getDb();
 $ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
@@ -36,3 +135,4 @@ if (!$objeto) {
 }
 
 jsonSuccess(['encontrado' => true, 'status' => $objeto['status']]);
+>>>>>>> origin/develop
