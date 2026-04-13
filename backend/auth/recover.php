@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare('UPDATE tokens SET used_at = NOW() WHERE id = :id');
         $stmt->execute(['id' => $tokenData['id']]);
 
-        header('Location: ../../frontend/pages/login.html?reset=success');
-        exit;
+        jsonResponse(['success' => true]);
+        
     }
 }
