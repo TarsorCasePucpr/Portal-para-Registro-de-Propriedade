@@ -3,11 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
   <title>SNGuard — Cadastrar Produto</title>
+=======
+  <title>SNGuard — Cadastro de Produto</title>
+>>>>>>> origin/develop
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
+<<<<<<< HEAD
   <header>
     <a href="dashboard.html" class="logo-text">SN<span style="color:#fff">Guard</span></a>
     <nav>
@@ -194,17 +199,85 @@
         <div id="msg-cadastro" role="alert" aria-live="polite" style="margin-top:.75rem; font-size:.875rem; text-align:center;"></div>
 
       </form>
+=======
+  <!-- ===== HEADER ===== -->
+  <header>
+    <!-- Preciso colocar o Logo, Navegação (Dashboard | Novo Produto | Perfil | Sair) -->
+  </header>
+
+  <main>
+    <section id="cadastro-produto-section">
+      <h1>Registrar novo produto na SNGuard</h1>
+
+      <!-- AQUI EU FAÇO A IMPORTAÇÃO VIA NOTA FISCAL  -->
+      <h2>Importar via Nota Fiscal</h2>
+
+      <p>
+        Consultar a chave da nota fiscal permite validar a propriedade do produto
+        e aumenta o score de confiabilidade do cadastro.
+      </p>
+
+      <label for="nfe-chave">Chave da Nota Fiscal (44 dígitos)</label>
+      <input type="text" id="nfe-chave" name="nfe_chave"
+             maxlength="44" minlength="44"
+             placeholder="Digite a chave da NF">
+
+      <button type="button">Consultar Nota Fiscal</button>
+
+      <hr>
+
+      <!-- ===== INFORMAÇÕES DO PRODUTO ===== -->
+      <h2>Informações do Produto</h2>
+
+      <label for="descricao">Descrição do Produto</label>
+      <textarea id="descricao" name="descricao"
+                placeholder="Descreva o produto"></textarea>
+
+      <label for="serial">Número de Série</label>
+      <input type="text" id="serial" name="serial_number"
+             placeholder="Digite o número de série">
+
+      <label for="foto-produto">Foto do Produto</label>
+      <input type="file" id="foto-produto" name="foto_produto">
+
+      <label for="foto-serial">Foto do Número de Série</label>
+      <input type="file" id="foto-serial" name="foto_serial">
+
+      <label for="data-compra">Data de Compra</label>
+      <input type="date" id="data-compra" name="data_compra">
+
+      <!-- AQUI É A DECLARAÇÃO LEGAL ONDE O USUARIO DEVE ACEITAR PARA CONTINUAR-->
+      <div>
+        <p>
+          Declaro que sou o primeiro dono do produto e estou ciente das penalidades legais
+          em caso de tentativa de cadastro de produto roubado, furtado ou proveniente de perda.
+        </p>
+      </div>
+
+      <label>
+        <input type="checkbox" name="aceite_termos">
+        Eu concordo com a declaração de responsabilidade
+      </label>
+
+      <!-- ===== AÇÕES ===== -->
+      <button type="submit">Cadastrar Produto</button>
+>>>>>>> origin/develop
 
     </section>
   </main>
 
   <footer>
+<<<<<<< HEAD
     <a href="politica_privavidade.html">Política de Privacidade</a>
     <a href="termo_de_uso.html">Termos de Uso</a>
+=======
+    <!-- Política de Privacidade | Termos de Uso -->
+>>>>>>> origin/develop
   </footer>
 
   <script src="../js/validacoes.js" defer></script>
   <script src="../js/main.js" defer></script>
+<<<<<<< HEAD
   <script defer>
   (function () {
 
@@ -390,3 +463,7 @@
 
 </body>
 </html>
+=======
+</body>
+</html>
+>>>>>>> origin/develop

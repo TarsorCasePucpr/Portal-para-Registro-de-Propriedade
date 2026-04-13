@@ -3,13 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
   <title>SNGuard — Verificar Número de Série</title>
+=======
+  <title>SNGuard — Consulta por Número de Série</title>
+>>>>>>> origin/develop
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
   <header>
+<<<<<<< HEAD
     <a href="index.html" class="logo-text">SN<span style="color:#fff">Guard</span></a>
+=======
+    <a href="index.html">
+      <img src="../img/logo.png" alt="SNGuard" onerror="this.style.display='none'">
+    </a>
+>>>>>>> origin/develop
     <nav>
       <a href="index.html">Home</a>
       <a href="login.html">Login</a>
@@ -19,6 +29,7 @@
 
   <main>
     <section id="busca-section">
+<<<<<<< HEAD
 
       <h1>Verificar número de série</h1>
       <p>Consulte se um produto está registrado ou foi reportado como roubado / perdido.</p>
@@ -26,6 +37,12 @@
       <!-- ══ FORMULÁRIO DE BUSCA ════════════════════════════════ -->
       <form id="form-busca" novalidate>
 
+=======
+      <h1>Verificar número de série</h1>
+      <p>Consulte se um produto está registrado ou foi reportado como roubado/perdido.</p>
+
+      <form id="form-busca" novalidate>
+>>>>>>> origin/develop
         <div class="campo">
           <label for="serial">Número de série do produto</label>
           <input
@@ -36,6 +53,7 @@
             maxlength="100"
             autocomplete="off"
             placeholder="Ex: SN1234567890"
+<<<<<<< HEAD
             spellcheck="false"
           >
           <small>Encontrado na embalagem, etiqueta traseira ou nas configurações do dispositivo.</small>
@@ -73,6 +91,25 @@
         </p>
 
         <form id="form-contato" novalidate>
+=======
+          >
+          <small>Encontrado na embalagem, etiqueta traseira ou nota fiscal.</small>
+          <span id="erro-serial" class="erro" role="alert"></span>
+        </div>
+
+        <button type="submit" id="btn-buscar">Verificar</button>
+      </form>
+
+      <!-- Resultado da busca -->
+      <div id="resultado-busca" aria-live="polite" hidden></div>
+
+      <!-- Contato anônimo — visível só quando produto é roubado/perdido -->
+      <div id="contato-anonimo" hidden>
+        <h2>Enviar mensagem ao proprietário</h2>
+        <p>Sua mensagem será enviada de forma anônima. Nenhum dado seu será revelado.</p>
+
+        <form id="form-contato" action="../../backend/produto/contato.php" method="POST" novalidate>
+>>>>>>> origin/develop
           <input type="hidden" id="csrf-contato" name="csrf">
           <input type="hidden" id="serial-contato" name="serial">
 
@@ -83,6 +120,7 @@
               name="mensagem"
               maxlength="500"
               required
+<<<<<<< HEAD
               rows="4"
               placeholder="Descreva onde e como encontrou o objeto. Você pode sugerir um ponto de encontro seguro (delegacia, shopping, etc.)."
             ></textarea>
@@ -139,6 +177,17 @@
             Já tenho conta
           </a>
         </div>
+=======
+              placeholder="Descreva onde/como encontrou o objeto..."
+            ></textarea>
+            <span id="erro-mensagem" class="erro" role="alert"></span>
+          </div>
+
+          <button type="submit" id="btn-contato">Enviar mensagem</button>
+        </form>
+
+        <div id="msg-contato" role="alert" aria-live="polite"></div>
+>>>>>>> origin/develop
       </div>
 
     </section>
@@ -151,6 +200,7 @@
 
   <script src="../js/validacoes.js" defer></script>
   <script defer>
+<<<<<<< HEAD
   (function () {
 
     const form        = document.getElementById('form-busca');
@@ -328,3 +378,123 @@
 
 </body>
 </html>
+=======
+    (function () {
+      const form        = document.getElementById('form-busca');
+      const btnBuscar   = document.getElementById('btn-buscar');
+      const resultado   = document.getElementById('resultado-busca');
+      const contatoDiv  = document.getElementById('contato-anonimo');
+      const formContato = document.getElementById('form-contato');
+      const msgContato  = document.getElementById('msg-contato');
+      const erroSerial  = document.getElementById('erro-serial');
+
+      // Pré-preencher serial se vier da index.html via GET
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('serial')) {
+        document.getElementById('serial').value = params.get('serial');
+        form.dispatchEvent(new Event('submit'));
+      }
+
+      // Buscar CSRF para o form de contato
+      fetch('../../backend/auth/get_csrf.php')
+        .then(r => r.json())
+        .then(d => { if (d.csrf) document.getElementById('csrf-contato').value = d.csrf; });
+
+      // ── Submeter busca ──────────────────────────────────────────────────
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const serial = document.getElementById('serial').value.trim();
+
+        if (!serial) {
+          erroSerial.textContent = 'Informe o número de série.';
+          return;
+        }
+        erroSerial.textContent = '';
+
+        btnBuscar.disabled    = true;
+        btnBuscar.textContent = 'Verificando...';
+        resultado.hidden      = true;
+        contatoDiv.hidden     = true;
+
+        fetch('../../backend/produto/buscar.php?serial=' + encodeURIComponent(serial))
+          .then(r => r.json())
+          .then(function (d) {
+            resultado.hidden = false;
+
+            if (!d.success) {
+              resultado.innerHTML = '<p class="erro">' + (d.error || 'Erro ao consultar.') + '</p>';
+              return;
+            }
+
+            if (!d.encontrado) {
+              resultado.innerHTML =
+                '<span class="badge badge-cinza">NÃO ENCONTRADO</span>' +
+                '<p>Este número de série não está registrado no sistema.</p>';
+              return;
+            }
+
+            if (d.status === 'roubado' || d.status === 'perdido') {
+              resultado.innerHTML =
+                '<span class="badge badge-vermelho">ALERTA — PRODUTO REPORTADO</span>' +
+                '<p>Este produto foi marcado como ' + d.status + '. Não adquira.</p>';
+              document.getElementById('serial-contato').value = serial;
+              contatoDiv.hidden = false;
+              return;
+            }
+
+            resultado.innerHTML =
+              '<span class="badge badge-verde">REGISTRADO</span>' +
+              '<p>Este produto está registrado. Nenhum alerta ativo.</p>';
+          })
+          .catch(function () {
+            resultado.hidden = false;
+            resultado.innerHTML = '<p class="erro">Erro de conexão. Tente novamente.</p>';
+          })
+          .finally(function () {
+            btnBuscar.disabled    = false;
+            btnBuscar.textContent = 'Verificar';
+          });
+      });
+
+      // ── Submeter contato anônimo ─────────────────────────────────────────
+      formContato.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const mensagem    = document.getElementById('mensagem').value.trim();
+        const erroMsg     = document.getElementById('erro-mensagem');
+        const btnContato  = document.getElementById('btn-contato');
+
+        if (!mensagem) {
+          erroMsg.textContent = 'Escreva uma mensagem antes de enviar.';
+          return;
+        }
+        erroMsg.textContent   = '';
+        btnContato.disabled   = true;
+        btnContato.textContent = 'Enviando...';
+
+        try {
+          const body = new FormData(formContato);
+          const resp = await fetch('../../backend/produto/contato.php', {
+            method: 'POST', body
+          });
+          const data = await resp.json();
+
+          if (data.success) {
+            msgContato.textContent = 'Mensagem enviada. O proprietário será notificado.';
+            formContato.hidden = true;
+          } else {
+            msgContato.textContent = data.error || 'Erro ao enviar. Tente novamente.';
+            btnContato.disabled   = false;
+            btnContato.textContent = 'Enviar mensagem';
+          }
+        } catch (_) {
+          msgContato.textContent = 'Erro de conexão. Tente novamente.';
+          btnContato.disabled   = false;
+          btnContato.textContent = 'Enviar mensagem';
+        }
+      });
+    })();
+  </script>
+
+</body>
+</html>
+>>>>>>> origin/develop

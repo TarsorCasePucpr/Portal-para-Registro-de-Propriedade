@@ -503,5 +503,86 @@
   })();
   </script>
 
+  <!-- TODO: JS deve verificar sessão ao carregar; se não logado → redirecionar para login.html -->
+
+  <!-- ===== SIDEBAR / NAVEGAÇÃO LATERAL ===== -->
+  <nav id="sidebar">
+    <!-- TODO: Logo SNGuard -->
+    <!-- TODO: Links:
+         - Dashboard (ativo)
+         - Novo produto → cadastro-produto.html
+         - Consultar serial → busca.html
+         - Sair → backend/auth/logout.php (GET com token CSRF para prevenir logout CSRF)
+    -->
+  </nav>
+
+  <!-- ===== CONTEÚDO PRINCIPAL ===== -->
+  <main id="dashboard-main">
+
+    <!-- ===== BOAS-VINDAS ===== -->
+    <header id="dashboard-header">
+      <!-- TODO: "Olá, [nome do usuário]!" — carregado via PHP na sessão -->
+      <!-- TODO: Resumo: X produtos registrados | Y com alerta ativo -->
+    </header>
+
+    <!-- ===== NOTIFICAÇÕES ===== -->
+    <section id="notificacoes">
+      <!--
+        TODO: Mensagens recebidas via contato anônimo (alguém encontrou um produto seu).
+        Carregar via fetch → backend/produto/contato.php?acao=listar_pendentes
+        LGPD: Mensagens intermediadas anonimamente — remetente sem dados pessoais expostos.
+      -->
+    </section>
+
+    <!-- ===== LISTA DE PRODUTOS ===== -->
+    <section id="meus-produtos">
+      <h2>Meus produtos registrados</h2>
+
+      <!--
+        TODO: Grid/lista de cards de produtos.
+        Carregar via fetch → backend/produto/listar.php (retorna apenas produtos do usuário logado).
+
+        Cada card exibe:
+          - Nome + categoria
+          - Número de série (truncado por segurança visual)
+          - Status: badge "Protegido" (normal) | "Alerta" (roubado/perdido)
+          - Botão "Alterar status" → backend/produto/status.php (POST + CSRF)
+          - Botão "Excluir produto" → soft delete via backend/produto/cadastrar.php?acao=excluir
+
+        Segurança:
+          - listar.php filtra SEMPRE por $_SESSION['user_id'] — usuário vê apenas seus produtos
+          - Todas ações POST incluem CSRF token
+
+        LGPD — Art. 18, VI (Exclusão de dados):
+          "Excluir produto" → soft delete (objects.deleted_at = NOW()).
+          Exclusão permanente agendada por cron job após 30 dias.
+          Log de exclusão mantido por 30 dias para auditoria.
+      -->
+
+      <!-- TODO: Estado vazio: "Nenhum produto registrado ainda." + botão "Registrar primeiro produto" -->
+      <!-- TODO: Botão flutuante "+" → cadastro-produto.html -->
+    </section>
+
+    <!-- ===== AÇÕES RÁPIDAS ===== -->
+    <section id="acoes-rapidas">
+      <!-- TODO: Card "Consultar serial" → busca.html -->
+      <!-- TODO: Card "Registrar produto" → cadastro-produto.html -->
+      <!-- TODO: Card "Configurar 2FA" (visível se mfa_enabled = 0) → mfa.html -->
+    </section>
+
+    <!-- ===== EXCLUSÃO DE CONTA (LGPD Art. 18) ===== -->
+    <section id="exclusao-conta">
+      <h2>Privacidade e exclusão de dados</h2>
+      <p>Em conformidade com a LGPD (Art. 18, VI), você pode solicitar a exclusão dos seus dados pessoais.</p>
+      <a href="exclusao-conta.html" id="btn-exclusao-conta">Solicitar exclusão da minha conta</a>
+    </section>
+  </main>
+
+  <script src="../js/validacoes.js" defer></script>
+  <script src="../js/main.js" defer></script>
 </body>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> origin/develop
