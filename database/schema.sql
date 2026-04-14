@@ -103,6 +103,10 @@ CREATE TABLE IF NOT EXISTS objects (
     serial_number VARCHAR(100)        NOT NULL UNIQUE,
     status        ENUM('normal','roubado','perdido') NOT NULL DEFAULT 'normal',
 
+    -- Fotos (opcional)
+    foto_produto  VARCHAR(512)        NULL,
+    foto_serial   VARCHAR(512)        NULL,
+
     -- Dados opcionais da Nota Fiscal
     nfe_chave     VARCHAR(44)         NULL,    -- chave de acesso da NF-e (44 dígitos)
     nfe_validada  TINYINT(1)          NOT NULL DEFAULT 0,
@@ -128,12 +132,12 @@ CREATE TABLE IF NOT EXISTS objects (
 -- LGPD: remetente é anônimo por design — apenas IP é registrado para rate limiting.
 -- O IP é descartável e não associado a nenhum usuário.
 CREATE TABLE IF NOT EXISTS contact_messages (
-    id          INT UNSIGNED        AUTO_INCREMENT PRIMARY KEY,
-    object_id   INT UNSIGNED        NOT NULL,
-    mensagem    TEXT                NOT NULL,
-    ip_remetente VARCHAR(45)        NOT NULL,   -- somente para auditoria / rate limit
-    lida        TINYINT(1)          NOT NULL DEFAULT 0,
-    created_at  DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id           INT UNSIGNED        AUTO_INCREMENT PRIMARY KEY,
+    object_id    INT UNSIGNED        NOT NULL,
+    mensagem     TEXT                NOT NULL,
+    ip_remetente VARCHAR(45)         NOT NULL,   -- somente para auditoria / rate limit
+    lida         TINYINT(1)          NOT NULL DEFAULT 0,
+    created_at   DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (object_id) REFERENCES objects(id) ON DELETE CASCADE,
     INDEX idx_object  (object_id),

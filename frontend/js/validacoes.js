@@ -17,20 +17,22 @@ function mascaraCPF(valor) {
     .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
 }
 
+//  FORÇA DA SENHA (agora consistente com backend)
 function analisarForcaSenha(senha) {
   let pontos = 0;
 
-  if (senha.length >= 12)              pontos++;
-  if (/[a-z]/.test(senha))            pontos++;
-  if (/[A-Z]/.test(senha))            pontos++;
-  if (/[0-9]/.test(senha))            pontos++;
-  if (/[@$!%*?&]/.test(senha))        pontos++;
+  if (senha.length >= 12)                pontos++;
+  if (/[a-z]/.test(senha))              pontos++;
+  if (/[A-Z]/.test(senha))              pontos++;
+  if (/[0-9]/.test(senha))              pontos++;
+  if (/[^a-zA-Z0-9]/.test(senha))       pontos++; // corrigido (qualquer símbolo)
 
-  if (pontos <= 2) return { nivel: 'fraca',  texto: 'Fraca' };
-  if (pontos <= 3) return { nivel: 'média',  texto: 'Média' };
-  return              { nivel: 'forte', texto: 'Forte' };
+  if (pontos <= 2) return { nivel: 'fraca', texto: 'Fraca' };
+  if (pontos <= 3) return { nivel: 'media', texto: 'Média' };
+  return { nivel: 'forte', texto: 'Forte' };
 }
 
+//  VALIDAÇÃO FINAL (igual backend)
 function senhaValida(senha) {
   return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{12,}$/.test(senha);
 }
@@ -53,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!senha || !confirmar || !form) return;
 
+  // Token da URL
   const params = new URLSearchParams(window.location.search);
   const token = params.get("token");
 
@@ -64,26 +67,32 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputToken = document.getElementById("token");
   if (inputToken) inputToken.value = token;
 
+  // Atualiza força da senha em tempo real
   senha.addEventListener("input", () => {
     const resultado = analisarForcaSenha(senha.value);
+
     if (forca) {
       forca.textContent = "Força: " + resultado.texto;
+      forca.className = "forca-" + resultado.nivel; // opcional para CSS
     }
   });
 
+  // =========================
+  // VALIDAÇÃO NO SUBMIT
+  // =========================
   form.addEventListener("submit", (e) => {
 
     limparErro("erro-senha");
 
     if (!senhaValida(senha.value)) {
       e.preventDefault();
-      mostrarErro("erro-senha", "Senha não atende aos requisitos");
+      mostrarErro("erro-senha", "Senha deve ter no mínimo 12 caracteres, incluindo maiúscula, minúscula, número e símbolo.");
       return;
     }
 
     if (senha.value !== confirmar.value) {
       e.preventDefault();
-      mostrarErro("erro-senha", "As senhas não coincidem");
+      mostrarErro("erro-senha", "As senhas não coincidem.");
       return;
     }
   });

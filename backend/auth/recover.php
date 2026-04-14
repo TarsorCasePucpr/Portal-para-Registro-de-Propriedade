@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 require_once "../middleware/csrf.php";
 require_once "../middleware/rate_limiter.php";
 require_once "../config/db.php";
@@ -20,28 +21,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $acao = $_POST['acao'] ?? '';
 
-    if ($acao === 'solicitar_link') {
+    // ─── SOLICITAR LINK / REENVIAR ─────────────────────────────────────
+    if ($acao === 'solicitar_link' || $acao === 'reenviar') {
 
-        if (!validateCsrfToken($_POST['csrf'] ?? '')) {
-            header('Location: ../../frontend/pages/recuperacao-senha.html?erro=' . urlencode('Token de segurança inválido.'));
+        // CSRF apenas na primeira solicitação
+        if ($acao === 'solicitar_link' && !validateCsrfToken($_POST['csrf'] ?? '')) {
+            jsonResponse(['success' => false, 'message' => 'Token de segurança inválido.'], 403);
             exit;
         }
 
         if (!checkRateLimit($pdo, $ip, 'recover', 3, 15)) {
-            header('Location: ../../frontend/pages/recuperacao-senha.html?erro=' . urlencode('Muitas tentativas. Aguarde 15 minutos.'));
+            jsonResponse(['success' => false, 'message' => 'Muitas tentativas. Aguarde 15 minutos.'], 429);
             exit;
         }
 
         $email = trim($_POST['email'] ?? '');
 
+        // Anti-enumeration: sempre retorna sucesso
         if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            header('Location: ../../frontend/pages/recuperacao-senha.html?msg=ok');
+            jsonResponse(['success' => true]);
             exit;
         }
 
         $stmt = $pdo->prepare('SELECT id, name FROM users WHERE email = :email AND deleted_at IS NULL LIMIT 1');
         $stmt->execute(['email' => $email]);
-        $user = $stmt->fetch();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
             $token     = bin2hex(random_bytes(32));
@@ -51,7 +55,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 "INSERT INTO tokens (user_id, token_hash, type, expires_at)
                  VALUES (:user_id, :hash, 'recovery', DATE_ADD(NOW(), INTERVAL 1 HOUR))"
             );
-            $stmt->execute(['user_id' => $user['id'], 'hash' => $tokenHash]);
+            $stmt->execute([
+                'user_id' => $user['id'],
+                'hash'    => $tokenHash
+            ]);
 
             $link = $baseUrl . '/frontend/pages/redefinicao-senha.html?token=' . urlencode($token);
 
@@ -61,43 +68,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     nome:         $user['name'],
                     assunto:      'SNGuard — Redefinição de senha',
                     corpo:        "Olá, {$user['name']}!\n\n" .
-                                  "Recebemos uma solicitação para redefinir a senha da sua conta.\n\n" .
-                                  "Clique no link abaixo para criar uma nova senha (válido por 1 hora):\n\n" .
+                                  "Recebemos uma solicitação para redefinir sua senha.\n\n" .
+                                  "Clique no link abaixo (válido por 1 hora):\n\n" .
                                   "{$link}\n\n" .
-                                  "Se você não solicitou isso, ignore esta mensagem — sua senha permanece a mesma.\n\n" .
+                                  "Se não foi você, ignore este e-mail.\n\n" .
                                   "— Equipe SNGuard"
                 );
             } catch (Throwable $e) {
-                error_log('[recover] Falha ao enviar email para ' . $email . ': ' . $e->getMessage());
+                error_log('[recover] Erro ao enviar email: ' . $e->getMessage());
             }
         }
 
-        header('Location: ../../frontend/pages/recuperacao-senha.html?msg=ok');
+        jsonResponse(['success' => true]);
         exit;
     }
 
+    // ─── REDEFINIR SENHA ───────────────────────────────────────────────
     if ($acao === 'redefinir_senha') {
 
         if (!validateCsrfToken($_POST['csrf'] ?? '')) {
-            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('Token de segurança inválido.'));
+            jsonResponse(['success' => false, 'message' => 'Token de segurança inválido.'], 403);
             exit;
         }
 
         if (!checkRateLimit($pdo, $ip, 'reset_password', 5, 10)) {
-            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('Muitas tentativas. Tente novamente em 10 minutos.'));
+            jsonResponse(['success' => false, 'message' => 'Muitas tentativas.'], 429);
             exit;
         }
 
-        $token     = $_POST['token']     ?? '';
+        $token     = $_POST['token'] ?? '';
         $novaSenha = $_POST['nova_senha'] ?? '';
 
         if (!$token || !$novaSenha) {
-            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('Dados inválidos.'));
+            jsonResponse(['success' => false, 'message' => 'Dados inválidos.'], 400);
             exit;
         }
 
+        // Validação de senha forte (padronizada)
         if (!validarSenhaForte($novaSenha)) {
-            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('A senha não atende aos requisitos mínimos.'));
+            jsonResponse([
+                'success' => false,
+                'message' => 'A senha não atende aos requisitos mínimos.'
+            ], 400);
             exit;
         }
 
@@ -112,20 +124,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              LIMIT 1"
         );
         $stmt->execute(['hash' => $tokenHash]);
-        $tokenData = $stmt->fetch();
+        $tokenData = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$tokenData) {
-            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('Link inválido ou expirado.'));
+            jsonResponse(['success' => false, 'message' => 'Link inválido ou expirado.'], 400);
             exit;
         }
 
-        $stmt = $pdo->prepare('UPDATE users SET password_hash = :senha WHERE id = :id');
-        $stmt->execute(['senha' => hashPassword($novaSenha), 'id' => $tokenData['user_id']]);
+        // Atualiza senha
+        $stmt = $pdo->prepare(
+            'UPDATE users SET password_hash = :senha WHERE id = :id'
+        );
+        $stmt->execute([
+            'senha' => hashPassword($novaSenha),
+            'id'    => $tokenData['user_id']
+        ]);
 
-        $stmt = $pdo->prepare('UPDATE tokens SET used_at = NOW() WHERE id = :id');
+        // Invalida token
+        $stmt = $pdo->prepare(
+            'UPDATE tokens SET used_at = NOW() WHERE id = :id'
+        );
         $stmt->execute(['id' => $tokenData['id']]);
 
-        header('Location: ../../frontend/pages/login.html?reset=success');
+        jsonResponse(['success' => true]);
         exit;
     }
+
+    // ─── AÇÃO INVÁLIDA ───────────────────────────────────────────────
+    jsonResponse(['success' => false, 'message' => 'Ação inválida.'], 400);
+    exit;
 }

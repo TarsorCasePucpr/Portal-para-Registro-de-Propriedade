@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Strict');
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -13,96 +14,92 @@ header('X-Frame-Options: DENY');
 header('Cache-Control: no-store');
 
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../middleware/auth_guard.php';
+require_once __DIR__ . '/../utils/hash.php';
 require_once __DIR__ . '/../utils/response.php';
 
 requireAuth();
-$userId = (int) $_SESSION['user_id'];
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+$userId = (int) $_SESSION['user_id'];
+$pdo = getDb();
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    try {
+        $stmt = $pdo->prepare(
+            'SELECT name, email, cpf, mfa_enabled,
+                    DATE_FORMAT(created_at, "%d/%m/%Y") AS membro_desde
+             FROM users
+             WHERE id = :id AND deleted_at IS NULL'
+        );
+
+        $stmt->execute(['id' => $userId]);
+        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$usuario) {
+            jsonError('Usuário não encontrado.', 404);
+        }
+
+        $cpf = $usuario['cpf'];
+        $usuario['cpf_mascarado'] = substr($cpf, 0, 4) . '***.***-' . substr($cpf, -2);
+        unset($usuario['cpf']);
+
+        $usuario['mfa_enabled'] = (bool) $usuario['mfa_enabled'];
+
+        jsonSuccess(['usuario' => $usuario]);
+
+    } catch (PDOException $e) {
+        error_log('[meus_dados.php/get] ' . $e->getMessage());
+        jsonError('Erro interno.', 500);
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido.', 405);
 }
 
-$pdo = getDb();
-
-$pagina    = max(1, (int) ($_GET['pagina']    ?? 1));
-$porPagina = min(50, max(1, (int) ($_GET['por_pagina'] ?? 20)));
-$offset    = ($pagina - 1) * $porPagina;
-
-$statusFiltro  = trim($_GET['status'] ?? '');
-$busca         = trim($_GET['q']      ?? '');
-
-$statusValidos = ['normal', 'roubado', 'perdido'];
-
-$where  = 'user_id = :uid AND deleted_at IS NULL';
-$params = ['uid' => $userId];
-
-if ($statusFiltro !== '' && in_array($statusFiltro, $statusValidos, true)) {
-    $where           .= ' AND status = :status';
-    $params['status'] = $statusFiltro;
+if (!validateCsrfToken($_POST['csrf'] ?? '')) {
+    jsonError('Token inválido.', 403);
 }
 
-if ($busca !== '') {
-    $buscaSanitizada = '%' . str_replace(['%', '_', '\\'], ['\\%', '\\_', '\\\\'], $busca) . '%';
-    $where           .= ' AND (descricao LIKE :busca OR serial_number LIKE :busca2)';
-    $params['busca']  = $buscaSanitizada;
-    $params['busca2'] = $buscaSanitizada;
-}
+$acao = $_POST['acao'] ?? 'atualizar_nome';
 
-try {
-    $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM objects WHERE {$where}");
-    $stmtCount->execute($params);
-    $total = (int) $stmtCount->fetchColumn();
+if ($acao === 'atualizar_nome') {
 
-} catch (PDOException $e) {
-    error_log('[listar.php/count] ' . $e->getMessage());
-    jsonError('Erro interno.', 500);
-}
+    $novoNome = trim(htmlspecialchars($_POST['nome'] ?? '', ENT_QUOTES, 'UTF-8'));
 
-try {
-    $stmt = $pdo->prepare(
-        "SELECT id,
-                descricao,
-                serial_number,
-                status,
-                nfe_validada,
-                score,
-                DATE_FORMAT(data_compra, '%d/%m/%Y') AS data_compra,
-                DATE_FORMAT(created_at,  '%d/%m/%Y') AS registrado_em
-         FROM   objects
-         WHERE  {$where}
-         ORDER  BY
-                FIELD(status, 'roubado', 'perdido', 'normal'),
-                created_at DESC
-         LIMIT  :limit
-         OFFSET :offset"
-    );
-
-    foreach ($params as $k => $v) {
-        $stmt->bindValue(':' . $k, $v);
+    if ($novoNome === '' || mb_strlen($novoNome) < 3) {
+        jsonError('Nome inválido.');
     }
-    $stmt->bindValue(':limit',  $porPagina, PDO::PARAM_INT);
-    $stmt->bindValue(':offset', $offset,    PDO::PARAM_INT);
-    $stmt->execute();
 
-    $produtos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $pdo->prepare('UPDATE users SET name = :n WHERE id = :id')
+        ->execute(['n' => $novoNome, 'id' => $userId]);
 
-    foreach ($produtos as &$p) {
-        $p['id']           = (int)  $p['id'];
-        $p['nfe_validada'] = (bool) $p['nfe_validada'];
-        $p['score']        = (int)  $p['score'];
-    }
-    unset($p);
-
-} catch (PDOException $e) {
-    error_log('[listar.php/select] ' . $e->getMessage());
-    jsonError('Erro interno ao listar produtos.', 500);
+    jsonSuccess(['mensagem' => 'Nome atualizado.']);
 }
 
-jsonSuccess([
-    'produtos'   => $produtos,
-    'total'      => $total,
-    'pagina'     => $pagina,
-    'por_pagina' => $porPagina,
-    'paginas'    => (int) ceil($total / $porPagina),
-]);
+if ($acao === 'atualizar_senha') {
+
+    $senhaAtual = $_POST['senha_atual'] ?? '';
+    $novaSenha  = $_POST['nova_senha'] ?? '';
+    $confirmar  = $_POST['confirmar_senha'] ?? '';
+
+    if ($novaSenha !== $confirmar) {
+        jsonError('Senhas não coincidem.');
+    }
+
+    $stmt = $pdo->prepare('SELECT password_hash FROM users WHERE id = :id');
+    $stmt->execute(['id' => $userId]);
+    $row = $stmt->fetch();
+
+    if (!$row || !password_verify($senhaAtual, $row['password_hash'])) {
+        jsonError('Senha atual incorreta.');
+    }
+
+    $pdo->prepare('UPDATE users SET password_hash = :h WHERE id = :id')
+        ->execute(['h' => hashPassword($novaSenha), 'id' => $userId]);
+
+    jsonSuccess(['mensagem' => 'Senha atualizada.']);
+}
+
+jsonError('Ação inválida.');
