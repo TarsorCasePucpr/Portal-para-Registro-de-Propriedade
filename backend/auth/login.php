@@ -23,7 +23,7 @@ if (!validateCsrfToken($_POST['csrf'] ?? '')) {
 $pdo = getDb();
 $ip  = $_SERVER['REMOTE_ADDR'];
 
-if (!checkRateLimit($pdo, $ip, 'login', 5, 15)) {
+if (isRateLimited($pdo, $ip, 'login', 5, 15)) {
     redirect('../../frontend/pages/login.html?erro=' .
         urlencode('Muitas tentativas de login. Aguarde 15 minutos e tente novamente.'));
 }
@@ -50,6 +50,7 @@ try {
         : '$2y$13$invalidhashfortimingprotect0000000000000000000000000000000u';
 
     if (!$usuario || !verifyPassword($senha, $hashVerificacao)) {
+        recordFailedAttempt($pdo, $ip, 'login');
         redirect('../../frontend/pages/login.html?erro=' .
             urlencode('E-mail ou senha incorretos.'));
     }

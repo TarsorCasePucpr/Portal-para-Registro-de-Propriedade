@@ -6,43 +6,24 @@
   <title>SNGuard — Verificação em Dois Fatores</title>
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    .metodo-cards { display: flex; flex-direction: column; gap: 1rem; margin: 1.5rem 0; }
-    .card-metodo {
-      display: flex; flex-direction: column; align-items: flex-start;
-      padding: 1rem 1.25rem; border: 2px solid #d1d5db; border-radius: 8px;
-      background: #fff; cursor: pointer; text-align: left; width: 100%;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .card-metodo:hover, .card-metodo:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37,99,235,.15);
-      outline: none;
-    }
-    .card-metodo.recomendado { border-color: #2563eb; }
-    .card-metodo .badge {
-      font-size: .7rem; font-weight: 700; color: #2563eb;
-      text-transform: uppercase; letter-spacing: .05em; margin-bottom: .25rem;
-    }
-    .card-metodo strong { font-size: 1rem; color: #111827; }
-    .card-metodo span   { font-size: .875rem; color: #6b7280; margin-top: .2rem; }
-    .card-metodo:disabled { opacity: .6; cursor: not-allowed; }
     #codigo {
       font-size: 1.5rem; letter-spacing: .5rem; text-align: center;
       font-variant-numeric: tabular-nums;
     }
     .aviso-tentativas { font-size: .85rem; color: #b45309; margin-top: .4rem; }
-    #aviso-envio {
-      background: #ecfdf5; border: 1px solid #6ee7b7; border-radius: 6px;
-      padding: .6rem 1rem; color: #065f46; font-size: .875rem; margin-bottom: 1rem;
+    .instrucao-totp {
+      background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
+      padding: .75rem 1rem; color: #1e40af; font-size: .875rem; margin-bottom: 1rem;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <a href="index.html">
-      <img src="../img/logo.png" alt="SNGuard" onerror="this.style.display='none'">
-    </a>
+    <a href="login.html" class="logo-texto">SNGuard</a>
+    <nav>
+      <a href="login.html">← Cancelar</a>
+    </nav>
   </header>
 
   <main>
@@ -51,97 +32,57 @@
 
       <div id="msg-servidor" role="alert" aria-live="polite"></div>
 
-      <!-- ── PASSO 1: escolha do método ─────────────────────────────────── -->
-      <div id="step-metodo">
-        <p>Escolha como deseja confirmar sua identidade:</p>
-
-        <div class="metodo-cards">
-          <button type="button" id="btn-totp" class="card-metodo recomendado">
-            <span class="badge">Recomendado</span>
-            <strong>App Autenticador</strong>
-            <span>Use Google Authenticator, Authy ou similar</span>
-          </button>
-
-          <button type="button" id="btn-email" class="card-metodo">
-            <strong>Código por E-mail</strong>
-            <span>Enviaremos um código de 6 dígitos para seu e-mail</span>
-          </button>
-        </div>
+      <div class="instrucao-totp">
+        Abra seu <strong>app autenticador</strong> (Google Authenticator, Authy ou similar)
+        e digite o código de 6 dígitos gerado para <strong>SNGuard</strong>.
       </div>
 
-      <!-- ── PASSO 2: inserir código ────────────────────────────────────── -->
-      <div id="step-codigo" hidden>
-        <p id="instrucao-codigo"></p>
+      <form id="form-mfa" action="../../backend/auth/mfa.php" method="POST" novalidate>
+        <input type="hidden" id="csrf" name="csrf">
 
-        <div id="aviso-envio" hidden aria-live="polite">
-          Código enviado. Verifique seu e-mail (expira em 5 minutos).
-        </div>
-
-        <form id="form-mfa" action="../../backend/auth/mfa.php" method="POST" novalidate>
-          <input type="hidden" id="csrf" name="csrf">
-          <input type="hidden" id="metodo-hidden" name="method">
-
-          <div class="campo">
-            <label for="codigo">Código de verificação</label>
-            <input
-              type="text"
-              id="codigo"
-              name="code"
-              inputmode="numeric"
-              pattern="[0-9]{6}"
-              maxlength="6"
-              minlength="6"
-              autocomplete="one-time-code"
-              placeholder="000000"
-              required
-            >
-            <span id="msg-erro" class="erro" role="alert" aria-live="polite"></span>
-          </div>
-
-          <button type="submit" id="btn-verificar">Verificar</button>
-          <p class="aviso-tentativas">Máximo 3 tentativas por 10 minutos.</p>
-        </form>
-
-        <div class="links-aux">
-          <button
-            type="button"
-            id="btn-voltar-metodo"
-            style="background:none;border:none;cursor:pointer;padding:0;color:inherit;text-decoration:underline;"
+        <div class="campo">
+          <label for="codigo">Código de verificação</label>
+          <input
+            type="text"
+            id="codigo"
+            name="code"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            minlength="6"
+            autocomplete="one-time-code"
+            placeholder="000000"
+            required
           >
-            Usar outro método
-          </button>
+          <span id="msg-erro" class="erro" role="alert" aria-live="polite"></span>
         </div>
-      </div>
+
+        <button type="submit" id="btn-verificar">Verificar</button>
+        <p class="aviso-tentativas">Máximo 3 tentativas por 10 minutos.</p>
+      </form>
 
     </section>
   </main>
 
   <footer>
-    <a href="politica_privavidade.html">Política de Privacidade</a>
+    <a href="politica_privacidade.html">Política de Privacidade</a>
+    <span>|</span>
     <a href="termo_de_uso.html">Termos de Uso</a>
   </footer>
 
   <script defer>
     (function () {
-      const stepMetodo    = document.getElementById('step-metodo');
-      const stepCodigo    = document.getElementById('step-codigo');
-      const instrucao     = document.getElementById('instrucao-codigo');
-      const avisoEnvio    = document.getElementById('aviso-envio');
-      const metodoHidden  = document.getElementById('metodo-hidden');
-      const csrfInput     = document.getElementById('csrf');
-      const msgServidor   = document.getElementById('msg-servidor');
-      const msgErro       = document.getElementById('msg-erro');
-      const form          = document.getElementById('form-mfa');
-      const btnVerif      = document.getElementById('btn-verificar');
-      const btnEmail      = document.getElementById('btn-email');
+      const csrfInput  = document.getElementById('csrf');
+      const msgServidor = document.getElementById('msg-servidor');
+      const msgErro    = document.getElementById('msg-erro');
+      const form       = document.getElementById('form-mfa');
+      const btnVerif   = document.getElementById('btn-verificar');
 
-      // ── Erro vindo da URL (redirect do PHP) ───────────────────────────
       const params = new URLSearchParams(window.location.search);
       if (params.get('erro')) {
         msgServidor.textContent = decodeURIComponent(params.get('erro'));
       }
 
-      // ── Buscar token CSRF ──────────────────────────────────────────────
       fetch('../../backend/auth/get_csrf.php')
         .then(function (r) { return r.json(); })
         .then(function (d) { if (d.csrf) csrfInput.value = d.csrf; })
@@ -149,49 +90,6 @@
           msgServidor.textContent = 'Erro ao carregar o formulário. Recarregue a página.';
         });
 
-      // ── Selecionar: App Autenticador (TOTP) ────────────────────────────
-      document.getElementById('btn-totp').addEventListener('click', function () {
-        metodoHidden.value     = 'totp';
-        instrucao.textContent  = 'Abra seu app autenticador e digite o código de 6 dígitos gerado para SNGuard.';
-        avisoEnvio.hidden      = true;
-        mostrarPasso2();
-      });
-
-      // ── Selecionar: Código por E-mail ──────────────────────────────────
-      btnEmail.addEventListener('click', function () {
-        btnEmail.disabled = true;
-        btnEmail.textContent = 'Enviando...';
-        metodoHidden.value = 'email';
-
-        fetch('../../backend/auth/mfa.php?action=send_email')
-          .then(function (r) { return r.json(); })
-          .then(function (d) {
-            if (d.success) {
-              instrucao.textContent = 'Digite o código de 6 dígitos enviado para seu e-mail.';
-              avisoEnvio.hidden     = false;
-              mostrarPasso2();
-            } else {
-              msgServidor.textContent = d.error || 'Erro ao enviar o código. Tente novamente.';
-              resetBtnEmail();
-            }
-          })
-          .catch(function () {
-            msgServidor.textContent = 'Erro de conexão. Tente novamente.';
-            resetBtnEmail();
-          });
-      });
-
-      // ── Voltar ao passo 1 ──────────────────────────────────────────────
-      document.getElementById('btn-voltar-metodo').addEventListener('click', function () {
-        stepCodigo.hidden = true;
-        stepMetodo.hidden = false;
-        document.getElementById('codigo').value = '';
-        msgErro.textContent     = '';
-        msgServidor.textContent = '';
-        resetBtnEmail();
-      });
-
-      // ── Validação client-side ──────────────────────────────────────────
       form.addEventListener('submit', function (e) {
         const codigo = document.getElementById('codigo').value.trim();
         if (!/^\d{6}$/.test(codigo)) {
@@ -199,23 +97,9 @@
           msgErro.textContent = 'O código deve ter exatamente 6 dígitos numéricos.';
           return;
         }
-        btnVerif.disabled     = true;
-        btnVerif.textContent  = 'Verificando...';
+        btnVerif.disabled    = true;
+        btnVerif.textContent = 'Verificando...';
       });
-
-      // ── Helpers ────────────────────────────────────────────────────────
-      function mostrarPasso2() {
-        stepMetodo.hidden = true;
-        stepCodigo.hidden = false;
-        document.getElementById('codigo').focus();
-      }
-
-      function resetBtnEmail() {
-        btnEmail.disabled = false;
-        btnEmail.innerHTML =
-          '<strong>Código por E-mail</strong>' +
-          '<span>Enviaremos um código de 6 dígitos para seu e-mail</span>';
-      }
     })();
   </script>
 

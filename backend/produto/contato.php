@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * contato.php — Mensagens anônimas ao proprietário de objeto reportado
+ * contato.php — Mensagens anônimas ao proprietário de objeto
  */
 
 ini_set('session.cookie_httponly', '1');
@@ -44,7 +44,7 @@ if ($metodo === 'GET' && ($_GET['acao'] ?? '') === 'listar_pendentes') {
                     o.serial_number AS serial,
                     cm.mensagem,
                     cm.lida,
-                    DATE_FORMAT(cm.created_at, \'%d/%m/%Y %H:%i\') AS recebida_em
+                    DATE_FORMAT(cm.created_at, "%d/%m/%Y %H:%i") AS recebida_em
              FROM contact_messages cm
              JOIN objects o ON o.id = cm.object_id
              WHERE o.user_id = :uid
@@ -57,6 +57,7 @@ if ($metodo === 'GET' && ($_GET['acao'] ?? '') === 'listar_pendentes') {
         $stmt->execute(['uid' => $userId]);
         $mensagens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Marcar como lidas
         if (!empty($mensagens)) {
             $ids = implode(',', array_map('intval', array_column($mensagens, 'id')));
             $pdo->exec("UPDATE contact_messages SET lida = 1 WHERE id IN ({$ids})");
@@ -95,18 +96,18 @@ if ($serial === '' || mb_strlen($serial) > 100) {
 }
 
 if ($mensagem === '' || mb_strlen($mensagem) < 10) {
-    jsonError('Mensagem muito curta.');
+    jsonError('Mensagem muito curta. Descreva melhor a situação.');
 }
 
 if (mb_strlen($mensagem) > 500) {
-    jsonError('Mensagem muito longa (máx. 500 caracteres).');
+    jsonError('Mensagem muito longa (máximo 500 caracteres).');
 }
 
-// ── Rate limit ───────────────────────────────────────────────────
+// ── Rate limit (por serial + IP) ─────────────────────────────────
 $acaoRL = 'contato_' . hash('crc32', $serial);
 
 if (!checkRateLimit($pdo, $ip, $acaoRL, 3, 10)) {
-    jsonError('Muitas mensagens. Aguarde alguns minutos.', 429);
+    jsonError('Muitas mensagens para este produto. Aguarde alguns minutos.', 429);
 }
 
 // ── Buscar objeto ────────────────────────────────────────────────
@@ -138,8 +139,9 @@ if (!$objeto) {
     jsonError('Número de série não encontrado.');
 }
 
+// Só permite contato se estiver roubado/perdido
 if (!in_array($objeto['status'], ['roubado', 'perdido'], true)) {
-    jsonError('Produto sem alerta ativo.');
+    jsonError('Este produto não possui alerta ativo.');
 }
 
 // ── Salvar mensagem ──────────────────────────────────────────────
@@ -159,25 +161,34 @@ try {
 }
 
 // ── Enviar e-mail ────────────────────────────────────────────────
+$statusFormatado = ucfirst($objeto['status']);
+
+$baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+         . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+
 $corpo = "Olá, {$objeto['dono_nome']}!\n\n"
        . "Alguém encontrou um objeto seu e enviou uma mensagem:\n\n"
        . "Produto: {$objeto['descricao']}\n"
-       . "Status: " . ucfirst($objeto['status']) . "\n\n"
-       . "--- MENSAGEM ---\n"
+       . "Status:  {$statusFormatado}\n\n"
+       . "--- MENSAGEM (anônima) ---\n"
        . strip_tags($mensagem) . "\n"
-       . "----------------\n\n"
-       . "Acesse o painel para ver mais detalhes.\n\n"
-       . "— SNGuard";
+       . "--------------------------\n\n"
+       . "Acesse seu painel:\n{$baseUrl}/frontend/pages/dashboard.html\n\n"
+       . "— Equipe SNGuard\n\n"
+       . "Nenhum dado do remetente foi compartilhado.";
 
 try {
     enviarEmail(
         destinatario: $objeto['dono_email'],
-        nome: $objeto['dono_nome'],
-        assunto: 'SNGuard — Nova mensagem sobre seu produto',
-        corpo: $corpo
+        nome:         $objeto['dono_nome'],
+        assunto:      "SNGuard — Nova mensagem sobre seu produto",
+        corpo:        $corpo
     );
 } catch (Throwable $e) {
     error_log('[contato/email] ' . $e->getMessage());
 }
 
-jsonSuccess(['mensagem' => 'Mensagem enviada com sucesso.']);
+// ── Resposta ─────────────────────────────────────────────────────
+jsonSuccess([
+    'mensagem' => 'Mensagem enviada com sucesso. O proprietário foi notificado.'
+]);

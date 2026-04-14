@@ -8,192 +8,216 @@
 </head>
 <body>
 
-  <header>
-    <a href="index.html" class="logo-text">SN<span style="color:#fff">Guard</span></a>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="login.html">Login</a>
-      <a href="cadastro-usuario.html">Cadastrar-se</a>
-    </nav>
-  </header>
+<header>
+  <a href="index.html" class="logo-texto">SNGuard</a>
+  <nav>
+    <a href="busca.html">Busca Pública</a> |
+    <a href="login.html">Login</a> |
+    <a href="cadastro-usuario.html">Cadastrar-se</a>
+  </nav>
+</header>
 
-  <main>
-    <section id="recuperacao-section">
+<main>
+<section id="recuperacao-section">
 
-      <div class="steps" id="steps-indicator" aria-label="Etapas">
-        <div class="step-dot active" id="dot-1"></div>
-        <div class="step-dot" id="dot-2"></div>
+  <!-- Steps -->
+  <div class="steps" id="steps-indicator">
+    <div class="step-dot active" id="dot-1"></div>
+    <div class="step-dot" id="dot-2"></div>
+    <div class="step-dot" id="dot-3"></div>
+  </div>
+
+  <!-- PASSO 1 -->
+  <div id="passo-1">
+    <h1>Recuperar senha</h1>
+    <p>Informe seu e-mail para receber o link de recuperação.</p>
+
+    <form id="form-recuperacao">
+      <input type="hidden" id="csrf-recuperacao" name="csrf">
+
+      <div class="campo">
+        <label>E-mail</label>
+        <input type="email" id="email" required maxlength="255">
+        <span id="erro-email" class="erro"></span>
       </div>
 
-      <div id="passo-1">
-        <h1>Recuperar senha</h1>
-        <p>Informe o e-mail cadastrado. Você receberá um link para redefinir sua senha.</p>
+      <button type="submit" id="btn-enviar">Enviar link</button>
+    </form>
+  </div>
 
-        <form id="form-recuperacao" novalidate>
-          <input type="hidden" name="acao" value="solicitar_link">
-          <input type="hidden" id="csrf-recuperacao" name="csrf">
+  <!-- PASSO 2 (MFA OPCIONAL) -->
+  <div id="passo-2" hidden>
+    <h1>Verificação MFA</h1>
+    <p>Digite o código de 6 dígitos.</p>
 
-          <div class="campo">
-            <label for="email">E-mail cadastrado</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              required
-              maxlength="255"
-              autocomplete="email"
-              placeholder="seu@email.com"
-            >
-            <span id="erro-email" class="erro" role="alert"></span>
-          </div>
+    <form id="form-mfa">
+      <input type="hidden" id="csrf-mfa">
+      <input type="hidden" id="email-mfa">
 
-          <button type="submit" id="btn-enviar">Enviar link de recuperação</button>
-
-          <div style="text-align:center; margin-top:1rem;">
-            <a href="login.html" style="font-size:.875rem; color:var(--text-muted);">← Voltar ao login</a>
-          </div>
-        </form>
+      <div class="mfa-digits">
+        <input maxlength="1"><input maxlength="1"><input maxlength="1">
+        <input maxlength="1"><input maxlength="1"><input maxlength="1">
       </div>
 
-      <div id="passo-2" hidden>
-        <div class="card" style="text-align:center; padding:2rem;">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" style="margin: 0 auto .875rem;">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25H4.5a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5H4.5a2.25 2.25 0 00-2.25 2.25m19.5 0l-9.75 6.75L2.25 6.75"/>
-          </svg>
-          <h1 style="font-size:1.375rem; margin-bottom:.5rem;">Link enviado!</h1>
-          <p id="msg-email-enviado" style="margin-bottom:1.5rem;">
-            Se o e-mail existir em nosso sistema, um link de recuperação foi enviado.
-            Verifique também a pasta de spam.
-          </p>
-          <p style="font-size:.8125rem; color:var(--text-dim);">O link expira em <strong style="color:var(--text-muted);">1 hora</strong>.</p>
+      <span id="erro-mfa" class="erro"></span>
 
-          <div style="margin-top:1.5rem; display:flex; flex-direction:column; gap:.625rem;">
-            <button type="button" class="btn-secondary" id="btn-reenviar">
-              Reenviar e-mail
-            </button>
-            <a href="login.html" style="font-size:.875rem; color:var(--text-muted); text-align:center; display:block; margin-top:.25rem;">← Voltar ao login</a>
-          </div>
+      <button type="submit" id="btn-mfa">Confirmar</button>
+      <button type="button" id="btn-voltar-mfa">Voltar</button>
+    </form>
+  </div>
 
-          <div id="msg-reenvio" role="alert" style="margin-top:.75rem; font-size:.8125rem;"></div>
-        </div>
-      </div>
-    </section>
-  </main>
+  <!-- PASSO 3 -->
+  <div id="passo-3" hidden>
+    <div class="card">
+      <h1>Link enviado!</h1>
+      <p id="msg-email-enviado"></p>
 
-  <footer>
-    <a href="politica_privavidade.html">Política de Privacidade</a>
-    <a href="termo_de_uso.html">Termos de Uso</a>
-  </footer>
+      <button id="btn-reenviar">Reenviar e-mail</button>
+      <div id="msg-reenvio"></div>
+    </div>
+  </div>
 
-  <script src="../js/validacoes.js" defer></script>
-  <script defer>
-  (function () {
-    const passo1 = document.getElementById('passo-1');
-    const passo2 = document.getElementById('passo-2');
-    const dots   = [
-      document.getElementById('dot-1'),
-      document.getElementById('dot-2'),
-    ];
+</section>
+</main>
 
-    let emailGlobal = '';
+<footer>
+  <a href="politica_privacidade.html">Política de Privacidade</a> |
+  <a href="termo_de_uso.html">Termos de Uso</a>
+</footer>
 
-    function irParaPasso(n) {
-      [passo1, passo2].forEach((el, i) => {
-        el.hidden = i !== n - 1;
-      });
-      dots.forEach((d, i) => {
-        d.classList.toggle('done',   i < n - 1);
-        d.classList.toggle('active', i === n - 1);
-      });
+<script>
+(function () {
+
+  const passo1 = document.getElementById('passo-1');
+  const passo2 = document.getElementById('passo-2');
+  const passo3 = document.getElementById('passo-3');
+
+  const dots = [
+    document.getElementById('dot-1'),
+    document.getElementById('dot-2'),
+    document.getElementById('dot-3'),
+  ];
+
+  let emailGlobal = '';
+
+  function irParaPasso(n) {
+    [passo1, passo2, passo3].forEach((el, i) => el.hidden = i !== n - 1);
+    dots.forEach((d, i) => {
+      d.classList.toggle('active', i === n - 1);
+      d.classList.toggle('done', i < n - 1);
+    });
+  }
+
+  // CSRF
+  fetch('../../backend/auth/get_csrf.php')
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('csrf-recuperacao').value = d.csrf;
+      document.getElementById('csrf-mfa').value = d.csrf;
+    });
+
+  // RECUPERAÇÃO
+  document.getElementById('form-recuperacao').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById('email').value.trim();
+    const erro  = document.getElementById('erro-email');
+    const btn   = document.getElementById('btn-enviar');
+
+    erro.textContent = '';
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      erro.textContent = 'E-mail inválido';
+      return;
     }
 
-    function setLoading(btn, txt) {
-      btn.disabled = true;
-      btn.textContent = txt;
-    }
-    function resetBtn(btn, txt) {
+    emailGlobal = email;
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try {
+      const fd = new FormData(e.target);
+      const res = await fetch('../../backend/auth/recover.php', { method: 'POST', body: fd });
+      const data = await res.json();
+
+      if (data.mfa_required) {
+        document.getElementById('email-mfa').value = email;
+        irParaPasso(2);
+      } else {
+        mostrar(email);
+      }
+
+    } catch {
+      mostrar(email);
+    } finally {
       btn.disabled = false;
-      btn.textContent = txt;
+      btn.textContent = 'Enviar link';
+    }
+  });
+
+  // MFA
+  const inputs = [...document.querySelectorAll('.mfa-digits input')];
+
+  inputs.forEach((i, idx) => {
+    i.addEventListener('input', () => {
+      i.value = i.value.replace(/\D/g, '');
+      if (i.value && inputs[idx + 1]) inputs[idx + 1].focus();
+    });
+  });
+
+  document.getElementById('form-mfa').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const codigo = inputs.map(i => i.value).join('');
+    const erro = document.getElementById('erro-mfa');
+
+    if (codigo.length !== 6) {
+      erro.textContent = 'Código inválido';
+      return;
     }
 
-    // CSRF
-    fetch('../../backend/auth/get_csrf.php')
-      .then(r => r.json())
-      .then(d => {
-        if (d.csrf) {
-          document.getElementById('csrf-recuperacao').value = d.csrf;
-        }
-      });
+    const fd = new FormData();
+    fd.append('acao', 'verificar_mfa_recuperacao');
+    fd.append('email', emailGlobal);
+    fd.append('codigo', codigo);
 
-    // Envio do formulário
-    document.getElementById('form-recuperacao').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const email    = document.getElementById('email').value.trim();
-      const erroEl   = document.getElementById('erro-email');
-      const btn      = document.getElementById('btn-enviar');
+    const res = await fetch('../../backend/auth/recover.php', { method: 'POST', body: fd });
+    const data = await res.json();
 
-      erroEl.textContent = '';
-
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        erroEl.textContent = 'Digite um e-mail válido.';
-        return;
-      }
-
-      emailGlobal = email;
-      setLoading(btn, 'Enviando...');
-
-      try {
-        const fd = new FormData(this);
-        await fetch('../../backend/auth/recover.php', {
-          method: 'POST',
-          body: fd
-        });
-        mostrarConfirmacao(email);
-      } catch (e) {
-        mostrarConfirmacao(email);
-      } finally {
-        resetBtn(btn, 'Enviar link de recuperação');
-      }
-    });
-
-    function mostrarConfirmacao(email) {
-      const mascarado = email.replace(/(.{1}).+(@.+)/, '$1***$2');
-      document.getElementById('msg-email-enviado').innerHTML =
-        'Se o endereço <strong>' + mascarado + '</strong> estiver cadastrado, ' +
-        'um link de recuperação foi enviado. Verifique também a pasta de spam.';
-      irParaPasso(2);
+    if (data.success) {
+      mostrar(emailGlobal);
+    } else {
+      erro.textContent = 'Código incorreto';
     }
+  });
 
-    let reenvioCount = 0;
-    document.getElementById('btn-reenviar').addEventListener('click', async function () {
-      const msgEl = document.getElementById('msg-reenvio');
-      const btn   = this;
+  document.getElementById('btn-voltar-mfa').onclick = () => irParaPasso(1);
 
-      if (reenvioCount >= 3) {
-        msgEl.style.color = 'var(--danger)';
-        msgEl.textContent = 'Limite de reenvios atingido. Aguarde alguns minutos.';
-        return;
-      }
+  function mostrar(email) {
+    document.getElementById('msg-email-enviado').innerHTML =
+      `Se o e-mail <strong>${email}</strong> existir, o link foi enviado.`;
 
-      setLoading(btn, 'Reenviando...');
-      reenvioCount++;
+    irParaPasso(3);
+  }
 
-      try {
-        const fd = new FormData();
-        fd.append('acao', 'reenviar');
-        fd.append('email', emailGlobal);
-        await fetch('../../backend/auth/recover.php', { method: 'POST', body: fd });
-        msgEl.style.color = 'var(--primary)';
-        msgEl.textContent = 'E-mail reenviado! Verifique sua caixa de entrada.';
-      } catch (_) {
-        msgEl.style.color = 'var(--text-muted)';
-        msgEl.textContent = 'Não foi possível reenviar. Tente novamente.';
-      } finally {
-        resetBtn(btn, 'Reenviar e-mail');
-      }
-    });
-  })();
-  </script>
+  // REENVIO
+  let count = 0;
+
+  document.getElementById('btn-reenviar').onclick = async function () {
+    if (count++ >= 3) return alert('Limite atingido');
+
+    const fd = new FormData();
+    fd.append('acao', 'reenviar');
+    fd.append('email', emailGlobal);
+
+    await fetch('../../backend/auth/recover.php', { method: 'POST', body: fd });
+
+    document.getElementById('msg-reenvio').textContent =
+      'E-mail reenviado com sucesso!';
+  };
+
+})();
+</script>
+
 </body>
 </html>

@@ -2,18 +2,12 @@
 declare(strict_types=1);
 
 /**
- * cadastrar.php — Registro e exclusão de produtos
- *
- * POST /backend/produto/cadastrar.php
- *
- * Ações (campo 'acao'):
- *   (omitido)  → cadastrar novo produto
- *   'excluir'  → soft delete de produto próprio
- *   'consultar_nf' → consulta chave NF-e na Receita (retorna JSON)
+ * cadastrar.php — Registro, exclusão e consulta de produtos
  */
 
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Strict');
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -29,10 +23,9 @@ require_once __DIR__ . '/../middleware/auth_guard.php';
 require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/response.php';
 
-// ── Autenticação ─────────────────────────────────────────────────
 requireAuth();
-$userId = (int) $_SESSION['user_id'];
 
+$userId = (int) $_SESSION['user_id'];
 $pdo = getDb();
 $ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
@@ -60,7 +53,7 @@ if ($acao === 'consultar_nf') {
     $chave = preg_replace('/\D/', '', $_POST['chave'] ?? '');
 
     if (strlen($chave) !== 44) {
-        jsonError('Chave da NF-e inválida (deve ter 44 dígitos numéricos).');
+        jsonError('Chave da NF-e inválida (44 dígitos).');
     }
 
     $resultado = consultarNFe($chave);
@@ -75,8 +68,8 @@ if ($acao === 'consultar_nf') {
     jsonSuccess([
         'encontrado' => true,
         'produto'    => [
-            'descricao'    => $resultado['descricao']    ?? '',
-            'serial'       => $resultado['serial']       ?? '',
+            'descricao'    => $resultado['descricao'] ?? '',
+            'serial'       => $resultado['serial'] ?? '',
             'data_emissao' => $resultado['data_emissao'] ?? '',
         ],
     ]);
@@ -99,13 +92,19 @@ if ($acao === 'excluir') {
              SET deleted_at = NOW()
              WHERE id = :id AND user_id = :uid AND deleted_at IS NULL'
         );
-        $stmt->execute(['id' => $id, 'uid' => $userId]);
+
+        $stmt->execute([
+            'id'  => $id,
+            'uid' => $userId
+        ]);
 
         if ($stmt->rowCount() === 0) {
             jsonError('Produto não encontrado ou sem permissão.', 403);
         }
 
-        jsonSuccess(['mensagem' => 'Produto removido.']);
+        jsonSuccess([
+            'mensagem' => 'Produto removido. Exclusão permanente em até 30 dias.'
+        ]);
 
     } catch (PDOException $e) {
         error_log('[cadastrar.php/excluir] ' . $e->getMessage());
@@ -118,7 +117,7 @@ if ($acao === 'excluir') {
 // ════════════════════════════════════════════════════════════════
 
 if (!checkRateLimit($pdo, $ip, 'cadastro_produto', 10, 60)) {
-    jsonError('Limite de cadastros atingido.', 429);
+    jsonError('Limite de cadastros atingido. Tente novamente em 1 hora.', 429);
 }
 
 $descricao  = trim(htmlspecialchars($_POST['descricao'] ?? '', ENT_QUOTES, 'UTF-8'));
@@ -127,46 +126,82 @@ $nfeChave   = preg_replace('/\D/', '', $_POST['nfe_chave'] ?? '');
 $dataCompra = trim($_POST['data_compra'] ?? '');
 $aceite     = ($_POST['aceite_termos'] ?? '0') === '1';
 
+// Sanitização extra
+$serial = preg_replace('/[\x00-\x1F\x7F]/u', '', $serial);
+
 $erros = [];
 
+// Validações
 if ($descricao === '' || mb_strlen($descricao) < 5 || mb_strlen($descricao) > 500) {
-    $erros[] = 'Descrição inválida.';
+    $erros[] = 'Descrição inválida (5–500 caracteres).';
 }
 
 if ($serial === '' || mb_strlen($serial) < 3 || mb_strlen($serial) > 100) {
-    $erros[] = 'Número de série inválido.';
+    $erros[] = 'Número de série inválido (3–100 caracteres).';
+}
+
+if ($dataCompra !== '') {
+    $dt = DateTimeImmutable::createFromFormat('Y-m-d', $dataCompra);
+    if (!$dt || $dt > new DateTimeImmutable('today')) {
+        $erros[] = 'Data de compra inválida.';
+        $dataCompra = null;
+    }
+} else {
+    $dataCompra = null;
+}
+
+if ($nfeChave !== '' && strlen($nfeChave) !== 44) {
+    $nfeChave = '';
 }
 
 if (!$aceite) {
-    $erros[] = 'Aceite obrigatório.';
+    $erros[] = 'Aceite a declaração para continuar.';
 }
 
 if (!empty($erros)) {
     jsonError(implode(' ', $erros));
 }
 
+// Score de confiabilidade
+$score = 0;
+if ($nfeChave !== '')            $score += 40;
+if ($dataCompra !== null)        $score += 30;
+if (mb_strlen($descricao) > 30)  $score += 30;
+
 try {
     $stmt = $pdo->prepare(
-        'INSERT INTO objects (user_id, descricao, serial_number, status)
-         VALUES (:uid, :desc, :serial, \'normal\')'
+        "INSERT INTO objects
+           (user_id, descricao, serial_number, status,
+            nfe_chave, nfe_validada, data_compra, score)
+         VALUES
+           (:uid, :desc, :serial, 'normal',
+            :nfe, :nfe_val, :data, :score)"
     );
+
     $stmt->execute([
-        'uid'    => $userId,
-        'desc'   => $descricao,
-        'serial' => $serial,
+        'uid'     => $userId,
+        'desc'    => $descricao,
+        'serial'  => $serial,
+        'nfe'     => $nfeChave !== '' ? $nfeChave : null,
+        'nfe_val' => $nfeChave !== '' ? 1 : 0,
+        'data'    => $dataCompra,
+        'score'   => $score,
     ]);
 
-    jsonSuccess(['mensagem' => 'Produto registrado com sucesso.']);
+    jsonSuccess([
+        'mensagem' => 'Produto registrado com sucesso.',
+        'score'    => $score,
+    ]);
 
 } catch (PDOException $e) {
     if ($e->getCode() === '23000') {
-        jsonError('Serial já registrado.');
+        jsonError('Este número de série já está registrado.');
     }
-    error_log('[cadastrar.php] ' . $e->getMessage());
-    jsonError('Erro interno.', 500);
+    error_log('[cadastrar.php] DB error: ' . $e->getMessage());
+    jsonError('Erro interno ao registrar.', 500);
 }
 
-// Stub
+// ── Stub NF-e (futuro integração real) ───────────────────────────
 function consultarNFe(string $chave): ?array
 {
     return null;

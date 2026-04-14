@@ -1,84 +1,184 @@
+<?php
+session_start();
+
+$_logado = !empty($_SESSION['user_id']);
+
+if ($_logado && empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+
+$_csrf_busca = $_logado ? $_SESSION['csrf'] : '';
+
+session_write_close();
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SNGuard — Consulta por Número de Série</title>
+  <title>SNGuard — Verificar Número de Série</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
-  <header>
-    <a href="index.html" class="logo-text">SN<span style="color:#fff">Guard</span></a>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="login.html">Login</a>
+<header>
+  <!-- Melhor versão: dinâmica + consistente -->
+  <a href="<?= $_logado ? 'dashboard.html' : 'index.html' ?>" class="logo-text">
+    SN<span style="color:#fff">Guard</span>
+  </a>
+
+  <nav>
+    <?php if ($_logado): ?>
+      <a href="cadastro-produto.html">Novo Produto</a> |
+      <a href="busca.html">Busca Pública</a> |
+      <a href="meus-dados.html">Meu Perfil</a> |
+      <a href="../../backend/auth/logout.php?csrf=<?= urlencode($_csrf_busca) ?>">Sair</a>
+    <?php else: ?>
+      <a href="busca.html">Busca Pública</a> |
+      <a href="login.html">Login</a> |
       <a href="cadastro-usuario.html">Cadastrar-se</a>
-    </nav>
-  </header>
+    <?php endif; ?>
+  </nav>
+</header>
 
-  <main>
-    <section id="busca-section">
+<main>
+<section id="busca-section">
 
-      <h1>Verificar número de série</h1>
-      <p>Consulte se um produto está registrado ou foi reportado como roubado/perdido.</p>
+  <h1>Verificar número de série</h1>
+  <p>Consulte se um produto está registrado ou foi reportado como roubado / perdido.</p>
 
-      <form id="form-busca" novalidate>
-        <div class="campo">
-          <label for="serial">Número de série do produto</label>
-          <input
-            type="text"
-            id="serial"
-            name="serial"
-            required
-            maxlength="100"
-            autocomplete="off"
-            placeholder="Ex: SN1234567890"
-            spellcheck="false"
-          >
-          <small>Encontrado na embalagem, etiqueta traseira ou nota fiscal.</small>
-          <span id="erro-serial" class="erro" role="alert"></span>
-        </div>
+  <form id="form-busca" novalidate>
 
-        <button type="submit" id="btn-buscar">Verificar</button>
-      </form>
+    <div class="campo">
+      <label for="serial">Número de série do produto</label>
+      <input
+        type="text"
+        id="serial"
+        name="serial"
+        required
+        maxlength="100"
+        autocomplete="off"
+        placeholder="Ex: SN1234567890"
+        spellcheck="false"
+      >
+      <small>Encontrado na embalagem, etiqueta traseira ou nas configurações do dispositivo.</small>
+      <span id="erro-serial" class="erro" role="alert"></span>
+    </div>
 
-      <div id="resultado-busca" aria-live="polite" hidden></div>
+    <button type="submit" id="btn-buscar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z"/>
+      </svg>
+      Verificar
+    </button>
 
-      <div id="contato-anonimo" hidden>
-        <h2>Enviar mensagem ao proprietário</h2>
-        <p>Sua mensagem será enviada de forma anônima.</p>
+  </form>
 
-        <form id="form-contato" novalidate>
-          <input type="hidden" id="csrf-contato" name="csrf">
-          <input type="hidden" id="serial-contato" name="serial">
+  <div id="resultado-busca" aria-live="polite" hidden></div>
 
-          <div class="campo">
-            <label for="mensagem">Sua mensagem</label>
-            <textarea
-              id="mensagem"
-              name="mensagem"
-              maxlength="500"
-              required
-              placeholder="Descreva onde/como encontrou o objeto..."
-            ></textarea>
-            <span id="erro-mensagem" class="erro"></span>
-          </div>
+  <div id="contato-anonimo" hidden>
 
-          <button type="submit" id="btn-contato">Enviar mensagem</button>
-        </form>
+    <p id="status-produto-label" style="margin-bottom:.75rem; font-size:.875rem;">
+      Status do produto: <span id="badge-status-contato"></span>
+    </p>
 
-        <div id="msg-contato"></div>
+    <h2>Enviar mensagem ao proprietário</h2>
+
+    <p>
+      Encontrou este produto? Sua mensagem será entregue de forma
+      <strong>completamente anônima</strong>.
+    </p>
+
+    <form id="form-contato" novalidate>
+      <input type="hidden" id="csrf-contato" name="csrf">
+      <input type="hidden" id="serial-contato" name="serial">
+
+      <div class="campo">
+        <label for="mensagem">Sua mensagem</label>
+        <textarea
+          id="mensagem"
+          name="mensagem"
+          maxlength="500"
+          required
+          rows="4"
+        ></textarea>
+        <small id="contador-msg">0 / 500</small>
+        <span id="erro-mensagem" class="erro" role="alert"></span>
       </div>
 
-    </section>
-  </main>
+      <button type="submit" id="btn-contato">Enviar mensagem</button>
+    </form>
 
-  <footer>
-    <a href="politica_privavidade.html">Política de Privacidade</a>
-    <a href="termo_de_uso.html">Termos de Uso</a>
-  </footer>
+    <div id="msg-contato" role="alert"></div>
+  </div>
 
-  <script src="../js/validacoes.js" defer></script>
+  <?php if (!$_logado): ?>
+  <div style="margin-top:2rem; text-align:center;">
+    <p>Quer proteger seus produtos?</p>
+    <a href="cadastro-usuario.html">Criar conta</a> |
+    <a href="login.html">Login</a>
+  </div>
+  <?php endif; ?>
+
+</section>
+</main>
+
+<script>
+(function () {
+
+  const form = document.getElementById('form-busca');
+  const resultado = document.getElementById('resultado-busca');
+  const contatoDiv = document.getElementById('contato-anonimo');
+  const txtMsg = document.getElementById('mensagem');
+  const contador = document.getElementById('contador-msg');
+
+  fetch('../../backend/auth/get_csrf.php')
+    .then(r => r.json())
+    .then(d => {
+      if (d.csrf) document.getElementById('csrf-contato').value = d.csrf;
+    });
+
+  txtMsg.addEventListener('input', () => {
+    contador.textContent = txtMsg.value.length + ' / 500';
+  });
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const serial = document.getElementById('serial').value.trim();
+
+    if (!serial || serial.length < 3) {
+      document.getElementById('erro-serial').textContent = 'Número inválido';
+      return;
+    }
+
+    const r = await fetch('../../backend/produto/buscar.php?serial=' + encodeURIComponent(serial));
+    const d = await r.json();
+
+    resultado.hidden = false;
+
+    if (!d.success) {
+      resultado.innerHTML = 'Erro';
+      return;
+    }
+
+    if (!d.encontrado) {
+      resultado.innerHTML = 'Não encontrado';
+      return;
+    }
+
+    if (d.status === 'roubado' || d.status === 'perdido') {
+      resultado.innerHTML = '⚠ Produto ' + d.status;
+      contatoDiv.hidden = false;
+      document.getElementById('serial-contato').value = serial;
+    } else {
+      resultado.innerHTML = 'Produto OK';
+    }
+  });
+
+})();
+</script>
+
 </body>
 </html>

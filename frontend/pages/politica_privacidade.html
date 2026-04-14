@@ -1,3 +1,12 @@
+<?php
+session_start();
+$_logado = !empty($_SESSION['user_id']);
+if ($_logado && empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+$_csrf = $_logado ? $_SESSION['csrf'] : '';
+session_write_close();
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -9,13 +18,18 @@
 <body>
 
   <header>
-    <a href="index.html">
-      <span class="logo-texto">SNGuard</span>
-    </a>
+    <a href="<?= $_logado ? 'dashboard.html' : 'index.html' ?>" class="logo-texto">SNGuard</a>
     <nav>
-      <a href="busca.html">Verificar Serial</a>
-      <a href="login.html">Entrar</a>
-      <a href="cadastro-usuario.html">Cadastrar-se</a>
+      <?php if ($_logado): ?>
+        <a href="cadastro-produto.html">Novo Produto</a> |
+        <a href="busca.html">Busca Pública</a> |
+        <a href="meus-dados.html">Meu Perfil</a> |
+        <a href="../../backend/auth/logout.php?csrf=<?= urlencode($_csrf) ?>">Sair</a>
+      <?php else: ?>
+        <a href="busca.html">Busca Pública</a> |
+        <a href="login.html">Login</a> |
+        <a href="cadastro-usuario.html">Cadastrar-se</a>
+      <?php endif; ?>
     </nav>
   </header>
 
@@ -172,9 +186,9 @@
   </main>
 
   <footer>
-    <a href="politica_privavidade.html">Política de Privacidade</a>
+    <a href="politica_privacidade.html">Política de Privacidade</a>
+    <span>|</span>
     <a href="termo_de_uso.html">Termos de Uso</a>
-    <span>Projeto acadêmico PUCPR — Bacharelado em Cibersegurança</span>
   </footer>
 
 </body>
