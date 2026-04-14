@@ -1,0 +1,10 @@
+.git
+.env
+.env.local
+.env.*
+.claude
+backend/utils/secrets.php
+uploads/
+vendor/
+*.log
+app/

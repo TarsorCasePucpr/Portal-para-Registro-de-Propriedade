@@ -13,29 +13,24 @@ require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/hash.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/mailer.php';
-
-function redirecionar(string $url): never
-{
-    header('Location: ' . $url);
-    exit;
-}
+require_once __DIR__ . '/../utils/validadores.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    redirecionar('../../frontend/pages/cadastro-usuario.html');
+    redirect('../../frontend/pages/cadastro-usuario.html');
 }
 
 $pdo = getDb();
 $ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-if (!checkRateLimit($pdo, $ip, 'registro', 5, 60)) {
-    redirecionar(
+if (!checkRateLimit($pdo, $ip, 'registro', 20, 10)) {
+    redirect(
         '../../frontend/pages/cadastro-usuario.html?erro=' .
         urlencode('Muitas tentativas. Aguarde alguns minutos.')
     );
 }
 
 if (!validateCsrfToken($_POST['csrf'] ?? '')) {
-    redirecionar(
+    redirect(
         '../../frontend/pages/cadastro-usuario.html?erro=' .
         urlencode('Token de segurança inválido. Recarregue a página e tente novamente.')
     );
@@ -55,20 +50,15 @@ if ($nome === '' || mb_strlen($nome) < 3 || mb_strlen($nome) > 100) {
     $erros[] = 'Nome inválido (entre 3 e 100 caracteres).';
 }
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 255) {
+if (!validarEmail($email)) {
     $erros[] = 'E-mail inválido.';
 }
 
-if (!preg_match('/^\d{3}\.\d{3}\.\d{3}-\d{2}$/', $cpf)) {
+if (!validarCPF($cpf)) {
     $erros[] = 'CPF inválido. Use o formato 000.000.000-00.';
 }
 
-$senhaOk = (bool) preg_match(
-    '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{12,}$/',
-    $senha
-);
-
-if (!$senhaOk) {
+if (!validarSenhaForte($senha)) {
     $erros[] = 'Senha fraca. Use mínimo 12 caracteres com maiúscula, minúscula, número e símbolo (@$!%*?&).';
 }
 
@@ -81,7 +71,7 @@ if (!$lgpd) {
 }
 
 if (!empty($erros)) {
-    redirecionar(
+    redirect(
         '../../frontend/pages/cadastro-usuario.html?erro=' .
         urlencode(implode(' ', $erros))
     );
@@ -94,7 +84,7 @@ try {
     $stmt->execute(['email' => $email, 'cpf' => $cpf]);
 
     if ($stmt->fetch()) {
-        redirecionar(
+        redirect(
             '../../frontend/pages/cadastro-usuario.html?erro=' .
             urlencode('Não foi possível criar a conta com os dados informados. Verifique e tente novamente.')
         );
@@ -153,7 +143,7 @@ try {
 
 } catch (PDOException $e) {
     error_log('[register.php] DB error: ' . $e->getMessage());
-    redirecionar(
+    redirect(
         '../../frontend/pages/cadastro-usuario.html?erro=' .
         urlencode('Erro interno. Tente novamente mais tarde.')
     );

@@ -6,6 +6,7 @@ require_once "../config/db.php";
 require_once "../utils/hash.php";
 require_once "../utils/response.php";
 require_once "../utils/mailer.php";
+require_once "../utils/validadores.php";
 
 startSessionSafe();
 
@@ -95,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        if (!(bool) preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}$/', $novaSenha)) {
+        if (!validarSenhaForte($novaSenha)) {
             header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('A senha não atende aos requisitos mínimos.'));
             exit;
         }
