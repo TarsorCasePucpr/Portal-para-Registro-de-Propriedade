@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 
-<<<<<<< HEAD
 /**
  * meus_dados.php — Exibição e atualização dos dados do usuário autenticado
  *
@@ -11,6 +10,7 @@ declare(strict_types=1);
 
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Strict');
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -27,21 +27,22 @@ require_once __DIR__ . '/../utils/hash.php';
 require_once __DIR__ . '/../utils/response.php';
 
 requireAuth();
-$userId = (int) $_SESSION['user_id'];
 
-$pdo = getDb(); // ← definido aqui, disponível em todo o arquivo
+$userId = (int) $_SESSION['user_id'];
+$pdo = getDb();
 
 // ════════════════════════════════════════════════════════════════
-//  GET — retornar dados do perfil
+// GET — retornar dados do perfil
 // ════════════════════════════════════════════════════════════════
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     try {
         $stmt = $pdo->prepare(
             'SELECT name, email, cpf, mfa_enabled,
-                    DATE_FORMAT(created_at, \'%d/%m/%Y\') AS membro_desde
-             FROM   users
-             WHERE  id = :id AND deleted_at IS NULL'
+                    DATE_FORMAT(created_at, "%d/%m/%Y") AS membro_desde
+             FROM users
+             WHERE id = :id AND deleted_at IS NULL'
         );
+
         $stmt->execute(['id' => $userId]);
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -49,10 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             jsonError('Usuário não encontrado.', 404);
         }
 
-        // Mascarar CPF para exibição: 000.***.***-00
+        // Mascarar CPF
         $cpf = $usuario['cpf'];
         $usuario['cpf_mascarado'] = substr($cpf, 0, 4) . '***.***-' . substr($cpf, -2);
-        unset($usuario['cpf']); // não expor CPF completo na resposta
+        unset($usuario['cpf']);
 
         $usuario['mfa_enabled'] = (bool) $usuario['mfa_enabled'];
 
@@ -65,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  POST — atualizar dados do perfil
+// POST — atualizar dados do perfil
 // ════════════════════════════════════════════════════════════════
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido.', 405);
@@ -89,7 +90,10 @@ if ($acao === 'atualizar_nome') {
     try {
         $pdo->prepare(
             'UPDATE users SET name = :nome WHERE id = :id AND deleted_at IS NULL'
-        )->execute(['nome' => $novoNome, 'id' => $userId]);
+        )->execute([
+            'nome' => $novoNome,
+            'id'   => $userId
+        ]);
 
         jsonSuccess(['mensagem' => 'Nome atualizado com sucesso.']);
 
@@ -102,8 +106,8 @@ if ($acao === 'atualizar_nome') {
 // ── Atualizar senha ───────────────────────────────────────────────
 if ($acao === 'atualizar_senha') {
 
-    $senhaAtual = $_POST['senha_atual']    ?? '';
-    $novaSenha  = $_POST['nova_senha']     ?? '';
+    $senhaAtual = $_POST['senha_atual'] ?? '';
+    $novaSenha  = $_POST['nova_senha'] ?? '';
     $confirmar  = $_POST['confirmar_senha'] ?? '';
 
     if ($senhaAtual === '') {
@@ -126,11 +130,11 @@ if ($acao === 'atualizar_senha') {
     }
 
     try {
-        // Buscar hash atual para verificar senha antiga
         $stmt = $pdo->prepare(
             'SELECT password_hash FROM users WHERE id = :id AND deleted_at IS NULL'
         );
         $stmt->execute(['id' => $userId]);
+
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$row || !password_verify($senhaAtual, $row['password_hash'])) {
@@ -141,7 +145,10 @@ if ($acao === 'atualizar_senha') {
 
         $pdo->prepare(
             'UPDATE users SET password_hash = :hash WHERE id = :id'
-        )->execute(['hash' => $novoHash, 'id' => $userId]);
+        )->execute([
+            'hash' => $novoHash,
+            'id'   => $userId
+        ]);
 
         jsonSuccess(['mensagem' => 'Senha atualizada com sucesso.']);
 
@@ -152,30 +159,3 @@ if ($acao === 'atualizar_senha') {
 }
 
 jsonError('Ação inválida.');
-=======
-session_start();
-require_once "../config/db.php";
-
-// verifica se está logado
-if (!isset($_SESSION["user_id"])) {
-    http_response_code(401);
-    echo json_encode(["erro" => "Não autenticado"]);
-    exit;
-}
-
-$userId = $_SESSION["user_id"];
-
-$sql = "SELECT nome, email FROM users WHERE id = :id LIMIT 1";
-$stmt = $pdo->prepare($sql);
-$stmt->execute(["id" => $userId]);
-
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$user) {
-    echo json_encode(["erro" => "Usuário não encontrado"]);
-    exit;
-}
-
-header("Content-Type: application/json");
-echo json_encode($user);
->>>>>>> origin/develop
