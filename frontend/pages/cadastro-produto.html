@@ -1,97 +1,191 @@
+<?php
+session_start();
+if (empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+$_csrf = $_SESSION['csrf'];
+session_write_close();
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SNGuard — Cadastro de Produto</title>
+  <title>SNGuard — Cadastrar Produto</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
-  <header>
-    <a href="dashboard.html" class="logo-text">SN<span style="color:#fff">Guard</span></a>
-    <nav>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="cadastro-produto.html" class="active">Novo Produto</a>
-      <a href="meus-dados.html">Perfil</a>
-      <a href="../../backend/auth/logout.php" id="btn-logout" style="color:var(--danger); font-size:.875rem;">Sair</a>
-    </nav>
-  </header>
+<header>
+  <a href="dashboard.html" class="logo-text">SN<span style="color:#fff">Guard</span></a>
+  <nav>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="cadastro-produto.html" class="active">Novo Produto</a>
+    <a href="meus-dados.html">Perfil</a>
+    <a href="#" id="btn-logout" style="color:var(--danger); font-size:.875rem;">Sair</a>
+  </nav>
+</header>
 
-  <main style="align-items:flex-start; justify-content:center;">
-    <section id="cadastro-produto-section" style="max-width:600px;">
+<main style="align-items:flex-start; justify-content:center;">
+<section id="cadastro-produto-section" style="max-width:600px;">
 
-      <div style="margin-bottom:1.5rem;">
-        <a href="dashboard.html" style="font-size:.875rem; color:var(--text-muted); display:inline-flex; gap:.375rem;">
-          ← Voltar ao painel
-        </a>
-        <h1>Registrar novo produto</h1>
-        <p>Adicione seu produto ao SNGuard para protegê-lo.</p>
-      </div>
+  <div style="margin-bottom:1.5rem;">
+    <a href="dashboard.html" style="font-size:.875rem; color:var(--text-muted);">
+      ← Voltar ao painel
+    </a>
+    <h1>Registrar novo produto</h1>
+    <p>Adicione seu produto ao SNGuard para protegê-lo.</p>
+  </div>
 
-      <form id="form-produto" enctype="multipart/form-data">
+<form id="form-produto" novalidate>
 
-        <input type="hidden" id="csrf-produto" name="csrf">
+<input type="hidden" id="csrf-produto" name="csrf"
+       value="<?= htmlspecialchars($_csrf, ENT_QUOTES, 'UTF-8') ?>">
 
-        <!-- NF -->
-        <div class="campo">
-          <label>Chave da NF (44 dígitos)</label>
-          <input type="text" id="nfe-chave" maxlength="44">
-          <button type="button" id="btn-consultar-nf">Consultar</button>
-          <span id="erro-nfe" class="erro"></span>
-        </div>
+<!-- Descrição -->
+<div class="campo">
+  <label>Descrição</label>
+  <textarea id="descricao" name="descricao" maxlength="500"></textarea>
+  <small id="contador-descricao">0 / 500 caracteres</small>
+  <span id="erro-descricao" class="erro"></span>
+</div>
 
-        <!-- Descrição -->
-        <div class="campo">
-          <label>Descrição</label>
-          <textarea id="descricao" maxlength="500"></textarea>
-          <span id="erro-descricao" class="erro"></span>
-        </div>
+<!-- Serial -->
+<div class="campo">
+  <label>Número de Série</label>
+  <input type="text" id="serial" name="serial_number">
+  <span id="erro-serial" class="erro"></span>
+</div>
 
-        <!-- Serial -->
-        <div class="campo">
-          <label>Número de Série</label>
-          <input type="text" id="serial">
-          <span id="erro-serial" class="erro"></span>
-        </div>
+<!-- Data -->
+<div class="campo">
+  <label>Data de compra</label>
+  <input type="date" id="data-compra" name="data_compra">
+</div>
 
-        <!-- Data -->
-        <div class="campo">
-          <label>Data de compra</label>
-          <input type="date" id="data-compra">
-        </div>
+<!-- NF -->
+<div class="campo">
+  <label>Chave da NF (opcional)</label>
+  <input type="text" id="nfe-chave" name="nfe_chave" maxlength="44">
+  <span id="erro-nfe" class="erro"></span>
+</div>
 
-        <!-- Termos -->
-        <div class="campo-check">
-          <input type="checkbox" id="aceite-termos">
-          <label>Declaro que sou o proprietário legítimo</label>
-        </div>
+<!-- Termos -->
+<div class="campo-check">
+  <input type="checkbox" id="aceite-termos" name="aceite_termos" value="1">
+  <label>Declaro que sou o proprietário legítimo</label>
+</div>
+<span id="erro-termos" class="erro"></span>
 
-        <button type="submit" id="btn-cadastrar-produto" disabled>
-          Registrar produto
-        </button>
+<button type="submit" id="btn-cadastrar-produto" disabled>
+  Registrar produto
+</button>
 
-        <div id="msg-cadastro"></div>
+<div id="msg-cadastro"></div>
 
-      </form>
+</form>
 
-    </section>
-  </main>
+</section>
+</main>
 
-  <footer>
-    <a href="politica_privavidade.html">Política de Privacidade</a>
-    <a href="termo_de_uso.html">Termos de Uso</a>
-  </footer>
+<footer>
+  <a href="politica_privacidade.html">Política de Privacidade</a>
+  <span>|</span>
+  <a href="termo_de_uso.html">Termos de Uso</a>
+</footer>
 
-  <script src="../js/validacoes.js" defer></script>
-  <script src="../js/main.js" defer></script>
+<script>
+(function () {
 
-  <script>
-    // liberar botão
-    document.getElementById('aceite-termos').addEventListener('change', function () {
-      document.getElementById('btn-cadastrar-produto').disabled = !this.checked;
-    });
-  </script>
+  const form       = document.getElementById('form-produto');
+  const btn        = document.getElementById('btn-cadastrar-produto');
+  const descricao  = document.getElementById('descricao');
+  const contador   = document.getElementById('contador-descricao');
+  const msg        = document.getElementById('msg-cadastro');
+
+  document.getElementById('data-compra').max =
+    new Date().toISOString().split('T')[0];
+
+  descricao.addEventListener('input', () => {
+    contador.textContent = descricao.value.length + ' / 500 caracteres';
+  });
+
+  document.getElementById('aceite-termos').addEventListener('change', function () {
+    btn.disabled = !this.checked;
+  });
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    let valido = true;
+
+    const desc = descricao.value.trim();
+    const serial = document.getElementById('serial').value.trim();
+    const aceite = document.getElementById('aceite-termos').checked;
+    const nfe = document.getElementById('nfe-chave').value.replace(/\D/g, '');
+
+    ['erro-descricao','erro-serial','erro-termos','erro-nfe']
+      .forEach(id => document.getElementById(id).textContent = '');
+
+    if (!desc || desc.length < 5) {
+      document.getElementById('erro-descricao').textContent = 'Descrição inválida.';
+      valido = false;
+    }
+
+    if (!serial || serial.length < 3) {
+      document.getElementById('erro-serial').textContent = 'Serial inválido.';
+      valido = false;
+    }
+
+    if (nfe && nfe.length !== 44) {
+      document.getElementById('erro-nfe').textContent = 'NF inválida.';
+      valido = false;
+    }
+
+    if (!aceite) {
+      document.getElementById('erro-termos').textContent = 'Aceite obrigatório.';
+      valido = false;
+    }
+
+    if (!valido) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Registrando...';
+
+    try {
+      const fd = new FormData(form);
+      const res = await fetch('../../backend/produto/cadastrar.php', {
+        method: 'POST',
+        body: fd
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        msg.style.color = 'green';
+        msg.textContent = 'Produto registrado!';
+        setTimeout(() => location.href = 'dashboard.html', 1500);
+      } else {
+        throw new Error(data.error);
+      }
+
+    } catch (err) {
+      msg.style.color = 'red';
+      msg.textContent = err.message || 'Erro ao cadastrar';
+      btn.disabled = false;
+      btn.textContent = 'Registrar produto';
+    }
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', function (e) {
+    e.preventDefault();
+    const csrf = document.getElementById('csrf-produto').value;
+    window.location.href =
+      '../../backend/auth/logout.php?csrf=' + encodeURIComponent(csrf);
+  });
+
+})();
+</script>
 
 </body>
 </html>

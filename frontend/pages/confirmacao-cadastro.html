@@ -8,23 +8,24 @@
 </head>
 <body>
 
-  <!-- ===== CABEÇALHO ===== -->
   <header>
-    <div class="container">
-      <h2>SNGuard</h2> <!-- Substituir por logo futuramente -->
-    </div>
+    <a href="index.html" class="logo-texto">SNGuard</a>
+    <nav>
+      <a href="busca.html">Busca Pública</a> |
+      <a href="login.html">Login</a> |
+      <a href="cadastro-usuario.html">Cadastrar-se</a>
+    </nav>
   </header>
 
   <main>
     <section id="confirmacao-section" class="container">
 
-      <!-- ===== ESTADO 1: AGUARDANDO CONFIRMAÇÃO ===== -->
       <div id="estado-aguardando">
         <div class="card">
           <div class="icon">📩</div>
           <h1>Verifique seu e-mail</h1>
           <p id="email-info">
-            Enviamos um link de confirmação para <strong>g***@gmail.com</strong>
+            Enviamos um link de confirmação para o seu e-mail.
           </p>
           <p>O link expira em 24 horas.</p>
 
@@ -36,7 +37,6 @@
         </div>
       </div>
 
-      <!-- ===== ESTADO 2: SUCESSO ===== -->
       <div id="estado-sucesso" style="display:none;">
         <div class="card">
           <div class="icon success">✅</div>
@@ -47,7 +47,6 @@
         </div>
       </div>
 
-      <!-- ===== ESTADO 3: ERRO ===== -->
       <div id="estado-erro" style="display:none;">
         <div class="card">
           <div class="icon error">⚠️</div>
@@ -55,10 +54,10 @@
           <p>Solicite um novo link informando seu e-mail abaixo.</p>
 
           <form id="form-reenvio">
-            <input 
-              type="email" 
-              id="email" 
-              name="email" 
+            <input
+              type="email"
+              id="email"
+              name="email"
               placeholder="Seu e-mail"
               required
             >
@@ -71,12 +70,9 @@
   </main>
 
   <footer>
-    <div class="container">
-      <p>
-        <a href="#">Política de Privacidade</a> | 
-        <a href="#">Termos de Uso</a>
-      </p>
-    </div>
+    <a href="politica_privacidade.html">Política de Privacidade</a>
+    <span>|</span>
+    <a href="termo_de_uso.html">Termos de Uso</a>
   </footer>
 
   <script src="../js/validacoes.js" defer></script>

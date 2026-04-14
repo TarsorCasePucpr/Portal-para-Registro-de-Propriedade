@@ -8,60 +8,30 @@
 </head>
 <body>
 
-  <!-- ===== CABEÇALHO ===== -->
   <header>
-    <!-- TODO: Logo SNGuard -->
+    <a href="index.html" class="logo-texto">SNGuard</a>
+    <nav>
+      <a href="busca.html">Busca Pública</a> |
+      <a href="login.html">Login</a> |
+      <a href="cadastro-usuario.html">Cadastrar-se</a>
+    </nav>
   </header>
 
   <main>
     <section id="confirmacao-section">
-      <!--
-        PÁGINA DE CONFIRMAÇÃO DE E-MAIL
-        Exibida após cadastro bem-sucedido.
 
-        Fluxo:
-          1. register.php gera token: bin2hex(random_bytes(32)) → armazena hash('sha256', $token)
-          2. Envia e-mail com link: /backend/auth/confirm.php?token=$rawToken
-          3. confirm.php valida token com hash_equals() → ativa conta → redireciona para login
-          4. Token deletado após uso (uso único)
-
-        Segurança:
-          - Token expira em 24h (tokens.expires_at)
-          - Armazenado como SHA-256 na DB, nunca o valor raw
-          - NUNCA revelar se e-mail existe ou não
-
-        LGPD — Art. 9 (Transparência):
-          Informar que o e-mail é usado APENAS para confirmação.
-          Não enviar e-mails de marketing sem consentimento adicional.
-      -->
-
-      <!-- Estado 1: Aguardando confirmação -->
       <div id="estado-aguardando">
-        <!-- TODO: Ícone de envelope -->
-        <!-- TODO: <h1>Verifique seu e-mail</h1> -->
-        <!-- TODO: "Enviamos um link de confirmação para [email mascarado ex: g***@gmail.com]" -->
-        <!-- TODO: "O link expira em 24 horas." -->
-        <!-- TODO: Botão "Reenviar e-mail" (rate limit: 1 reenvio / 5 min por IP) -->
-        <!-- TODO: Link "Usar outro e-mail" → cadastro-usuario.html -->
       </div>
 
-      <!-- Estado 2: Confirmação bem-sucedida (via parâmetro ?status=success na URL) -->
       <div id="estado-sucesso" style="display:none;">
-        <!-- TODO: Ícone de check verde -->
-        <!-- TODO: "Conta confirmada com sucesso!" -->
-        <!-- TODO: Botão "Ir para o Login" → login.html -->
       </div>
 
-      <!-- Estado 3: Token inválido / expirado -->
       <div id="estado-erro" style="display:none;">
-        <!-- TODO: "Link inválido ou expiradorrrormando seu e-mail abaixo." -->
-        <!-- TODO: Formulário de reenvio com input de e-mail -->
       </div>
     </section>
   </main>
 
   <footer>
-    <!-- TODO: Links: Política de Privacidade | Termos de Uso -->
   </footer>
 
   <script src="../js/validacoes.js" defer></script>

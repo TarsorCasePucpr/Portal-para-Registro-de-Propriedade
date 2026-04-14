@@ -9,35 +9,24 @@
 <body>
 
   <header>
-    <a href="index.html">
-      <img src="../img/logo.png" alt="SNGuard" onerror="this.style.display='none'">
-    </a>
+    <a href="index.html" class="logo-texto">SNGuard</a>
+    <nav>
+      <a href="busca.html">Busca Pública</a> |
+      <a href="login.html">Login</a> |
+      <a href="cadastro-usuario.html">Cadastrar-se</a>
+    </nav>
   </header>
 
   <main>
     <section id="cadastro-section">
       <h1>Criar conta SNGuard</h1>
 
-      <!-- Mensagem de erro do servidor -->
       <div id="msg-servidor" role="alert"></div>
 
-      <!--
-        Segurança:
-          - Token CSRF preenchido via JS antes de submeter
-          - Validações client-side em validacoes.js (formato e-mail, CPF, senha forte)
-          - Confirmação de senha validada SOMENTE no client — não enviada ao PHP
-          - Senha hasheada com bcrypt cost 13 no backend (register.php)
-        LGPD:
-          - Art. 7, I: Consentimento explícito via checkbox obrigatório
-          - Art. 9: Cada campo explica por que o dado é coletado
-          - Art. 18: Link para política de privacidade
-      -->
       <form id="form-cadastro" action="../../backend/auth/register.php" method="POST" novalidate>
 
-        <!-- Token CSRF — preenchido pelo JavaScript antes de submeter -->
         <input type="hidden" id="csrf-token" name="csrf" value="">
 
-        <!-- Nome completo -->
         <div class="campo">
           <label for="nome">Nome completo</label>
           <input
@@ -52,7 +41,6 @@
           <span class="erro" id="erro-nome" role="alert"></span>
         </div>
 
-        <!-- E-mail -->
         <div class="campo">
           <label for="email">E-mail</label>
           <input
@@ -67,7 +55,6 @@
           <span class="erro" id="erro-email" role="alert"></span>
         </div>
 
-        <!-- CPF — usado para vincular NF-e e comprovar propriedade -->
         <div class="campo">
           <label for="cpf">CPF</label>
           <input
@@ -84,7 +71,6 @@
           <span class="erro" id="erro-cpf" role="alert"></span>
         </div>
 
-        <!-- Senha com indicador de força e botão mostrar/ocultar -->
         <div class="campo">
           <label for="senha">Senha</label>
           <div class="campo-senha">
@@ -102,17 +88,17 @@
             </button>
           </div>
           <div id="forca-senha" aria-live="polite"></div>
-          <small>Mín. 12 caracteres: maiúscula, minúscula, número e símbolo (@$!%*?&)</small>
+          <small>Mín. 12 caracteres: maiúscula, minúscula, número e pelo menos 1 símbolo</small>
           <span class="erro" id="erro-senha" role="alert"></span>
         </div>
 
-        <!-- Confirmar senha — validado apenas no client, NÃO enviado ao servidor -->
         <div class="campo">
           <label for="confirmar-senha">Confirmar senha</label>
           <div class="campo-senha">
             <input
               type="password"
               id="confirmar-senha"
+              name="confirmar_senha"
               required
               maxlength="255"
               autocomplete="new-password"
@@ -125,21 +111,18 @@
           <span class="erro" id="erro-confirmar" role="alert"></span>
         </div>
 
-        <!-- Consentimento LGPD — Art. 7, I -->
         <div id="consentimento-lgpd" class="campo">
           <label class="label-checkbox">
             <input type="checkbox" id="aceite-lgpd" name="aceite_lgpd" value="1" required>
             Li e concordo com a
-            <a href="politica_privavidade.html" target="_blank" rel="noopener">Política de Privacidade</a>
+            <a href="politica_privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>
             e autorizo o uso dos meus dados para os fins descritos.
           </label>
           <span class="erro" id="erro-lgpd" role="alert"></span>
         </div>
 
-        <!-- Mensagem de erro geral -->
         <div id="msg-erro" role="alert" aria-live="polite"></div>
 
-        <!-- Botão submit — desabilitado até aceitar LGPD -->
         <button type="submit" id="btn-cadastrar" disabled>Criar conta</button>
 
         <div class="links-aux">
@@ -151,12 +134,20 @@
   </main>
 
   <footer>
-    <a href="politica_privavidade.html">Política de Privacidade</a>
+    <a href="politica_privacidade.html">Política de Privacidade</a>
+    <span>|</span>
     <a href="termo_de_uso.html">Termos de Uso</a>
   </footer>
 
   <script src="../js/validacoes.js" defer></script>
   <script src="../js/main.js" defer></script>
+
+  <script>
+    const erroServidor = new URLSearchParams(window.location.search).get('erro');
+    if (erroServidor) {
+      document.getElementById('msg-servidor').textContent = decodeURIComponent(erroServidor);
+    }
+  </script>
 
 </body>
 </html>

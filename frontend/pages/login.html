@@ -1,3 +1,11 @@
+<?php
+session_start();
+if (empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+$_csrf = $_SESSION['csrf'];
+session_write_close();
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -9,24 +17,24 @@
 <body>
 
   <header>
-    <a href="index.html">
-      <img src="../img/logo.png" alt="SNGuard" onerror="this.style.display='none'">
-    </a>
+    <a href="index.html" class="logo-texto">SNGuard</a>
+    <nav>
+      <a href="busca.html">Busca Pública</a> |
+      <a href="login.html">Login</a> |
+      <a href="cadastro-usuario.html">Cadastrar-se</a>
+    </nav>
   </header>
 
   <main>
     <section id="login-section">
       <h1>Entrar na sua conta</h1>
 
-      <!-- Mensagem de erro do servidor (PHP via session) -->
       <div id="msg-servidor" role="alert"></div>
 
       <form id="form-login" action="../../backend/auth/login.php" method="POST" novalidate>
 
-        <!-- Token CSRF — preenchido pelo JavaScript antes de submeter -->
-        <input type="hidden" id="csrf-token" name="csrf" value="">
+        <input type="hidden" id="csrf-token" name="csrf" value="<?= htmlspecialchars($_csrf, ENT_QUOTES, 'UTF-8') ?>">
 
-        <!-- Campo E-mail -->
         <div class="campo">
           <label for="email">E-mail</label>
           <input
@@ -41,7 +49,6 @@
           <span class="erro" id="erro-email" role="alert"></span>
         </div>
 
-        <!-- Campo Senha com botão mostrar/ocultar -->
         <div class="campo">
           <label for="senha">Senha</label>
           <div class="campo-senha">
@@ -61,16 +68,13 @@
           <span class="erro" id="erro-senha" role="alert"></span>
         </div>
 
-        <!-- Mensagem de erro client-side -->
         <div id="msg-erro" role="alert" aria-live="polite"></div>
 
-        <!-- Botão principal -->
         <button type="submit" id="btn-login">Entrar</button>
 
-        <!-- Links auxiliares -->
         <div class="links-aux">
           <a href="recuperacao-senha.html">Esqueceu sua senha?</a>
-          <a href="cadastro-usuario.html">Criar conta</a>
+          <a href="cadastro-usuario.html">Cadastrar-se</a>
         </div>
 
       </form>
@@ -78,14 +82,14 @@
   </main>
 
   <footer>
-    <a href="politica_privavidade.html">Política de Privacidade</a>
+    <a href="politica_privacidade.html">Política de Privacidade</a>
+    <span>|</span>
     <a href="termo_de_uso.html">Termos de Uso</a>
   </footer>
 
   <script src="../js/validacoes.js" defer></script>
   <script src="../js/main.js" defer></script>
 
-  <!-- Mostrar erros do servidor que chegam via URL params (set pelo PHP via session) -->
   <script>
     const params = new URLSearchParams(window.location.search);
     const erroServidor = params.get('erro');

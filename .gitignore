@@ -5,8 +5,13 @@ CLAUDE.md
 *.log
 /vendor/
 node_modules/
+backend/lib/
 .DS_Store
 Thumbs.db
 *.swp
 *.swo
 /uploads/
+docker-compose.yml
+Dockerfile
+docker/
+db_data/

@@ -80,19 +80,19 @@ try {
     ]);
 
     if ($stmt->rowCount() === 0) {
-        jsonError('Produto não encontrado ou sem permissão.', 403);
+        jsonError('Produto não encontrado ou sem permissão para alterar.', 403);
     }
 
 } catch (PDOException $e) {
-    error_log('[status] DB error: ' . $e->getMessage());
+    error_log('[status.php] DB error: ' . $e->getMessage());
     jsonError('Erro interno. Tente novamente.', 500);
 }
 
 // ── Mensagens amigáveis ──────────────────────────────────────────
 $mensagens = [
-    'normal'  => 'Status atualizado para Protegido.',
-    'perdido' => 'Produto marcado como Perdido.',
-    'roubado' => 'Produto marcado como Roubado.',
+    'normal'  => 'Status atualizado para Protegido. Nenhum alerta ativo.',
+    'perdido' => 'Produto marcado como Perdido. Um alerta foi ativado na busca pública.',
+    'roubado' => 'Produto marcado como Roubado. Alerta crítico ativado na busca pública.',
 ];
 
 // ── Resposta ─────────────────────────────────────────────────────

@@ -13,14 +13,9 @@ declare(strict_types=1);
  *
  * Segurança:
  *   - Rate limit por IP: 10 consultas / minuto
- *   - Serial sanitizado (strip_tags + trim + mb_strlen)
- *   - Query parametrizada (sem risco de SQL injection)
- *   - Nenhum dado pessoal do proprietário é retornado
- *   - Headers de segurança definidos
- *
- * LGPD:
- *   - Endpoint público por design — apenas o STATUS do objeto é exposto
- *   - Nome, CPF, e-mail ou qualquer dado do dono nunca aparecem na resposta
+ *   - Serial sanitizado
+ *   - Query parametrizada (sem SQL injection)
+ *   - Nenhum dado pessoal é retornado
  */
 
 // ── Headers de segurança ─────────────────────────────────────────
@@ -52,6 +47,9 @@ if (!checkRateLimit($pdo, $ip, 'busca_serial', 10, 1)) {
 // ── Sanitização do serial ────────────────────────────────────────
 $serial = trim(strip_tags($_GET['serial'] ?? ''));
 
+// Remove caracteres invisíveis
+$serial = preg_replace('/[\x00-\x1F\x7F]/u', '', $serial);
+
 if ($serial === '') {
     jsonError('Informe o número de série.');
 }
@@ -60,18 +58,16 @@ if (mb_strlen($serial) > 100) {
     jsonError('Número de série inválido.');
 }
 
-// Remover caracteres de controle invisíveis
-$serial = preg_replace('/[\x00-\x1F\x7F]/u', '', $serial);
-
 // ── Consulta ao banco ─────────────────────────────────────────────
 try {
     $stmt = $pdo->prepare(
         'SELECT status
-         FROM   objects
-         WHERE  serial_number = :serial
-           AND  deleted_at    IS NULL
-         LIMIT  1'
+         FROM objects
+         WHERE serial_number = :serial
+           AND deleted_at IS NULL
+         LIMIT 1'
     );
+
     $stmt->execute(['serial' => $serial]);
     $objeto = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -90,6 +86,7 @@ if (!$objeto) {
 
 // Normalizar status
 $statusPermitidos = ['normal', 'roubado', 'perdido'];
+
 $status = in_array($objeto['status'], $statusPermitidos, true)
     ? $objeto['status']
     : 'normal';

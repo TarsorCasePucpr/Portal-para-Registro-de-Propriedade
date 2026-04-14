@@ -18,6 +18,7 @@ require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/hash.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/mailer.php';
+require_once __DIR__ . '/../utils/validadores.php';
 
 // ── Helper ───────────────────────────────────────────────────────
 function redirecionar(string $url): never {
@@ -30,10 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirecionar('../../frontend/pages/cadastro-usuario.html');
 }
 
-// ── Rate limit ───────────────────────────────────────────────────
 $pdo = getDb();
 $ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
+// ── Rate limit ───────────────────────────────────────────────────
 if (!checkRateLimit($pdo, $ip, 'registro', 5, 60)) {
     redirecionar('../../frontend/pages/cadastro-usuario.html?erro=' .
         urlencode('Muitas tentativas. Aguarde alguns minutos.'));
@@ -61,23 +62,16 @@ if ($nome === '' || mb_strlen($nome) < 3 || mb_strlen($nome) > 100) {
     $erros[] = 'Nome inválido (entre 3 e 100 caracteres).';
 }
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 255) {
+if (!validarEmail($email)) {
     $erros[] = 'E-mail inválido.';
 }
 
-if (!preg_match('/^\d{3}\.\d{3}\.\d{3}-\d{2}$/', $cpf)) {
+if (!validarCPF($cpf)) {
     $erros[] = 'CPF inválido. Use o formato 000.000.000-00.';
 }
 
-$senhaOk =
-    mb_strlen($senha) >= 12 &&
-    preg_match('/[a-z]/', $senha) &&
-    preg_match('/[A-Z]/', $senha) &&
-    preg_match('/[0-9]/', $senha) &&
-    preg_match('/[@$!%*?&]/', $senha);
-
-if (!$senhaOk) {
-    $erros[] = 'Senha fraca. Use mínimo 12 caracteres com maiúscula, minúscula, número e símbolo.';
+if (!validarSenhaForte($senha)) {
+    $erros[] = 'Senha fraca. Use mínimo 12 caracteres com maiúscula, minúscula, número e símbolo (@$!%*?&).';
 }
 
 if ($senha !== $confirmar) {
@@ -129,8 +123,8 @@ try {
     $expira    = date('Y-m-d H:i:s', time() + 86400);
 
     $pdo->prepare(
-        'INSERT INTO tokens (user_id, token_hash, type, expires_at)
-         VALUES (:uid, :hash, "confirm", :exp)'
+        "INSERT INTO tokens (user_id, token_hash, type, expires_at)
+         VALUES (:uid, :hash, 'confirm', :exp)"
     )->execute([
         'uid'  => $userId,
         'hash' => $tokenHash,
@@ -139,31 +133,42 @@ try {
 
     // LGPD
     $pdo->prepare(
-        'INSERT INTO lgpd_consent (user_id, ip, policy_version, user_agent)
-         VALUES (:uid, :ip, "1.0", :ua)'
+        "INSERT INTO lgpd_consent (user_id, ip, policy_version, user_agent)
+         VALUES (:uid, :ip, '1.0', :ua)"
     )->execute([
         'uid' => $userId,
         'ip'  => $ip,
         'ua'  => $userAgent,
     ]);
 
-    // Email
-    $linkConfirmacao = rtrim(BASE_URL ?? 'http://localhost', '/') .
-        '/backend/auth/confirmar_email.php?token=' . urlencode($tokenRaw);
+    // Gerar URL base
+    $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+             . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
 
+    // Link de confirmação
+    $linkConfirmacao = $baseUrl . '/backend/auth/confirm.php?token=' . urlencode($tokenRaw);
+
+    // Enviar e-mail
     enviarEmail(
         destinatario: $email,
-        nome: $nome,
-        assunto: 'Confirme seu e-mail',
-        corpo: "Olá, {$nome}!\n\nConfirme sua conta:\n{$linkConfirmacao}"
+        nome:         $nome,
+        assunto:      'SNGuard — Confirme seu e-mail',
+        corpo:        "Olá, {$nome}!\n\n" .
+                      "Clique no link abaixo para ativar sua conta (válido por 24 horas):\n\n" .
+                      "{$linkConfirmacao}\n\n" .
+                      "Se você não criou esta conta, ignore esta mensagem.\n\n" .
+                      "— Equipe SNGuard"
     );
 
 } catch (PDOException $e) {
-    error_log('[register.php] ' . $e->getMessage());
+    error_log('[register.php] DB error: ' . $e->getMessage());
     redirecionar('../../frontend/pages/cadastro-usuario.html?erro=' .
-        urlencode('Erro interno.'));
+        urlencode('Erro interno. Tente novamente mais tarde.'));
 } catch (Throwable $e) {
-    error_log('[register.php] ' . $e->getMessage());
+    error_log('[register.php] Error: ' . $e->getMessage());
+    redirecionar('../../frontend/pages/cadastro-usuario.html?erro=' .
+        urlencode('Erro inesperado.'));
 }
 
+// Sucesso
 redirecionar('../../frontend/pages/confirmacao-cadastro.html');

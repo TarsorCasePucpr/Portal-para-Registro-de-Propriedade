@@ -1,3 +1,11 @@
+<?php
+session_start();
+if (empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+$_csrf = $_SESSION['csrf'];
+session_write_close();
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -6,153 +14,174 @@
   <title>SNGuard — Meu Painel</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
-<body class="dashboard-body">
+<body>
 
-  <!-- SIDEBAR -->
-  <nav id="sidebar" aria-label="Navegação principal">
-
-    <div class="sidebar-logo">
-      <a href="dashboard.html" style="text-decoration:none;">
-        <span>SN<span style="color:#fff">Guard</span></span>
-      </a>
-    </div>
-
-    <nav role="navigation">
-      <a href="dashboard.html" class="active" aria-current="page">
-        Dashboard
-      </a>
-
-      <a href="cadastro-produto.html">Novo produto</a>
-      <a href="busca.html">Consultar serial</a>
-      <a href="meus-dados.html">Meu perfil</a>
-
-      <a href="mfa.html" id="link-mfa" hidden>
-        Ativar 2FA
-        <span style="font-size:.7rem; color:var(--warn); margin-left:auto;">Recomendado</span>
-      </a>
-    </nav>
-
-    <div class="sidebar-bottom">
-      <a href="../../backend/auth/logout.php" id="btn-logout">
-        Sair
-      </a>
-    </div>
-
+<header>
+  <a href="dashboard.html" class="logo-texto">SNGuard</a>
+  <nav>
+    <a href="cadastro-produto.html">Novo Produto</a> |
+    <a href="busca.html">Busca Pública</a> |
+    <a href="meus-dados.html">Meu Perfil</a> |
+    <a href="#" id="btn-logout">Sair</a>
   </nav>
+</header>
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <div id="dashboard-main">
+<main>
 
-    <header id="dashboard-header">
-      <div>
-        <h1 id="saudacao">Olá!</h1>
-        <p id="resumo-conta">Carregando...</p>
-      </div>
-
-      <div>
-        <a href="busca.html">Consultar S/N</a>
-        <a href="cadastro-produto.html">Novo produto</a>
-      </div>
-    </header>
-
-    <div class="dashboard-content">
-
-      <!-- BUSCA -->
-      <section>
-        <input id="dash-serial-input" placeholder="Digite um número de série">
-        <button id="dash-btn-buscar">Verificar</button>
-        <div id="dash-resultado"></div>
-      </section>
-
-      <!-- STATS -->
-      <div id="stats-bar">
-        <div>Produtos: <span id="stat-total">—</span></div>
-        <div>Alertas: <span id="stat-alertas">—</span></div>
-        <div>Mensagens: <span id="stat-msgs">—</span></div>
-      </div>
-
-      <!-- NOTIFICAÇÕES -->
-      <section id="secao-notificacoes" hidden>
-        <div id="lista-notificacoes"></div>
-      </section>
-
-      <!-- PRODUTOS -->
-      <section>
-        <div id="lista-produtos"></div>
-      </section>
-
-      <!-- EXCLUSÃO -->
-      <section id="exclusao-conta">
-        <h2>Privacidade e exclusão de dados</h2>
-        <p>Você pode solicitar a exclusão dos seus dados.</p>
-        <a href="exclusao-conta.html">Solicitar exclusão</a>
-      </section>
-
+<section>
+  <h1>Meus Produtos</h1>
+  <div id="lista-produtos" style="margin-top:1.5rem;">
+    <div style="text-align:center; padding:2rem;">
+      <div class="loading"></div>
     </div>
   </div>
+</section>
 
-  <script src="../js/validacoes.js" defer></script>
-  <script src="../js/main.js" defer></script>
+<section style="margin-top:2.5rem; border-top:1px solid var(--borda); padding-top:1.5rem;">
+  <small>
+    Em conformidade com a LGPD, você pode
+    <a href="exclusao-conta.html">solicitar a exclusão da sua conta e dados</a>.
+  </small>
+</section>
 
-  <script>
-  (function () {
+</main>
 
-    let csrfToken = '';
-    let produtoAtualId = null;
+<footer>
+  <a href="politica_privacidade.html">Política de Privacidade</a>
+  <span>|</span>
+  <a href="termo_de_uso.html">Termos de Uso</a>
+</footer>
 
-    fetch('../../backend/auth/get_csrf.php')
+<!-- MODAL -->
+<div id="modal-status" hidden class="modal">
+  <div class="card">
+    <h2>Alterar status</h2>
+    <p id="modal-status-desc"></p>
+
+    <button id="modal-btn-normal">Normal</button>
+    <button id="modal-btn-perdido">Perdido</button>
+    <button id="modal-btn-roubado">Roubado</button>
+    <button id="modal-btn-cancelar">Cancelar</button>
+
+    <div id="modal-erro" class="erro"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+
+  const csrfToken = '<?= htmlspecialchars($_csrf, ENT_QUOTES, 'UTF-8') ?>';
+  let produtoAtualId = null;
+
+  document.getElementById('btn-logout').onclick = function (e) {
+    e.preventDefault();
+    window.location.href = '../../backend/auth/logout.php?csrf=' + encodeURIComponent(csrfToken);
+  };
+
+  // Verifica sessão
+  fetch('../../backend/auth/me.php')
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success) {
+        window.location.href = 'login.html';
+        return;
+      }
+      carregarProdutos();
+    })
+    .catch(() => window.location.href = 'login.html');
+
+  function carregarProdutos() {
+    fetch('../../backend/produto/listar.php')
       .then(r => r.json())
-      .then(d => { csrfToken = d.csrf || ''; });
+      .then(d => {
+        const lista = document.getElementById('lista-produtos');
 
-    document.getElementById('btn-logout').addEventListener('click', function (e) {
-      e.preventDefault();
-      window.location.href = '../../backend/auth/logout.php?csrf=' + encodeURIComponent(csrfToken);
-    });
-
-    fetch('../../backend/auth/me.php')
-      .then(r => r.json())
-      .then(function (d) {
-        if (!d.success) {
-          window.location.href = 'login.html';
+        if (!d.success || !d.produtos.length) {
+          lista.innerHTML = '<p>Nenhum produto cadastrado.</p>';
           return;
         }
-        document.getElementById('saudacao').textContent = 'Olá, ' + (d.name || 'usuário');
 
-        if (!d.mfa_enabled) {
-          document.getElementById('link-mfa').hidden = false;
-        }
+        lista.innerHTML = d.produtos.map(renderCard).join('');
 
-        carregarProdutos();
+        document.querySelectorAll('[data-status]').forEach(btn => {
+          btn.onclick = () => {
+            produtoAtualId = btn.dataset.id;
+            document.getElementById('modal-status').hidden = false;
+          };
+        });
+
+        document.querySelectorAll('[data-excluir]').forEach(btn => {
+          btn.onclick = () => {
+            if (confirm('Excluir produto?')) excluirProduto(btn.dataset.id);
+          };
+        });
       });
+  }
 
-    function carregarProdutos() {
-      fetch('../../backend/produto/listar.php')
-        .then(r => r.json())
-        .then(function (d) {
-          const lista = document.getElementById('lista-produtos');
+  function renderCard(p) {
+    return `
+      <div class="produto-card">
+        <strong>${esc(p.descricao)}</strong><br>
+        <small>${esc(p.serial_number)}</small><br>
+        <span>${p.status}</span><br><br>
 
-          if (!d.success || !d.produtos) {
-            lista.innerHTML = 'Nenhum produto.';
-            return;
-          }
+        <button data-status data-id="${p.id}">Alterar status</button>
+        <button data-excluir data-id="${p.id}">Excluir</button>
+      </div>
+    `;
+  }
 
-          lista.innerHTML = d.produtos.map(p => '<div>' + p.descricao + '</div>').join('');
-        });
-    }
+  // Modal
+  document.getElementById('modal-btn-cancelar').onclick = fecharModal;
+  document.getElementById('modal-btn-normal').onclick   = () => alterarStatus('normal');
+  document.getElementById('modal-btn-perdido').onclick  = () => alterarStatus('perdido');
+  document.getElementById('modal-btn-roubado').onclick  = () => alterarStatus('roubado');
 
-    document.getElementById('dash-btn-buscar').addEventListener('click', function () {
-      const serial = document.getElementById('dash-serial-input').value;
+  function fecharModal() {
+    document.getElementById('modal-status').hidden = true;
+    produtoAtualId = null;
+  }
 
-      fetch('../../backend/produto/buscar.php?serial=' + encodeURIComponent(serial))
-        .then(r => r.json())
-        .then(d => {
-          document.getElementById('dash-resultado').innerHTML =
-            d.encontrado ? 'Encontrado' : 'Não encontrado';
-        });
-    });
+  function alterarStatus(status) {
+    const fd = new FormData();
+    fd.append('id', produtoAtualId);
+    fd.append('status', status);
+    fd.append('csrf', csrfToken);
 
-  })();
-  </script>
+    fetch('../../backend/produto/status.php', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          fecharModal();
+          carregarProdutos();
+        } else {
+          document.getElementById('modal-erro').textContent = d.error;
+        }
+      });
+  }
+
+  function excluirProduto(id) {
+    const fd = new FormData();
+    fd.append('id', id);
+    fd.append('csrf', csrfToken);
+
+    fetch('../../backend/produto/cadastrar.php', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) carregarProdutos();
+        else alert(d.error);
+      });
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+})();
+</script>
 
 </body>
 </html>

@@ -37,10 +37,10 @@ $pdo = getDb();
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     try {
         $stmt = $pdo->prepare(
-            'SELECT name, email, cpf, mfa_enabled,
-                    DATE_FORMAT(created_at, "%d/%m/%Y") AS membro_desde
+            "SELECT name, email, cpf, mfa_enabled,
+                    DATE_FORMAT(created_at, '%d/%m/%Y') AS membro_desde
              FROM users
-             WHERE id = :id AND deleted_at IS NULL'
+             WHERE id = :id AND deleted_at IS NULL"
         );
 
         $stmt->execute(['id' => $userId]);
@@ -72,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido.', 405);
 }
 
+// CSRF
 if (!validateCsrfToken($_POST['csrf'] ?? '')) {
     jsonError('Token de segurança inválido.', 403);
 }
@@ -114,12 +115,13 @@ if ($acao === 'atualizar_senha') {
         jsonError('Informe sua senha atual.');
     }
 
-    $senhaOk =
+    $senhaOk = (
         mb_strlen($novaSenha) >= 12 &&
         preg_match('/[a-z]/', $novaSenha) &&
         preg_match('/[A-Z]/', $novaSenha) &&
         preg_match('/[0-9]/', $novaSenha) &&
-        preg_match('/[@$!%*?&]/', $novaSenha);
+        preg_match('/[@$!%*?&]/', $novaSenha)
+    );
 
     if (!$senhaOk) {
         jsonError('Nova senha fraca. Use mínimo 12 caracteres com maiúscula, minúscula, número e símbolo.');
@@ -158,4 +160,5 @@ if ($acao === 'atualizar_senha') {
     }
 }
 
+// Caso nenhuma ação válida
 jsonError('Ação inválida.');
