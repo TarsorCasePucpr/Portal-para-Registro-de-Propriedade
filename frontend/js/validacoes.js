@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // =========================
-  // ✅ validação no submit
+  // validação no submit
   // =========================
   form.addEventListener("submit", (e) => {
 

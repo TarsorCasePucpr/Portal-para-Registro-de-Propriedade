@@ -19,23 +19,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao = $_POST['acao'] ?? '';
 
     // ─── SOLICITAR LINK ───────────────────────────────────────────────────────
-    if ($acao === 'solicitar_link') {
+    if ($acao === 'solicitar_link' || $acao === 'reenviar') {
 
-        if (!validateCsrfToken($_POST['csrf'] ?? '')) {
-            header('Location: ../../frontend/pages/recuperacao-senha.html?erro=' . urlencode('Token de segurança inválido.'));
+        if ($acao === 'solicitar_link' && !validateCsrfToken($_POST['csrf'] ?? '')) {
+            jsonResponse(['success' => false, 'message' => 'Token de segurança inválido.'], 403);
             exit;
         }
 
         if (!checkRateLimit($pdo, $ip, 'recover', 3, 15)) {
-            header('Location: ../../frontend/pages/recuperacao-senha.html?erro=' . urlencode('Muitas tentativas. Aguarde 15 minutos.'));
+            jsonResponse(['success' => false, 'message' => 'Muitas tentativas. Aguarde 15 minutos.'], 429);
             exit;
         }
 
         $email = trim($_POST['email'] ?? '');
 
-        // Anti-enumeration: sempre redirecionar com msg=ok
+        // Anti-enumeration: sempre responder sucesso para o frontend
         if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            header('Location: ../../frontend/pages/recuperacao-senha.html?msg=ok');
+            jsonResponse(['success' => true]); 
             exit;
         }
 
@@ -55,11 +55,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $link = $baseUrl . '/frontend/pages/redefinicao-senha.html?token=' . urlencode($token);
 
-            // TODO: enviar por email via PHPMailer
+            // TODO: Enviar via PHPMailer
             error_log("[recover] Link de recuperação para {$email}: {$link}");
         }
 
-        header('Location: ../../frontend/pages/recuperacao-senha.html?msg=ok');
+        jsonResponse(['success' => true]);
         exit;
     }
 
@@ -67,12 +67,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($acao === 'redefinir_senha') {
 
         if (!validateCsrfToken($_POST['csrf'] ?? '')) {
-            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('Token de segurança inválido.'));
+            jsonResponse(['success' => false, 'message' => 'Token de segurança inválido.'], 403);
             exit;
         }
 
         if (!checkRateLimit($pdo, $ip, 'reset_password', 5, 10)) {
-            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('Muitas tentativas. Tente novamente em 10 minutos.'));
+            jsonResponse(['success' => false, 'message' => 'Muitas tentativas.'], 429);
             exit;
         }
 
@@ -80,12 +80,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $novaSenha = $_POST['nova_senha'] ?? '';
 
         if (!$token || !$novaSenha) {
-            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('Dados inválidos.'));
+            jsonResponse(['success' => false, 'message' => 'Dados inválidos.'], 400);
             exit;
         }
 
         if (!preg_match('/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}/', $novaSenha)) {
-            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('A senha não atende aos requisitos mínimos.'));
+            jsonResponse(['success' => false, 'message' => 'A senha não atende aos requisitos.'], 400);
             exit;
         }
 
@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tokenData = $stmt->fetch();
 
         if (!$tokenData) {
-            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('Link inválido ou expirado.'));
+            jsonResponse(['success' => false, 'message' => 'Link inválido ou expirado.'], 400);
             exit;
         }
 
@@ -113,12 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare('UPDATE tokens SET used_at = NOW() WHERE id = :id');
         $stmt->execute(['id' => $tokenData['id']]);
 
-<<<<<<< HEAD
+        // VERSÃO HEAD: Retorna JSON para o fetch do JavaScript tratar
         jsonResponse(['success' => true]);
-        
-=======
-        header('Location: ../../frontend/pages/login.html?reset=success');
         exit;
->>>>>>> origin/develop
     }
 }
