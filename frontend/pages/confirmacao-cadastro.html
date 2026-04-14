@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SNGuard — Confirme seu Cadastro</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="logo-texto">SNGuard</a>
+    <nav>
+      <a href="busca.html">Busca Pública</a> |
+      <a href="login.html">Login</a> |
+      <a href="cadastro-usuario.html">Cadastrar-se</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="confirmacao-section" class="container">
+
+      <div id="estado-aguardando">
+        <div class="card">
+          <div class="icon">📩</div>
+          <h1>Verifique seu e-mail</h1>
+          <p id="email-info">
+            Enviamos um link de confirmação para o seu e-mail.
+          </p>
+          <p>O link expira em 24 horas.</p>
+
+          <button id="btn-reenviar">Reenviar e-mail</button>
+
+          <p class="link">
+            <a href="cadastro-usuario.html">Usar outro e-mail</a>
+          </p>
+        </div>
+      </div>
+
+      <div id="estado-sucesso" style="display:none;">
+        <div class="card">
+          <div class="icon success">✅</div>
+          <h1>Conta confirmada com sucesso!</h1>
+          <p>Agora você já pode acessar sua conta.</p>
+
+          <a href="login.html" class="btn">Ir para o Login</a>
+        </div>
+      </div>
+
+      <div id="estado-erro" style="display:none;">
+        <div class="card">
+          <div class="icon error">⚠️</div>
+          <h1>Link inválido ou expirado</h1>
+          <p>Solicite um novo link informando seu e-mail abaixo.</p>
+
+          <form id="form-reenvio">
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="Seu e-mail"
+              required
+            >
+            <button type="submit">Reenviar link</button>
+          </form>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>
+        <a href="#">Política de Privacidade</a> |
+        <a href="#">Termos de Uso</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="../js/validacoes.js" defer></script>
+  <script src="../js/main.js" defer></script>
+
+</body>
+</html>

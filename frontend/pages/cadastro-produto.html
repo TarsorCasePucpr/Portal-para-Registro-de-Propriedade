@@ -1,3 +1,11 @@
+<?php
+session_start();
+if (empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+$_csrf = $_SESSION['csrf'];
+session_write_close();
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,96 +16,213 @@
 </head>
 <body>
 
-  <!-- ===== CABEÇALHO / NAV AUTENTICADO ===== -->
   <header>
-    <!-- TODO: Logo SNGuard + nav autenticado: Dashboard | Novo Produto | Perfil | Sair -->
-    <!-- TODO: JS deve verificar sessão; se não logado, redirecionar para login.html -->
+    <a href="dashboard.html" class="logo-texto">SNGuard</a>
+    <nav>
+      <a href="cadastro-produto.html">Novo Produto</a> |
+      <a href="busca.html">Busca Pública</a> |
+      <a href="meus-dados.html">Meu Perfil</a> |
+      <a href="#" id="btn-logout">Sair</a>
+    </nav>
   </header>
 
   <main>
     <section id="cadastro-produto-section">
-      <h1>Registrar novo produto</h1>
 
-      <!--
-        FORMULÁRIO DE CADASTRO DE PRODUTO
-        action → backend/produto/cadastrar.php (POST)
+      <h1 style="text-align:center; margin-bottom:1.75rem;">Registrar novo produto</h1>
 
-        Segurança:
-          - Rota protegida: backend/middleware/auth_guard.php verifica $_SESSION
-          - CSRF token obrigatório
-          - Vinculação automática: user_id vem da $_SESSION, NUNCA do formulário
-          - Número de série: sanitizar com htmlspecialchars + trim
-          - Upload de imagem (NF-e): validar MIME type real com finfo_file(), não extensão
-            Tipos permitidos: image/jpeg, image/png, application/pdf
-            Tamanho máximo: 5MB; armazenar fora do webroot
-          - Rate limiting: máx. 10 cadastros / hora por usuário
+      <form id="form-produto" novalidate
+            action="../../backend/produto/cadastrar.php" method="POST"
+            style="background:var(--branco); border:1px solid var(--borda); border-radius:var(--raio); box-shadow:var(--sombra-md); padding:2rem; max-width:500px; margin:0 auto; display:flex; flex-direction:column; gap:1rem;">
 
-        LGPD — Art. 9 (Transparência):
-          Informar que os dados do produto são vinculados ao CPF do usuário
-          e que o STATUS do produto (mas não dados pessoais) será público na busca.
-        LGPD — Art. 18, VI (Exclusão de dados):
-          Usuário pode excluir produtos via dashboard (soft delete — objects.deleted_at).
-      -->
-      <form id="form-produto" action="../../backend/produto/cadastrar.php"
-            method="POST" enctype="multipart/form-data" novalidate>
-        <!-- TODO: <input type="hidden" name="csrf" value="[gerado pelo PHP]"> -->
+        <input type="hidden" id="csrf-produto" name="csrf" value="<?= htmlspecialchars($_csrf, ENT_QUOTES, 'UTF-8') ?>">
 
-        <!-- TODO: Input nome do produto -->
-        <!-- <label for="nome-produto">Nome do produto</label>
-             <input type="text" id="nome-produto" name="nome_produto"
-                    required maxlength="200" placeholder="Ex: Notebook Dell Inspiron 15"> -->
+        <div class="campo">
+          <label for="descricao">Descrição do produto <span style="color:var(--danger)">*</span></label>
+          <textarea
+            id="descricao"
+            name="descricao"
+            maxlength="500"
+            required
+            placeholder="Ex: Notebook Dell XPS 15, preto, 16GB RAM, SSD 512GB..."
+          ></textarea>
+          <small id="contador-descricao">0 / 500 caracteres</small>
+          <span id="erro-descricao" class="erro" role="alert"></span>
+        </div>
 
-        <!-- TODO: Select categoria (ver lista completa no README.md) -->
-        <!-- <label for="categoria">Categoria</label>
-             <select id="categoria" name="categoria" required>
-               <option value="">Selecione...</option>
-               <option value="eletronico">Eletrônico</option>
-               <option value="transporte">Transporte</option>
-               <option value="ferramenta">Ferramenta</option>
-               <option value="instrumento">Instrumento Musical</option>
-               <option value="esporte">Esporte e Lazer</option>
-               <option value="joia">Joia e Relógio</option>
-               <option value="outro">Outro</option>
-             </select> -->
+        <div class="campo">
+          <label for="serial">Número de série <span style="color:var(--danger)">*</span></label>
+          <input
+            type="text"
+            id="serial"
+            name="serial_number"
+            maxlength="100"
+            required
+            autocomplete="off"
+            placeholder="Ex: SN1234567890"
+          >
+          <small>Encontrado na embalagem, etiqueta traseira ou nas configurações do dispositivo.</small>
+          <span id="erro-serial" class="erro" role="alert"></span>
+        </div>
 
-        <!-- TODO: Input número de série (S/N) -->
-        <!-- <label for="serial">Número de série (S/N)</label>
-             <input type="text" id="serial" name="serial_number"
-                    required maxlength="100" placeholder="Número de série do produto"
-                    pattern="[A-Za-z0-9\-\.]{3,100}">
-             <small>Encontrado na embalagem, nota fiscal ou na parte traseira do produto</small> -->
+        <div class="campo">
+          <label for="data-compra">Data de compra</label>
+          <input
+            type="date"
+            id="data-compra"
+            name="data_compra"
+            max=""
+          >
+          <span id="erro-data" class="erro" role="alert"></span>
+        </div>
 
-        <!-- TODO: Campo chave NF-e (validação de propriedade) -->
-        <!-- <label for="nfe-chave">Chave de acesso NF-e (recomendado)</label>
-             <input type="text" id="nfe-chave" name="nfe_chave"
-                    maxlength="44" minlength="44" inputmode="numeric"
-                    pattern="[0-9]{44}" placeholder="44 dígitos da nota fiscal">
-             <button type="button" id="btn-validar-nfe">Validar NF-e</button>
-             <div id="resultado-nfe" aria-live="polite"></div> -->
+        <div class="campo">
+          <label for="nfe-chave">Chave da Nota Fiscal (opcional)</label>
+          <input
+            type="text"
+            id="nfe-chave"
+            name="nfe_chave"
+            maxlength="44"
+            inputmode="numeric"
+            autocomplete="off"
+            placeholder="44 dígitos numéricos"
+            style="font-family:monospace; letter-spacing:.05em;"
+          >
+          <small>Informar a chave NF-e aumenta o score de confiabilidade do seu registro.</small>
+          <span id="erro-nfe" class="erro" role="alert"></span>
+        </div>
 
-        <!-- TODO: Upload comprovante (imagem ou PDF) -->
-        <!-- <label for="comprovante">Comprovante de compra (opcional)</label>
-             <input type="file" id="comprovante" name="comprovante"
-                    accept=".jpg,.jpeg,.png,.pdf">
-             <small>Máx. 5MB. Formatos: JPG, PNG ou PDF</small> -->
+        <div class="declaracao-legal">
+          <p>
+            <strong style="color:var(--warn);">⚠ Declaração de responsabilidade</strong><br><br>
+            Declaro que sou o <strong>legítimo primeiro proprietário</strong> do produto acima
+            descrito e que as informações prestadas são verdadeiras. Estou ciente de que o
+            cadastro de produto roubado, furtado ou obtido de forma irregular constitui crime
+            e sujeita o responsável às penalidades previstas em lei, incluindo a exclusão da
+            conta e comunicação às autoridades competentes.
+          </p>
+        </div>
 
-        <!-- TODO: Textarea descrição adicional -->
-        <!-- <label for="descricao">Descrição (opcional)</label>
-             <textarea id="descricao" name="descricao" maxlength="500"
-                       placeholder="Cor, modelo exato, características especiais..."></textarea> -->
+        <div class="campo-check">
+          <input type="checkbox" id="aceite-termos" name="aceite_termos" value="1" required>
+          <label for="aceite-termos">
+            Eu li e concordo com a declaração de responsabilidade acima e com os
+            <a href="termo_de_uso.html" target="_blank">Termos de Uso</a>.
+          </label>
+        </div>
+        <span id="erro-termos" class="erro" role="alert"></span>
 
-        <!-- TODO: Botão submit -->
-        <!-- <button type="submit">Registrar produto</button> -->
-        <!-- TODO: Botão cancelar → dashboard.html -->
+        <div class="alert alert-info" style="margin-bottom:1rem;">
+          <strong>Visibilidade:</strong> o status do produto (registrado / alerta) será
+          acessível publicamente pela busca de número de série. Seus dados pessoais
+          nunca serão exibidos.
+        </div>
+
+        <button type="submit" id="btn-cadastrar-produto" disabled>
+          Registrar produto
+        </button>
+
+        <div id="msg-cadastro" role="alert" aria-live="polite" style="margin-top:.75rem; font-size:.875rem; text-align:center;"></div>
+
       </form>
+
     </section>
   </main>
 
   <footer>
-    <!-- TODO: Links: Política de Privacidade | Termos de Uso -->
+    <a href="politica_privavidade.html">Política de Privacidade</a>
+    <a href="termo_de_uso.html">Termos de Uso</a>
   </footer>
 
   <script src="../js/validacoes.js" defer></script>
   <script src="../js/main.js" defer></script>
+  <script defer>
+  (function () {
+
+    document.getElementById('data-compra').max = new Date().toISOString().split('T')[0];
+
+    const txtDescricao = document.getElementById('descricao');
+    const contadorEl   = document.getElementById('contador-descricao');
+    txtDescricao.addEventListener('input', function () {
+      contadorEl.textContent = this.value.length + ' / 500 caracteres';
+    });
+
+    document.getElementById('aceite-termos').addEventListener('change', function () {
+      document.getElementById('btn-cadastrar-produto').disabled = !this.checked;
+    });
+
+    document.getElementById('form-produto').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      let valido = true;
+
+      const descricao = txtDescricao.value.trim();
+      const serial    = document.getElementById('serial').value.trim();
+      const aceite    = document.getElementById('aceite-termos').checked;
+      const btn       = document.getElementById('btn-cadastrar-produto');
+      const msgEl     = document.getElementById('msg-cadastro');
+
+      ['erro-descricao', 'erro-serial', 'erro-termos', 'erro-nfe'].forEach(id => {
+        document.getElementById(id).textContent = '';
+      });
+      msgEl.textContent = '';
+
+      if (!descricao || descricao.length < 5) {
+        document.getElementById('erro-descricao').textContent = 'Descreva o produto (mín. 5 caracteres).';
+        valido = false;
+      }
+      if (!serial || serial.length < 3) {
+        document.getElementById('erro-serial').textContent = 'Informe o número de série.';
+        valido = false;
+      }
+
+      const nfeChave = document.getElementById('nfe-chave').value.replace(/\D/g, '');
+      if (nfeChave.length > 0 && nfeChave.length !== 44) {
+        document.getElementById('erro-nfe').textContent = 'A chave NF-e deve ter exatamente 44 dígitos ou ficar em branco.';
+        valido = false;
+      }
+
+      if (!aceite) {
+        document.getElementById('erro-termos').textContent = 'Você deve aceitar a declaração de responsabilidade.';
+        valido = false;
+      }
+
+      if (!valido) return;
+
+      btn.disabled    = true;
+      btn.textContent = 'Registrando...';
+
+      try {
+        const fd   = new FormData(this);
+        const res  = await fetch('../../backend/produto/cadastrar.php', { method: 'POST', body: fd });
+        const data = await res.json();
+
+        if (data.success) {
+          msgEl.style.color = 'var(--primary)';
+          msgEl.textContent = 'Produto registrado com sucesso! Redirecionando...';
+          setTimeout(() => { window.location.href = 'dashboard.html'; }, 1800);
+        } else {
+          msgEl.style.color = 'var(--danger)';
+          msgEl.textContent = data.error || 'Erro ao registrar. Tente novamente.';
+          btn.disabled    = false;
+          btn.textContent = 'Registrar produto';
+        }
+      } catch (_) {
+        msgEl.style.color = 'var(--danger)';
+        msgEl.textContent = 'Erro de conexão. Tente novamente.';
+        btn.disabled    = false;
+        btn.textContent = 'Registrar produto';
+      }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', function (e) {
+      e.preventDefault();
+      const csrf = document.getElementById('csrf-produto').value;
+      window.location.href = '../../backend/auth/logout.php?csrf=' + encodeURIComponent(csrf);
+    });
+
+  })();
+  </script>
+
 </body>
 </html>

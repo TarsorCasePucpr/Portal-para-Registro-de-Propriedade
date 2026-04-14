@@ -1,17 +1,131 @@
 <?php
 declare(strict_types=1);
+require_once "../middleware/csrf.php";
+require_once "../middleware/rate_limiter.php";
+require_once "../config/db.php";
+require_once "../utils/hash.php";
+require_once "../utils/response.php";
+require_once "../utils/mailer.php";
+require_once "../utils/validadores.php";
 
-// recover.php — Recuperação de senha (duas etapas)
-//
-// Etapa 1 — Solicitar link:
-//   1. Verificar token CSRF e limite de requisições por IP
-//   2. Buscar o usuário pelo e-mail — mas sempre responder de forma genérica, exista ou não
-//   3. Gerar token seguro, armazenar apenas o hash no banco e enviar o valor original por e-mail
-//   4. Definir prazo de expiração curto (1 hora)
-//
-// Etapa 2 — Redefinir senha:
-//   1. Verificar token CSRF
-//   2. Ler o token da URL, calcular o hash e comparar com o banco de forma segura
-//   3. Verificar prazo de validade e se ainda não foi usado
-//   4. A nova senha deve ser armazenada como hash bcrypt — nunca em texto plano
-//   5. Marcar o token como usado após a alteração
+startSessionSafe();
+
+$pdo = getDb();
+$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+$baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+         . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $acao = $_POST['acao'] ?? '';
+
+    if ($acao === 'solicitar_link') {
+
+        if (!validateCsrfToken($_POST['csrf'] ?? '')) {
+            header('Location: ../../frontend/pages/recuperacao-senha.html?erro=' . urlencode('Token de segurança inválido.'));
+            exit;
+        }
+
+        if (!checkRateLimit($pdo, $ip, 'recover', 3, 15)) {
+            header('Location: ../../frontend/pages/recuperacao-senha.html?erro=' . urlencode('Muitas tentativas. Aguarde 15 minutos.'));
+            exit;
+        }
+
+        $email = trim($_POST['email'] ?? '');
+
+        if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            header('Location: ../../frontend/pages/recuperacao-senha.html?msg=ok');
+            exit;
+        }
+
+        $stmt = $pdo->prepare('SELECT id, name FROM users WHERE email = :email AND deleted_at IS NULL LIMIT 1');
+        $stmt->execute(['email' => $email]);
+        $user = $stmt->fetch();
+
+        if ($user) {
+            $token     = bin2hex(random_bytes(32));
+            $tokenHash = hash('sha256', $token);
+
+            $stmt = $pdo->prepare(
+                "INSERT INTO tokens (user_id, token_hash, type, expires_at)
+                 VALUES (:user_id, :hash, 'recovery', DATE_ADD(NOW(), INTERVAL 1 HOUR))"
+            );
+            $stmt->execute(['user_id' => $user['id'], 'hash' => $tokenHash]);
+
+            $link = $baseUrl . '/frontend/pages/redefinicao-senha.html?token=' . urlencode($token);
+
+            try {
+                enviarEmail(
+                    destinatario: $email,
+                    nome:         $user['name'],
+                    assunto:      'SNGuard — Redefinição de senha',
+                    corpo:        "Olá, {$user['name']}!\n\n" .
+                                  "Recebemos uma solicitação para redefinir a senha da sua conta.\n\n" .
+                                  "Clique no link abaixo para criar uma nova senha (válido por 1 hora):\n\n" .
+                                  "{$link}\n\n" .
+                                  "Se você não solicitou isso, ignore esta mensagem — sua senha permanece a mesma.\n\n" .
+                                  "— Equipe SNGuard"
+                );
+            } catch (Throwable $e) {
+                error_log('[recover] Falha ao enviar email para ' . $email . ': ' . $e->getMessage());
+            }
+        }
+
+        header('Location: ../../frontend/pages/recuperacao-senha.html?msg=ok');
+        exit;
+    }
+
+    if ($acao === 'redefinir_senha') {
+
+        if (!validateCsrfToken($_POST['csrf'] ?? '')) {
+            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('Token de segurança inválido.'));
+            exit;
+        }
+
+        if (!checkRateLimit($pdo, $ip, 'reset_password', 5, 10)) {
+            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('Muitas tentativas. Tente novamente em 10 minutos.'));
+            exit;
+        }
+
+        $token     = $_POST['token']     ?? '';
+        $novaSenha = $_POST['nova_senha'] ?? '';
+
+        if (!$token || !$novaSenha) {
+            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('Dados inválidos.'));
+            exit;
+        }
+
+        if (!validarSenhaForte($novaSenha)) {
+            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('A senha não atende aos requisitos mínimos.'));
+            exit;
+        }
+
+        $tokenHash = hash('sha256', $token);
+
+        $stmt = $pdo->prepare(
+            "SELECT * FROM tokens
+             WHERE token_hash = :hash
+               AND type = 'recovery'
+               AND used_at IS NULL
+               AND expires_at > NOW()
+             LIMIT 1"
+        );
+        $stmt->execute(['hash' => $tokenHash]);
+        $tokenData = $stmt->fetch();
+
+        if (!$tokenData) {
+            header('Location: ../../frontend/pages/redefinicao-senha.html?erro=' . urlencode('Link inválido ou expirado.'));
+            exit;
+        }
+
+        $stmt = $pdo->prepare('UPDATE users SET password_hash = :senha WHERE id = :id');
+        $stmt->execute(['senha' => hashPassword($novaSenha), 'id' => $tokenData['user_id']]);
+
+        $stmt = $pdo->prepare('UPDATE tokens SET used_at = NOW() WHERE id = :id');
+        $stmt->execute(['id' => $tokenData['id']]);
+
+        header('Location: ../../frontend/pages/login.html?reset=success');
+        exit;
+    }
+}

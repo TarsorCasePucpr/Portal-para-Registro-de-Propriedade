@@ -1,0 +1,311 @@
+<?php
+session_start();
+if (empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+$_csrf = $_SESSION['csrf'];
+session_write_close();
+?>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SNGuard — Meu Perfil</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <header>
+    <a href="dashboard.html" class="logo-texto">SNGuard</a>
+    <nav>
+      <a href="cadastro-produto.html">Novo Produto</a> |
+      <a href="busca.html">Busca Pública</a> |
+      <a href="meus-dados.html">Meu Perfil</a> |
+      <a href="#" id="btn-logout">Sair</a>
+    </nav>
+  </header>
+
+  <main>
+    <section style="max-width: 500px; margin: 0 auto;">
+
+      <h1>Meu Perfil</h1>
+
+      <div id="msg-global" class="erro" role="alert" aria-live="polite" style="margin: 1rem 0;"></div>
+
+      <h2 style="margin-top: 1.5rem;">Informações da conta</h2>
+
+      <table style="width:100%; border-collapse:collapse; margin: .75rem 0 1.5rem; font-size:.95rem;">
+        <tr><td style="padding:.4rem 0; color:var(--texto-leve); width:130px;">Nome</td><td id="info-nome">—</td></tr>
+        <tr><td style="padding:.4rem 0; color:var(--texto-leve);">E-mail</td><td id="info-email">—</td></tr>
+        <tr><td style="padding:.4rem 0; color:var(--texto-leve);">CPF</td><td id="info-cpf">—</td></tr>
+        <tr><td style="padding:.4rem 0; color:var(--texto-leve);">Membro desde</td><td id="info-desde">—</td></tr>
+      </table>
+
+      <h2>Alterar nome</h2>
+
+      <form id="form-nome" novalidate style="margin-top:.75rem;">
+        <input type="hidden" id="csrf-nome" name="csrf" value="<?= htmlspecialchars($_csrf, ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="acao" value="atualizar_nome">
+
+        <div class="campo">
+          <label for="novo-nome">Novo nome</label>
+          <input type="text" id="novo-nome" name="nome" maxlength="100"
+                 autocomplete="name" placeholder="Seu nome completo">
+          <span id="erro-nome" class="erro" role="alert"></span>
+        </div>
+
+        <button type="submit" id="btn-salvar-nome">Salvar nome</button>
+        <div id="msg-nome" role="alert" aria-live="polite" style="margin-top:.5rem; font-size:.875rem;"></div>
+      </form>
+
+      <h2 style="margin-top: 1.75rem;">Alterar senha</h2>
+
+      <form id="form-senha" novalidate style="margin-top:.75rem;">
+        <input type="hidden" id="csrf-senha" name="csrf" value="<?= htmlspecialchars($_csrf, ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="acao" value="atualizar_senha">
+
+        <div class="campo">
+          <label for="senha-atual">Senha atual</label>
+          <input type="password" id="senha-atual" name="senha_atual"
+                 maxlength="255" autocomplete="current-password"
+                 placeholder="Sua senha atual">
+          <span id="erro-senha-atual" class="erro" role="alert"></span>
+        </div>
+
+        <div class="campo">
+          <label for="nova-senha">Nova senha</label>
+          <div class="campo-senha">
+            <input type="password" id="nova-senha" name="nova_senha"
+                   maxlength="255" autocomplete="new-password"
+                   placeholder="Mínimo 12 caracteres">
+            <button type="button" id="toggle-nova-senha" aria-label="Mostrar senha">Mostrar</button>
+          </div>
+          <small>Mín. 12 caracteres: maiúscula, minúscula, número e símbolo.</small>
+          <div id="forca-senha-perfil" aria-live="polite" style="font-size:.82rem; margin-top:.25rem;"></div>
+          <span id="erro-nova-senha" class="erro" role="alert"></span>
+        </div>
+
+        <div class="campo">
+          <label for="confirmar-nova-senha">Confirmar nova senha</label>
+          <input type="password" id="confirmar-nova-senha" name="confirmar_senha"
+                 maxlength="255" autocomplete="new-password"
+                 placeholder="Repita a nova senha">
+          <span id="erro-confirmar-senha" class="erro" role="alert"></span>
+        </div>
+
+        <button type="submit" id="btn-salvar-senha">Alterar senha</button>
+        <div id="msg-senha" role="alert" aria-live="polite" style="margin-top:.5rem; font-size:.875rem;"></div>
+      </form>
+
+      <h2 style="margin-top: 1.75rem;">Autenticação em dois fatores (2FA)</h2>
+
+      <div style="margin-top:.75rem;">
+        <p>Status: <span id="info-mfa">—</span></p>
+        <div id="bloco-ativar-mfa" hidden style="margin-top:.75rem;">
+          <p style="font-size:.9rem; color:var(--texto-leve); margin-bottom:.75rem;">
+            O 2FA adiciona uma camada extra de segurança. Após ativar, você precisará
+            de um app autenticador (Google Authenticator, Authy) ao fazer login.
+          </p>
+          <a href="configurar-mfa.html" class="btn-secundario" style="font-size:.875rem;">Ativar 2FA</a>
+        </div>
+        <div id="bloco-mfa-ativo" hidden style="margin-top:.5rem;">
+          <small>2FA está ativo. Para desativar, entre em contato com o suporte.</small>
+        </div>
+      </div>
+
+      <h2 style="margin-top: 1.75rem; color: var(--erro);">Excluir conta</h2>
+
+      <p style="font-size:.9rem; color:var(--texto-leve); margin:.5rem 0 .75rem;">
+        Em conformidade com a LGPD (Art. 18, VI), você pode solicitar a exclusão
+        completa dos seus dados. A conta será removida após 30 dias.
+      </p>
+      <a href="exclusao-conta.html"
+         style="display:inline-block; padding:.5rem 1.25rem; border:1.5px solid var(--erro);
+                color:var(--erro); border-radius:4px; font-size:.875rem; font-weight:600;
+                text-decoration:none;">
+        Solicitar exclusão de conta
+      </a>
+
+    </section>
+  </main>
+
+  <footer>
+    <a href="politica_privavidade.html">Política de Privacidade</a>
+    <a href="termo_de_uso.html">Termos de Uso</a>
+  </footer>
+
+  <script defer>
+  (function () {
+
+    const csrfInicial = document.getElementById('csrf-nome').value;
+
+    function refreshCsrf() {
+      return fetch('../../backend/auth/get_csrf.php')
+        .then(r => r.json())
+        .then(d => {
+          if (d.csrf) {
+            document.getElementById('csrf-nome').value  = d.csrf;
+            document.getElementById('csrf-senha').value = d.csrf;
+          }
+        });
+    }
+
+    function carregarPerfil() {
+      fetch('../../backend/auth/meus_dados.php')
+        .then(r => {
+          if (r.status === 401) { window.location.href = 'login.html'; return null; }
+          return r.json();
+        })
+        .then(data => {
+          if (!data || !data.success) return;
+          const u = data.usuario;
+          document.getElementById('info-nome').textContent  = u.name          || '—';
+          document.getElementById('info-email').textContent = u.email         || '—';
+          document.getElementById('info-cpf').textContent   = u.cpf_mascarado || '—';
+          document.getElementById('info-desde').textContent = u.membro_desde  || '—';
+          document.getElementById('novo-nome').value        = u.name          || '';
+
+          const mfaEl = document.getElementById('info-mfa');
+          if (u.mfa_enabled) {
+            mfaEl.innerHTML = '<span class="badge badge-verde">Ativado</span>';
+            document.getElementById('bloco-mfa-ativo').hidden = false;
+          } else {
+            mfaEl.innerHTML = '<span class="badge badge-cinza">Desativado</span>';
+            document.getElementById('bloco-ativar-mfa').hidden = false;
+          }
+        })
+        .catch(() => {
+          document.getElementById('msg-global').textContent = 'Erro ao carregar seus dados. Recarregue a página.';
+        });
+    }
+
+    const novaSenhaInput = document.getElementById('nova-senha');
+    novaSenhaInput.addEventListener('input', function () {
+      const forca = document.getElementById('forca-senha-perfil');
+      const v = this.value;
+      if (!v) { forca.textContent = ''; return; }
+      let pts = 0;
+      if (v.length >= 12)           pts++;
+      if (/[a-z]/.test(v))          pts++;
+      if (/[A-Z]/.test(v))          pts++;
+      if (/\d/.test(v))             pts++;
+      if (/[^a-zA-Z0-9]/.test(v))   pts++;
+      const niveis = ['', 'Muito fraca', 'Fraca', 'Média', 'Boa', 'Forte'];
+      const cores  = ['', '#dc2626', '#f59e0b', '#f59e0b', '#16a34a', '#15803d'];
+      forca.textContent = 'Força: ' + (niveis[pts] || 'Forte');
+      forca.style.color = cores[Math.min(pts, 5)] || '';
+    });
+
+    const toggleNovaSenha = document.getElementById('toggle-nova-senha');
+    toggleNovaSenha.addEventListener('click', function () {
+      const visivel = novaSenhaInput.type === 'text';
+      novaSenhaInput.type = visivel ? 'password' : 'text';
+      this.textContent = visivel ? 'Mostrar' : 'Ocultar';
+    });
+
+    document.getElementById('form-nome').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const nome   = document.getElementById('novo-nome').value.trim();
+      const erroEl = document.getElementById('erro-nome');
+      const msgEl  = document.getElementById('msg-nome');
+      const btn    = document.getElementById('btn-salvar-nome');
+
+      erroEl.textContent = '';
+      msgEl.textContent  = '';
+
+      if (nome.length < 3 || nome.length > 100) {
+        erroEl.textContent = 'Nome deve ter entre 3 e 100 caracteres.';
+        return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Salvando...';
+
+      try {
+        const fd  = new FormData(this);
+        const res = await fetch('../../backend/auth/meus_dados.php', { method: 'POST', body: fd });
+        const d   = await res.json();
+        if (d.success) {
+          msgEl.style.color = 'var(--sucesso)';
+          msgEl.textContent = 'Nome atualizado com sucesso.';
+          document.getElementById('info-nome').textContent = nome;
+          await refreshCsrf();
+        } else {
+          msgEl.style.color = 'var(--erro)';
+          msgEl.textContent = d.error || 'Erro ao atualizar.';
+        }
+      } catch (_) {
+        msgEl.style.color = 'var(--erro)';
+        msgEl.textContent = 'Erro de conexão. Tente novamente.';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Salvar nome';
+      }
+    });
+
+    document.getElementById('form-senha').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const senhaAtual = document.getElementById('senha-atual').value;
+      const novaSenha  = document.getElementById('nova-senha').value;
+      const confirmar  = document.getElementById('confirmar-nova-senha').value;
+      const msgEl      = document.getElementById('msg-senha');
+      const btn        = document.getElementById('btn-salvar-senha');
+
+      ['erro-senha-atual', 'erro-nova-senha', 'erro-confirmar-senha'].forEach(id => {
+        document.getElementById(id).textContent = '';
+      });
+      msgEl.textContent = '';
+
+      let valido = true;
+
+      if (!senhaAtual) {
+        document.getElementById('erro-senha-atual').textContent = 'Informe sua senha atual.';
+        valido = false;
+      }
+      if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{12,}$/.test(novaSenha)) {
+        document.getElementById('erro-nova-senha').textContent =
+          'Senha fraca. Use mín. 12 caracteres com maiúscula, minúscula, número e símbolo.';
+        valido = false;
+      }
+      if (novaSenha !== confirmar) {
+        document.getElementById('erro-confirmar-senha').textContent = 'As senhas não coincidem.';
+        valido = false;
+      }
+      if (!valido) return;
+
+      btn.disabled = true; btn.textContent = 'Alterando...';
+
+      try {
+        const fd  = new FormData(this);
+        const res = await fetch('../../backend/auth/meus_dados.php', { method: 'POST', body: fd });
+        const d   = await res.json();
+        if (d.success) {
+          msgEl.style.color = 'var(--sucesso)';
+          msgEl.textContent = 'Senha alterada com sucesso.';
+          this.reset();
+          document.getElementById('forca-senha-perfil').textContent = '';
+          await refreshCsrf();
+        } else {
+          msgEl.style.color = 'var(--erro)';
+          msgEl.textContent = d.error || 'Erro ao alterar senha.';
+        }
+      } catch (_) {
+        msgEl.style.color = 'var(--erro)';
+        msgEl.textContent = 'Erro de conexão. Tente novamente.';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Alterar senha';
+      }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', function (e) {
+      e.preventDefault();
+      const csrf = document.getElementById('csrf-nome').value || csrfInicial;
+      window.location.href = '../../backend/auth/logout.php?csrf=' + encodeURIComponent(csrf);
+    });
+
+    carregarPerfil();
+
+  })();
+  </script>
+
+</body>
+</html>

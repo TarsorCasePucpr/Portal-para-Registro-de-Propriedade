@@ -8,84 +8,248 @@
 </head>
 <body>
 
-  <!-- ===== CABEÇALHO ===== -->
   <header>
-    <!-- TODO: Logo SNGuard -->
+    <a href="index.html" class="logo-texto">SNGuard</a>
+    <nav>
+      <a href="busca.html">Busca Pública</a> |
+      <a href="login.html">Login</a> |
+      <a href="cadastro-usuario.html">Cadastrar-se</a>
+    </nav>
   </header>
 
   <main>
-    <section id="redefinicao-section">
-      <h1>Criar nova senha</h1>
+    <section id="redef-section">
 
-      <!--
-        PASSO 2: Definir nova senha via link do e-mail
-        URL de acesso: /frontend/pages/redefinicao-senha.html?token=RAW_TOKEN
-        action → backend/auth/recover.php (POST) — ação: redefinir_senha
+      <div id="estado-token-invalido" hidden>
+        <div class="card" style="text-align:center; padding:2rem;">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.5" style="margin:0 auto .875rem;">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          </svg>
+          <h1 style="font-size:1.375rem; color:var(--danger); margin-bottom:.5rem;">Link inválido ou expirado</h1>
+          <p style="margin-bottom:1.5rem;">Este link de redefinição não é mais válido. Solicite um novo.</p>
+          <a href="recuperacao-senha.html" class="btn btn-primary" style="text-decoration:none; display:inline-flex; width:auto; padding:.625rem 1.5rem;">
+            Solicitar novo link
+          </a>
+        </div>
+      </div>
 
-        Fluxo:
-          1. PHP lê token da URL (?token=...)
-          2. PHP faz hash('sha256', $token) → busca na tabela tokens (tipo 'recovery')
-          3. Verifica: token existe + not used_at + expires_at > NOW()
-          4. Se válido: exibe formulário de nova senha
-          5. Se inválido: exibe erro e link para solicitar novo token
+      <div id="estado-formulario" hidden>
+        <h1>Criar nova senha</h1>
+        <p>Escolha uma senha forte para proteger sua conta.</p>
 
-        Segurança:
-          - Token raw NUNCA armazenado na DB — apenas hash SHA-256
-          - Comparação: hash_equals($storedHash, hash('sha256', $providedToken))
-          - Nova senha: password_hash($novaSenha, PASSWORD_BCRYPT, ['cost' => 13])
-          - Invalidar token após uso: UPDATE tokens SET used_at = NOW() WHERE ...
-          - Invalidar todas as sessões ativas do usuário após mudança de senha
-          - CSRF token obrigatório
-          - Rate limiting implícito pelo tempo de expiração do token (1 hora)
-
-        LGPD:
-          Nenhum dado pessoal adicional é coletado nesta etapa.
-      -->
-
-      <!-- Estado 1: Token válido — mostrar formulário -->
-      <div id="estado-formulario">
         <form id="form-nova-senha" action="../../backend/auth/recover.php" method="POST" novalidate>
-          <!-- TODO: <input type="hidden" name="csrf" value="[gerado pelo PHP]">
-                     <input type="hidden" name="acao" value="redefinir_senha">
-                     <input type="hidden" name="token" value="[token da URL, sanitizado]"> -->
+          <input type="hidden" name="acao" value="redefinir_senha">
+          <input type="hidden" name="token" id="campo-token">
+          <input type="hidden" id="csrf-redef" name="csrf">
 
-          <!-- TODO: Input nova senha com indicador de força -->
-          <!-- <label for="nova-senha">Nova senha</label>
-               <input type="password" id="nova-senha" name="nova_senha" required
-                      maxlength="255" autocomplete="new-password"
-                      pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}">
-               <div id="forca-senha">Fraca | Média | Forte</div>
-               <small>Mín. 12 caracteres, maiúscula, minúscula, número e símbolo</small> -->
+          <div class="campo">
+            <label for="nova-senha">Nova senha</label>
+            <div class="campo-senha">
+              <input
+                type="password"
+                id="nova-senha"
+                name="nova_senha"
+                required
+                maxlength="255"
+                autocomplete="new-password"
+                pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}"
+                placeholder="Mín. 12 caracteres"
+              >
+              <button type="button" class="toggle-senha" id="toggle-nova" aria-label="Mostrar senha">Mostrar</button>
+            </div>
+            <div id="forca-senha" aria-live="polite"></div>
+            <small>Mín. 12 caracteres · maiúscula · minúscula · número · símbolo (@$!%*?&)</small>
 
-          <!-- TODO: Input confirmar nova senha (validação só no JS — não enviado ao PHP) -->
-          <!-- <label for="confirmar-nova-senha">Confirmar nova senha</label>
-               <input type="password" id="confirmar-nova-senha" name="confirmar_nova_senha"
-                      required maxlength="255" autocomplete="new-password"> -->
+            <ul id="requisitos" style="list-style:none; margin-top:.5rem; display:flex; flex-direction:column; gap:.25rem;">
+              <li data-req="length"  class="req">✗ Mínimo 12 caracteres</li>
+              <li data-req="upper"   class="req">✗ Uma letra maiúscula</li>
+              <li data-req="lower"   class="req">✗ Uma letra minúscula</li>
+              <li data-req="number"  class="req">✗ Um número</li>
+              <li data-req="symbol"  class="req">✗ Um símbolo (@$!%*?&)</li>
+            </ul>
+          </div>
 
-          <!-- TODO: Botão submit -->
-          <!-- <button type="submit">Salvar nova senha</button> -->
+          <div class="campo">
+            <label for="confirmar-nova-senha">Confirmar nova senha</label>
+            <div class="campo-senha">
+              <input
+                type="password"
+                id="confirmar-nova-senha"
+                name="confirmar_nova_senha"
+                required
+                maxlength="255"
+                autocomplete="new-password"
+                placeholder="Repita a senha"
+              >
+              <button type="button" class="toggle-senha" id="toggle-confirmar" aria-label="Mostrar confirmação">Mostrar</button>
+            </div>
+            <span id="erro-senha" class="erro" role="alert"></span>
+          </div>
+
+          <button type="submit" id="btn-salvar">Salvar nova senha</button>
         </form>
       </div>
 
-      <!-- Estado 2: Token inválido / expirado -->
-      <div id="estado-token-invalido" style="display:none;">
-        <!-- TODO: "Link inválido ou expirado" -->
-        <!-- TODO: Botão "Solicitar novo link" → recuperacao-senha.html -->
+      <div id="estado-sucesso" hidden>
+        <div class="card" style="text-align:center; padding:2rem;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" style="margin:0 auto .875rem;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <h1 style="font-size:1.375rem; margin-bottom:.5rem;">Senha redefinida!</h1>
+          <p style="margin-bottom:1.5rem;">
+            Sua senha foi alterada com sucesso. Faça login com suas novas credenciais.
+          </p>
+          <a href="login.html" class="btn btn-primary" style="text-decoration:none; display:inline-flex; width:auto; padding:.625rem 1.5rem;">
+            Ir para o login
+          </a>
+        </div>
       </div>
 
-      <!-- Estado 3: Senha redefinida com sucesso -->
-      <div id="estado-sucesso" style="display:none;">
-        <!-- TODO: "Senha redefinida com sucesso!" -->
-        <!-- TODO: Botão "Ir para o Login" → login.html -->
-      </div>
     </section>
   </main>
 
   <footer>
-    <!-- TODO: Links: Política de Privacidade | Termos de Uso -->
+    <a href="politica_privavidade.html">Política de Privacidade</a>
+    <a href="termo_de_uso.html">Termos de Uso</a>
   </footer>
 
+  <style>
+    .req {
+      font-size: .8rem;
+      color: var(--text-dim);
+      transition: color .15s;
+    }
+    .req.ok {
+      color: var(--primary);
+    }
+    .req.ok::first-letter { content: '✓'; }
+  </style>
+
   <script src="../js/validacoes.js" defer></script>
-  <script src="../js/main.js" defer></script>
+  <script defer>
+  (function () {
+    const estadoInvalido   = document.getElementById('estado-token-invalido');
+    const estadoFormulario = document.getElementById('estado-formulario');
+    const estadoSucesso    = document.getElementById('estado-sucesso');
+
+    const params = new URLSearchParams(window.location.search);
+    const token  = params.get('token');
+
+    if (!token || token.trim() === '') {
+      estadoInvalido.hidden = false;
+      return;
+    }
+
+    document.getElementById('campo-token').value = token;
+    estadoFormulario.hidden = false;
+
+    fetch('../../backend/auth/get_csrf.php')
+      .then(r => r.json())
+      .then(d => { if (d.csrf) document.getElementById('csrf-redef').value = d.csrf; });
+
+    function setupToggle(btnId, inputId) {
+      const btn   = document.getElementById(btnId);
+      const input = document.getElementById(inputId);
+      if (!btn || !input) return;
+      btn.addEventListener('click', () => {
+        const vis = input.type === 'text';
+        input.type = vis ? 'password' : 'text';
+        btn.textContent = vis ? 'Mostrar' : 'Ocultar';
+      });
+    }
+    setupToggle('toggle-nova', 'nova-senha');
+    setupToggle('toggle-confirmar', 'confirmar-nova-senha');
+
+    const inputSenha = document.getElementById('nova-senha');
+    const forcaEl    = document.getElementById('forca-senha');
+    const reqs = {
+      length: document.querySelector('[data-req="length"]'),
+      upper:  document.querySelector('[data-req="upper"]'),
+      lower:  document.querySelector('[data-req="lower"]'),
+      number: document.querySelector('[data-req="number"]'),
+      symbol: document.querySelector('[data-req="symbol"]'),
+    };
+
+    function atualizarReq(el, ok) {
+      if (!el) return;
+      el.classList.toggle('ok', ok);
+      el.textContent = (ok ? '✓ ' : '✗ ') + el.textContent.slice(2);
+    }
+
+    inputSenha.addEventListener('input', function () {
+      const v = this.value;
+
+      const checks = {
+        length: v.length >= 12,
+        upper:  /[A-Z]/.test(v),
+        lower:  /[a-z]/.test(v),
+        number: /[0-9]/.test(v),
+        symbol: /[@$!%*?&]/.test(v),
+      };
+
+      Object.entries(checks).forEach(([k, ok]) => atualizarReq(reqs[k], ok));
+
+      if (!v) { forcaEl.textContent = ''; forcaEl.className = ''; return; }
+
+      if (typeof analisarForcaSenha === 'function') {
+        const r = analisarForcaSenha(v);
+        forcaEl.textContent = 'Força: ' + r.texto;
+        forcaEl.className   = 'forca-' + r.nivel;
+      }
+    });
+
+    document.getElementById('form-nova-senha').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const senha     = document.getElementById('nova-senha').value;
+      const confirmar = document.getElementById('confirmar-nova-senha').value;
+      const erroEl    = document.getElementById('erro-senha');
+      const btn       = document.getElementById('btn-salvar');
+
+      erroEl.textContent = '';
+
+      const valida = typeof senhaValida === 'function'
+        ? senhaValida(senha)
+        : senha.length >= 12 && /[a-z]/.test(senha) && /[A-Z]/.test(senha) && /[0-9]/.test(senha) && /[@$!%*?&]/.test(senha);
+
+      if (!valida) {
+        erroEl.textContent = 'A senha não atende a todos os requisitos.';
+        return;
+      }
+      if (senha !== confirmar) {
+        erroEl.textContent = 'As senhas não coincidem.';
+        return;
+      }
+
+      btn.disabled    = true;
+      btn.textContent = 'Salvando...';
+
+      try {
+        const fd = new FormData(this);
+        const res = await fetch('../../backend/auth/recover.php', { method: 'POST', body: fd });
+        const data = await res.json();
+
+        if (data.success) {
+          estadoFormulario.hidden = true;
+          estadoSucesso.hidden    = false;
+        } else if (data.token_invalido) {
+          estadoFormulario.hidden = true;
+          estadoInvalido.hidden   = false;
+        } else {
+          erroEl.textContent = data.error || 'Erro ao salvar. Tente novamente.';
+          btn.disabled    = false;
+          btn.textContent = 'Salvar nova senha';
+        }
+      } catch (_) {
+        erroEl.textContent = 'Erro de conexão. Tente novamente.';
+        btn.disabled    = false;
+        btn.textContent = 'Salvar nova senha';
+      }
+    });
+
+  })();
+  </script>
+
 </body>
 </html>

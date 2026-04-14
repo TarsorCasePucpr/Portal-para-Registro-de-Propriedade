@@ -3,84 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SNGuard — Autenticação em Dois Fatores</title>
+  <title>SNGuard — Verificação em Dois Fatores</title>
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    #codigo {
+      font-size: 1.5rem; letter-spacing: .5rem; text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .aviso-tentativas { font-size: .85rem; color: #b45309; margin-top: .4rem; }
+    .instrucao-totp {
+      background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
+      padding: .75rem 1rem; color: #1e40af; font-size: .875rem; margin-bottom: 1rem;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- ===== CABEÇALHO ===== -->
   <header>
-    <!-- TODO: Logo SNGuard -->
+    <a href="login.html" class="logo-texto">SNGuard</a>
+    <nav>
+      <a href="login.html">← Cancelar</a>
+    </nav>
   </header>
 
   <main>
     <section id="mfa-section">
       <h1>Verificação em dois fatores</h1>
 
-      <!--
-        FORMULÁRIO MFA — TOTP (preferido) ou Email OTP (fallback)
-        action → backend/auth/mfa.php (POST)
+      <div id="msg-servidor" role="alert" aria-live="polite"></div>
 
-        Fluxo:
-          1. login.php bem-sucedido → sessão parcial:
-             $_SESSION['mfa_pending'] = true, $_SESSION['user_id'] = $id
-          2. Usuário redirecionado para esta página
-          3. mfa.php valida código → completa sessão → redireciona ao dashboard
+      <div class="instrucao-totp">
+        Abra seu <strong>app autenticador</strong> (Google Authenticator, Authy ou similar)
+        e digite o código de 6 dígitos gerado para <strong>SNGuard</strong>.
+      </div>
 
-        Segurança:
-          - TOTP: PHPGangsta_GoogleAuthenticator (window=2: ±60s de tolerância)
-          - Email OTP: random_int(100000, 999999) → hash SHA-256, expira em 5 min
-            (NUNCA usar rand() — não é criptograficamente seguro)
-          - Rate limiting: máx. 3 tentativas / 10 min por IP
-          - Sessão MFA pendente expira em 5 min sem completar o segundo fator
-          - CSRF token obrigatório
-          - Implementar verificação de 2FA (Não e-mail como método primário)
-
-        LGPD — Art. 46 (Medidas de Segurança):
-          MFA é medida técnica de proteção de dados do titular.
-          O segredo TOTP (users.mfa_secret) deve ser criptografado em repouso.
-      -->
       <form id="form-mfa" action="../../backend/auth/mfa.php" method="POST" novalidate>
-        <!-- TODO: <input type="hidden" name="csrf" value="[gerado pelo PHP]"> -->
+        <input type="hidden" id="csrf" name="csrf">
 
-        <!-- TODO: Instrução dinâmica via PHP:
-             TOTP ativo  → "Digite o código de 6 dígitos do seu aplicativo autenticador"
-             Email OTP   → "Digite o código enviado para seu e-mail (expira em 5 min)" -->
+        <div class="campo">
+          <label for="codigo">Código de verificação</label>
+          <input
+            type="text"
+            id="codigo"
+            name="code"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            minlength="6"
+            autocomplete="one-time-code"
+            placeholder="000000"
+            required
+          >
+          <span id="msg-erro" class="erro" role="alert" aria-live="polite"></span>
+        </div>
 
-        <!-- TODO: Input código OTP (6 dígitos numéricos) -->
-        <!-- <label for="codigo">Código de verificação</label>
-             <input type="text" id="codigo" name="codigo"
-                    inputmode="numeric" pattern="[0-9]{6}"
-                    maxlength="6" minlength="6" required
-                    autocomplete="one-time-code"
-                    placeholder="000000"> -->
-
-        <!-- TODO: Botão submit -->
-        <!-- <button type="submit">Verificar</button> -->
-
-        <!-- TODO: Link "Usar e-mail como fallback" (se TOTP ativo) -->
-        <!-- TODO: Área de erro: "Código incorreto. X tentativas restantes." -->
+        <button type="submit" id="btn-verificar">Verificar</button>
+        <p class="aviso-tentativas">Máximo 3 tentativas por 10 minutos.</p>
       </form>
 
-      <!-- ===== CONFIGURAÇÃO TOTP (primeiro acesso) ===== -->
-      <!--
-        Exibida APENAS quando mfa_enabled = 0 e usuário precisa configurar TOTP.
-        PHP gera: $ga->createSecret() → salvar em users.mfa_secret (encriptado)
-        Mostrar QR Code para escanear no Google Authenticator / Authy / etc.
-      -->
-      <div id="totp-setup" style="display:none;">
-        <!-- TODO: QR Code gerado pelo PHP (base64 via $ga->getQRCodeGoogleUrl()) -->
-        <!-- TODO: Código manual (para quem não consegue escanear) -->
-        <!-- TODO: Campo de confirmação: digitar primeiro código para validar o setup -->
-      </div>
     </section>
   </main>
 
   <footer>
-    <!-- TODO: Links: Política de Privacidade | Termos de Uso -->
+    <a href="politica_privavidade.html">Política de Privacidade</a>
+    <a href="termo_de_uso.html">Termos de Uso</a>
   </footer>
 
-  <script src="../js/validacoes.js" defer></script>
-  <script src="../js/main.js" defer></script>
+  <script defer>
+    (function () {
+      const csrfInput  = document.getElementById('csrf');
+      const msgServidor = document.getElementById('msg-servidor');
+      const msgErro    = document.getElementById('msg-erro');
+      const form       = document.getElementById('form-mfa');
+      const btnVerif   = document.getElementById('btn-verificar');
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('erro')) {
+        msgServidor.textContent = decodeURIComponent(params.get('erro'));
+      }
+
+      fetch('../../backend/auth/get_csrf.php')
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if (d.csrf) csrfInput.value = d.csrf; })
+        .catch(function () {
+          msgServidor.textContent = 'Erro ao carregar o formulário. Recarregue a página.';
+        });
+
+      form.addEventListener('submit', function (e) {
+        const codigo = document.getElementById('codigo').value.trim();
+        if (!/^\d{6}$/.test(codigo)) {
+          e.preventDefault();
+          msgErro.textContent = 'O código deve ter exatamente 6 dígitos numéricos.';
+          return;
+        }
+        btnVerif.disabled    = true;
+        btnVerif.textContent = 'Verificando...';
+      });
+    })();
+  </script>
+
 </body>
 </html>
