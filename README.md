@@ -59,7 +59,7 @@ database/
 | 10 | Busca pública por serial | `busca.html` | ✅ |
 | 11 | Meus dados (perfil) | `meus-dados.html` | ✅ |
 | 12 | Exclusão de conta (LGPD) | `exclusao-conta.html` | ✅ |
-| 13 | Política de Privacidade | `politica_privavidade.html` | ✅ |
+| 13 | Política de Privacidade | `politica_privacidade.html` | ✅ |
 | 14 | Termos de Uso | `termo_de_uso.html` | ✅ |
 
 ---
@@ -95,7 +95,7 @@ database/
 - `dashboard.html` — painel com lista de produtos, stats, modal de status, busca rápida
 - `cadastro-produto.html` — registro de produto com NF-e, score de confiabilidade
 - `busca.html` — busca pública por serial + contato anônimo ao proprietário
-- `politica_privavidade.html` — Política de Privacidade (LGPD)
+- `politica_privacidade.html` — Política de Privacidade (LGPD)
 - `termo_de_uso.html` — Termos de Uso
 
 **Backend (7 arquivos):**
