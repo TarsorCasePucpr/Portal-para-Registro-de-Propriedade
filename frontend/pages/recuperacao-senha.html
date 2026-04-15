@@ -23,7 +23,6 @@
       <div class="steps" id="steps-indicator" aria-label="Etapas">
         <div class="step-dot active" id="dot-1"></div>
         <div class="step-dot" id="dot-2"></div>
-        <div class="step-dot" id="dot-3"></div>
       </div>
 
       <div id="passo-1">
@@ -31,6 +30,7 @@
         <p>Informe o e-mail cadastrado. Você receberá um link para redefinir sua senha.</p>
 
         <form id="form-recuperacao" novalidate>
+          <input type="hidden" name="acao" value="solicitar_link">
           <input type="hidden" id="csrf-recuperacao" name="csrf">
 
           <div class="campo">
@@ -56,36 +56,6 @@
       </div>
 
       <div id="passo-2" hidden>
-        <h1>Verificação em duas etapas</h1>
-        <p>Insira o código de 6 dígitos do seu aplicativo autenticador para confirmar sua identidade.</p>
-
-        <form id="form-mfa" novalidate>
-          <input type="hidden" id="csrf-mfa" name="csrf">
-          <input type="hidden" id="email-mfa" name="email">
-
-          <div class="mfa-digits" role="group" aria-label="Código de 6 dígitos">
-            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="mfa-0" aria-label="Dígito 1" autocomplete="one-time-code">
-            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="mfa-1" aria-label="Dígito 2">
-            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="mfa-2" aria-label="Dígito 3">
-            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="mfa-3" aria-label="Dígito 4">
-            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="mfa-4" aria-label="Dígito 5">
-            <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="mfa-5" aria-label="Dígito 6">
-          </div>
-
-          <span id="erro-mfa" class="erro" role="alert" style="display:block; text-align:center; margin-bottom:.75rem;"></span>
-
-          <button type="submit" id="btn-mfa">Confirmar código</button>
-          <button type="button" class="btn-secondary" id="btn-voltar-mfa" style="margin-top:.5rem;">← Voltar</button>
-        </form>
-
-        <div style="text-align:center; margin-top:1rem;">
-          <small>Não tem acesso ao aplicativo?
-            <a href="mailto:suporte@snguard.com.br" style="color:var(--text-muted);">Contate o suporte</a>
-          </small>
-        </div>
-      </div>
-
-      <div id="passo-3" hidden>
         <div class="card" style="text-align:center; padding:2rem;">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" style="margin: 0 auto .875rem;">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -123,18 +93,16 @@
   (function () {
     const passo1 = document.getElementById('passo-1');
     const passo2 = document.getElementById('passo-2');
-    const passo3 = document.getElementById('passo-3');
     const dots   = [
       document.getElementById('dot-1'),
       document.getElementById('dot-2'),
-      document.getElementById('dot-3'),
     ];
 
     let emailGlobal = '';
-    let mfaObrigatorio = false;
+    let csrfToken   = '';
 
     function irParaPasso(n) {
-      [passo1, passo2, passo3].forEach((el, i) => {
+      [passo1, passo2].forEach((el, i) => {
         el.hidden = i !== n - 1;
       });
       dots.forEach((d, i) => {
@@ -156,16 +124,16 @@
       .then(r => r.json())
       .then(d => {
         if (d.csrf) {
+          csrfToken = d.csrf;
           document.getElementById('csrf-recuperacao').value = d.csrf;
-          document.getElementById('csrf-mfa').value = d.csrf;
         }
       });
 
     document.getElementById('form-recuperacao').addEventListener('submit', async function (e) {
       e.preventDefault();
-      const email    = document.getElementById('email').value.trim();
-      const erroEl   = document.getElementById('erro-email');
-      const btn      = document.getElementById('btn-enviar');
+      const email  = document.getElementById('email').value.trim();
+      const erroEl = document.getElementById('erro-email');
+      const btn    = document.getElementById('btn-enviar');
 
       erroEl.textContent = '';
 
@@ -179,20 +147,8 @@
 
       try {
         const fd = new FormData(this);
-        const res = await fetch('../../backend/auth/recover.php', {
-          method: 'POST',
-          body: fd
-        });
-        const data = await res.json();
-
-        if (data.mfa_required) {
-          mfaObrigatorio = true;
-          document.getElementById('email-mfa').value = email;
-          irParaPasso(2);
-          document.getElementById('mfa-0').focus();
-        } else {
-          mostrarConfirmacao(email);
-        }
+        await fetch('../../backend/auth/recover.php', { method: 'POST', body: fd });
+        mostrarConfirmacao(email);
       } catch (_) {
         mostrarConfirmacao(email);
       } finally {
@@ -200,77 +156,12 @@
       }
     });
 
-    const mfaInputs = Array.from(document.querySelectorAll('.mfa-digits input'));
-    mfaInputs.forEach((input, idx) => {
-      input.addEventListener('input', function () {
-        this.value = this.value.replace(/\D/g, '').slice(-1);
-        if (this.value && idx < mfaInputs.length - 1) {
-          mfaInputs[idx + 1].focus();
-        }
-      });
-      input.addEventListener('keydown', function (e) {
-        if (e.key === 'Backspace' && !this.value && idx > 0) {
-          mfaInputs[idx - 1].focus();
-        }
-      });
-      input.addEventListener('paste', function (e) {
-        e.preventDefault();
-        const texto = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
-        texto.split('').slice(0, 6).forEach((ch, i) => {
-          if (mfaInputs[idx + i]) mfaInputs[idx + i].value = ch;
-        });
-        const next = mfaInputs[Math.min(idx + texto.length, 5)];
-        if (next) next.focus();
-      });
-    });
-
-    document.getElementById('form-mfa').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const codigo  = mfaInputs.map(i => i.value).join('');
-      const erroEl  = document.getElementById('erro-mfa');
-      const btn     = document.getElementById('btn-mfa');
-
-      erroEl.textContent = '';
-
-      if (codigo.length !== 6) {
-        erroEl.textContent = 'Insira os 6 dígitos do código.';
-        return;
-      }
-
-      setLoading(btn, 'Verificando...');
-
-      try {
-        const fd = new FormData();
-        fd.append('acao', 'verificar_mfa_recuperacao');
-        fd.append('email', emailGlobal);
-        fd.append('codigo', codigo);
-        fd.append('csrf', document.getElementById('csrf-mfa').value);
-
-        const res = await fetch('../../backend/auth/recover.php', { method: 'POST', body: fd });
-        const data = await res.json();
-
-        if (data.success) {
-          mostrarConfirmacao(emailGlobal);
-        } else {
-          erroEl.textContent = data.error || 'Código inválido ou expirado.';
-          mfaInputs.forEach(i => i.value = '');
-          mfaInputs[0].focus();
-        }
-      } catch (_) {
-        erroEl.textContent = 'Erro de conexão. Tente novamente.';
-      } finally {
-        resetBtn(btn, 'Confirmar código');
-      }
-    });
-
-    document.getElementById('btn-voltar-mfa').addEventListener('click', () => irParaPasso(1));
-
     function mostrarConfirmacao(email) {
       const mascarado = email.replace(/(.{1}).+(@.+)/, '$1***$2');
       document.getElementById('msg-email-enviado').innerHTML =
         'Se o endereço <strong>' + mascarado + '</strong> estiver cadastrado, ' +
         'um link de recuperação foi enviado. Verifique também a pasta de spam.';
-      irParaPasso(3);
+      irParaPasso(2);
     }
 
     let reenvioCount = 0;
@@ -291,7 +182,7 @@
         const fd = new FormData();
         fd.append('acao', 'reenviar');
         fd.append('email', emailGlobal);
-
+        fd.append('csrf', csrfToken);
         await fetch('../../backend/auth/recover.php', { method: 'POST', body: fd });
         msgEl.style.color = 'var(--primary)';
         msgEl.textContent = 'E-mail reenviado! Verifique sua caixa de entrada.';
