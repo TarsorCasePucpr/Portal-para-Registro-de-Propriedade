@@ -130,16 +130,20 @@ try {
              . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
     $linkConfirmacao = $baseUrl . '/backend/auth/confirm.php?token=' . urlencode($tokenRaw);
 
-    enviarEmail(
-        destinatario: $email,
-        nome:         $nome,
-        assunto:      'SNGuard — Confirme seu e-mail',
-        corpo:        "Olá, {$nome}!\n\n" .
-                      "Clique no link abaixo para ativar sua conta (válido por 24 horas):\n\n" .
-                      "{$linkConfirmacao}\n\n" .
-                      "Se você não criou esta conta, ignore esta mensagem.\n\n" .
-                      "— Equipe SNGuard"
-    );
+    try {
+        enviarEmail(
+            destinatario: $email,
+            nome:         $nome,
+            assunto:      'SNGuard — Confirme seu e-mail',
+            corpo:        "Olá, {$nome}!\n\n" .
+                          "Clique no link abaixo para ativar sua conta (válido por 24 horas):\n\n" .
+                          "{$linkConfirmacao}\n\n" .
+                          "Se você não criou esta conta, ignore esta mensagem.\n\n" .
+                          "— Equipe SNGuard"
+        );
+    } catch (Throwable $e) {
+        error_log('[register.php] Falha ao enviar email para ' . $email . ': ' . $e->getMessage());
+    }
 
 } catch (PDOException $e) {
     error_log('[register.php] DB error: ' . $e->getMessage());
@@ -147,8 +151,6 @@ try {
         '../../frontend/pages/cadastro-usuario.html?erro=' .
         urlencode('Erro interno. Tente novamente mais tarde.')
     );
-} catch (Throwable $e) {
-    error_log('[register.php] Error: ' . $e->getMessage());
 }
 
-redirecionar('../../frontend/pages/confirmacao-cadastro.html');
+redirect('../../frontend/pages/confirmacao-cadastro.html');
