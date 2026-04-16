@@ -91,8 +91,7 @@ session_write_close();
   <script src="../js/main.js" defer></script>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const erroServidor = params.get('erro');
+    const erroServidor = new URLSearchParams(window.location.search).get('erro');
     if (erroServidor) {
       document.getElementById('msg-servidor').textContent = decodeURIComponent(erroServidor);
     }

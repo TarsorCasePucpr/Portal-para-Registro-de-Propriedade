@@ -280,6 +280,29 @@ footer a:hover { color: var(--azul); }
 .forca-média  { color: var(--alerta); }
 .forca-forte  { color: var(--sucesso); }
 
+.campo-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .875rem 1rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.campo-radio + .campo-radio {
+  margin-top: .75rem;
+}
+.campo-radio input[type="radio"] {
+  margin-top: .2rem;
+  accent-color: var(--azul);
+  flex-shrink: 0;
+}
+.campo-radio:has(input:checked) {
+  border-color: var(--azul);
+  background: var(--azul-claro);
+}
+
 #consentimento-lgpd .label-checkbox {
   display: flex;
   align-items: flex-start;
