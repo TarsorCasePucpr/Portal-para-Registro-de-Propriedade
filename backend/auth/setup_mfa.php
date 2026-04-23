@@ -15,7 +15,6 @@ if ($userId === 0) {
     jsonError('Não autenticado.', 401);
 }
 
-// ── GET: gerar e retornar o secret temporário ─────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (empty($_SESSION['mfa_setup_secret'])) {
         $_SESSION['mfa_setup_secret'] = generateTotpSecret();
@@ -43,7 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     jsonSuccess(['secret' => $secret, 'uri' => $uri]);
 }
 
-// ── POST: confirmar código e salvar ──────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrfToken($_POST['csrf'] ?? '')) {
         jsonError('Token de segurança inválido.', 403);

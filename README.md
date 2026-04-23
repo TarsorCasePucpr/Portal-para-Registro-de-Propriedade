@@ -34,7 +34,7 @@ backend/
   produto/      buscar, cadastrar, contato, listar, status
   utils/        hash.php, mailer.php, response.php, validadores.php
 frontend/
-  pages/        16 páginas HTML
+  pages/        17 páginas HTML
   css/          style.css
   js/           main.js, validacoes.js
 database/
@@ -61,6 +61,9 @@ database/
 | 12 | Exclusão de conta (LGPD) | `exclusao-conta.html` | ✅ |
 | 13 | Política de Privacidade | `politica_privacidade.html` | ✅ |
 | 14 | Termos de Uso | `termo_de_uso.html` | ✅ |
+| 15 | Configurar 2FA | `configurar-mfa.html` | ✅ |
+| 16 | E-mail Confirmado | `confirmacao-email.html` | ✅ |
+| 17 | Confirmação de Cadastro | `confirmacao.html` | ✅ |
 
 ---
 
@@ -179,14 +182,13 @@ database/
 
 | Camada | Linhas |
 |--------|--------|
-| Frontend HTML (16 páginas) | 3.049 |
+| Frontend HTML (17 páginas) | 3.049 |
 | Frontend JS | 313 |
 | Frontend CSS | 706 |
 | Backend PHP | 1.751 |
 | Database SQL | 150 |
 | **Total** | **5.969** |
 
-Após limpeza de comentários e código morto: **−756 linhas** (−11,2% em relação ao estado anterior).
 
 ---
 

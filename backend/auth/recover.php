@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $acao = $_POST['acao'] ?? '';
 
-// ─── SOLICITAR LINK ───────────────────────────────────────────────────────────
 if ($acao === 'solicitar_link') {
 
     if (!validateCsrfToken($_POST['csrf'] ?? '')) {
@@ -35,7 +34,6 @@ if ($acao === 'solicitar_link') {
 
     $email = trim($_POST['email'] ?? '');
 
-    // Anti-enumeration: email inválido retorna sucesso sem revelar
     if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         jsonSuccess();
     }
@@ -50,7 +48,6 @@ if ($acao === 'solicitar_link') {
     jsonSuccess();
 }
 
-// ─── REENVIAR ─────────────────────────────────────────────────────────────────
 if ($acao === 'reenviar') {
 
     if (!validateCsrfToken($_POST['csrf'] ?? '')) {
@@ -77,7 +74,6 @@ if ($acao === 'reenviar') {
     jsonSuccess();
 }
 
-// ─── REDEFINIR SENHA ──────────────────────────────────────────────────────────
 if ($acao === 'redefinir_senha') {
 
     if (!validateCsrfToken($_POST['csrf'] ?? '')) {
@@ -134,8 +130,6 @@ if ($acao === 'redefinir_senha') {
     jsonSuccess();
 }
 
-// ─── HELPER ───────────────────────────────────────────────────────────────────
-// Lança PDOException para o caller tratar — nunca silencia erros de DB.
 function _gerarEEnviarToken(PDO $pdo, string $email, string $baseUrl): void
 {
     $stmt = $pdo->prepare('SELECT id, name FROM users WHERE email = :email AND deleted_at IS NULL LIMIT 1');
@@ -143,7 +137,7 @@ function _gerarEEnviarToken(PDO $pdo, string $email, string $baseUrl): void
     $user = $stmt->fetch();
 
     if (!$user) {
-        return; // Anti-enumeration: não expõe existência do email
+        return;
     }
 
     $token     = bin2hex(random_bytes(32));
@@ -170,6 +164,5 @@ function _gerarEEnviarToken(PDO $pdo, string $email, string $baseUrl): void
         );
     } catch (Throwable $e) {
         error_log('[recover] Falha ao enviar email para ' . $email . ': ' . $e->getMessage());
-        // Email falhou mas token foi gerado — não bloqueia o fluxo
     }
 }

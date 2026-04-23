@@ -659,10 +659,9 @@ button[type="submit"]:disabled,
 
 }
 
-/* ── hidden attribute always wins over inline styles ── */
 [hidden] { display: none !important; }
 
-/* ── Variable aliases ── */
+
 :root {
   --primary:    var(--azul);
   --text-muted: var(--texto-leve);
@@ -675,7 +674,6 @@ button[type="submit"]:disabled,
 }
 
 
-/* ── Buttons ── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -699,7 +697,6 @@ button[type="submit"]:disabled,
 .btn-danger:hover { background: #b91c1c; }
 
 
-/* ── Products ── */
 .produtos-grid { display: flex; flex-direction: column; gap: .625rem; }
 .produto-card {
   background: var(--branco);
@@ -717,15 +714,12 @@ button[type="submit"]:disabled,
 .prod-acoes { display: flex; gap: .5rem; margin-left: auto; }
 
 
-/* ── Empty state ── */
 .estado-vazio { text-align: center; padding: 2rem; color: var(--texto-leve); }
 
 
-/* ── Badges ── */
 .badge-warn { background: #fef3c7; color: #92400e; }
 
 
-/* ── Loading spinner ── */
 .loading {
   display: inline-block; width: 18px; height: 18px;
   border: 2px solid var(--borda); border-top-color: var(--azul);
@@ -733,20 +727,16 @@ button[type="submit"]:disabled,
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Card ── */
 .card { background: var(--branco); border: 1px solid var(--borda); border-radius: 4px; padding: 1.25rem; }
 
-/* ── Alert ── */
 .alert { border-radius: 4px; padding: .75rem 1rem; font-size: .875rem; }
 .alert-info { background: var(--azul-claro); border: 1px solid #93c5fd; color: #1e40af; }
 
-/* ── Steps ── */
 .steps { display: flex; gap: .5rem; justify-content: center; margin-bottom: 1.5rem; }
 .step-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--borda); }
 .step-dot.active { background: var(--azul); }
 .step-dot.done   { background: var(--sucesso); }
 
-/* ── MFA digits ── */
 .mfa-digits { display: flex; gap: .5rem; justify-content: center; margin-bottom: 1rem; }
 .mfa-digits input {
   width: 44px; height: 52px; text-align: center; font-size: 1.25rem; font-weight: 700;
