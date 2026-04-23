@@ -16,7 +16,6 @@ function recordFailedAttempt(PDO $pdo, string $ip, string $action): void {
     )->execute([$ip, $action, time()]);
 }
 
-// Para endpoints não-auth (contato, busca, cadastro): conta toda tentativa.
 function checkRateLimit(PDO $pdo, string $ip, string $action, int $max, int $windowMinutes): bool {
     if (isRateLimited($pdo, $ip, $action, $max, $windowMinutes)) {
         return false;
