@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SNGuard — Painel Para o Administrador</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <style>
+        /* ── Layout base ─────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        /* ── Topbar ──────────────────────────────────────────────────── */
+        .topbar {
+            background: #1e293b;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .75rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,.25);
+        }
+        .topbar h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: .5px; }
+        .topbar span { font-size: .8rem; opacity: .7; }
+        .btn-logout {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: .4rem .9rem;
+            font-size: .82rem;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .btn-logout:hover { background: #dc2626; }
+
+        /* ── Main wrapper ────────────────────────────────────────────── */
+        .wrapper { max-width: 1280px; margin: 0 auto; padding: 1.5rem; }
+
+        /* ── Abas ────────────────────────────────────────────────────── */
+        .tabs {
+            display: flex;
+            gap: .5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: .5rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: .45rem 1.1rem;
+            border: none;
+            background: transparent;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-size: .88rem;
+            font-weight: 600;
+            color: #64748b;
+            transition: all .15s;
+        }
+        .tab-btn:hover { background: #e2e8f0; color: #1e293b; }
+        .tab-btn.active { background: #2563eb; color: #fff; }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── Cards de métricas ───────────────────────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 1.1rem 1.2rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            border-left: 4px solid #2563eb;
+        }
+        .stat-card.warn  { border-color: #f59e0b; }
+        .stat-card.danger{ border-color: #ef4444; }
+        .stat-card.green { border-color: #22c55e; }
+        .stat-card .label { font-size: .75rem; color: #64748b; margin-bottom: .3rem; }
+        .stat-card .value { font-size: 1.8rem; font-weight: 800; }
+
+        /* ── Controles de tabela ─────────────────────────────────────── */
+        .table-controls {
+            display: flex;
+            gap: .75rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .table-controls input, .table-controls select {
+            padding: .45rem .75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: .85rem;
+            outline: none;
+            transition: border .15s;
+        }
+        .table-controls input:focus, .table-controls select:focus { border-color: #2563eb; }
+        .table-controls input { flex: 1; min-width: 160px; }
+
+        /* ── Tabela ──────────────────────────────────────────────────── */
+        .table-wrap {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+        thead { background: #f8fafc; }
+        th { padding: .75rem 1rem; text-align: left; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; }
+        td { padding: .7rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f8fafc; }
+
+        /* ── Badges ──────────────────────────────────────────────────── */
+        .badge {
+            display: inline-block;
+            padding: .2rem .55rem;
+            border-radius: 20px;
+            font-size: .72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+        .badge-green  { background: #dcfce7; color: #15803d; }
+        .badge-red    { background: #fee2e2; color: #b91c1c; }
+        .badge-yellow { background: #fef9c3; color: #92400e; }
+        .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+        .badge-gray   { background: #f1f5f9; color: #475569; }
+
+        /* ── Botões de ação ──────────────────────────────────────────── */
+        .btn-sm {
+            padding: .28rem .65rem;
+            border: none;
+            border-radius: 5px;
+            font-size: .75rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: .25rem;
+            transition: opacity .15s;
+        }
+        .btn-sm:hover { opacity: .8; }
+        .btn-primary   { background: #2563eb; color: #fff; }
+        .btn-success   { background: #22c55e; color: #fff; }
+        .btn-warning   { background: #f59e0b; color: #fff; }
+        .btn-danger    { background: #ef4444; color: #fff; }
+        .btn-secondary { background: #e2e8f0; color: #1e293b; }
+
+        /* ── Paginação ───────────────────────────────────────────────── */
+        .pagination {
+            display: flex;
+            gap: .4rem;
+            justify-content: flex-end;
+            padding: .75rem 1rem;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            align-items: center;
+            font-size: .82rem;
+        }
+        .pagination button {
+            padding: .3rem .7rem;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .15s;
+        }
+        .pagination button:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+        .pagination button.current { background: #2563eb; color: #fff; border-color: #2563eb; }
+        .pagination button:disabled { opacity: .4; cursor: default; }
+
+        /* ── Spinner / Feedback ──────────────────────────────────────── */
+        .loading { text-align: center; padding: 2rem; color: #94a3b8; font-size: .9rem; }
+        .alert {
+            padding: .75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: .85rem;
+            display: none;
+        }
+        .alert-success { background: #dcfce7; color: #15803d; }
+        .alert-error   { background: #fee2e2; color: #b91c1c; }
+
+        /* ── Modal de confirmação ─────────────────────────────────────── */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.45);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-backdrop.open { display: flex; }
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.75rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 8px 30px rgba(0,0,0,.2);
+        }
+        .modal h3 { margin-bottom: .6rem; font-size: 1rem; }
+        .modal p  { font-size: .87rem; color: #475569; margin-bottom: 1.2rem; }
+        .modal-actions { display: flex; gap: .6rem; justify-content: flex-end; }
+    </style>
+</head>
+<body>
+
+<!-- ── Topbar ──────────────────────────────────────────────────────────── -->
+<header class="topbar">
+    <h1>⚙️ SNGuard — Painel Admin</h1>
+    <span id="admin-name">Carregando…</span>
+    <button class="btn-logout" id="btn-logout">Sair</button>
+</header>
+
+<!-- ── Feedback global ────────────────────────────────────────────────── -->
+<div class="wrapper">
+    <div class="alert alert-success" id="alert-ok"></div>
+    <div class="alert alert-error"   id="alert-err"></div>
+
+    <!-- ── Abas ──────────────────────────────────────────────────────── -->
+    <nav class="tabs">
+        <button class="tab-btn active" data-tab="overview">📊 Visão Geral</button>
+        <button class="tab-btn"        data-tab="usuarios">👤 Usuários</button>
+        <button class="tab-btn"        data-tab="objetos">📦 Objetos</button>
+    </nav>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         ABA 1 — VISÃO GERAL
+    ══════════════════════════════════════════════════════════════════ -->
+    <section class="tab-panel active" id="tab-overview">
+        <div class="stats-grid" id="stats-grid">
+            <div class="loading">Carregando métricas…</div>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         ABA 2 — USUÁRIOS
+    ══════════════════════════════════════════════════════════════════ -->
+    <section class="tab-panel" id="tab-usuarios">
+        <div class="table-controls">
+            <input type="search" id="u-busca"  placeholder="🔍 Buscar por nome, e-mail ou CPF…" />
+            <select id="u-status">
+                <option value="todos">Todos os status</option>
+                <option value="ativo">Ativos</option>
+                <option value="inativo">Inativos</option>
+            </select>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>CPF</th>
+                        <th>Status</th>
+                        <th>Admin</th>
+                        <th>Objetos</th>
+                        <th>Criado em</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="u-tbody">
+                    <tr><td colspan="9" class="loading">Carregando…</td></tr>
+                </tbody>
+            </table>
+            <div class="pagination" id="u-pagination"></div>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         ABA 3 — OBJETOS
+    ══════════════════════════════════════════════════════════════════ -->
+    <section class="tab-panel" id="tab-objetos">
+        <div class="table-controls">
+            <input type="search" id="o-busca" placeholder="🔍 Buscar por descrição, serial ou dono…" />
+            <select id="o-status">
+                <option value="todos">Todos os status</option>
+                <option value="normal">Normal</option>
+                <option value="roubado">Roubado</option>
+                <option value="perdido">Perdido</option>
+            </select>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Descrição</th>
+                        <th>Serial</th>
+                        <th>Status</th>
+                        <th>Dono</th>
+                        <th>NF-e</th>
+                        <th>Score</th>
+                        <th>Cadastrado em</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="o-tbody">
+                    <tr><td colspan="9" class="loading">Carregando…</td></tr>
+                </tbody>
+            </table>
+            <div class="pagination" id="o-pagination"></div>
+        </div>
+    </section>
+</div><!-- /.wrapper -->
+
+<!-- ── Modal de confirmação ──────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal">
+        <h3 id="modal-title">Confirmar ação</h3>
+        <p  id="modal-text">Tem certeza?</p>
+        <div class="modal-actions">
+            <button class="btn-sm btn-secondary" id="modal-cancel">Cancelar</button>
+            <button class="btn-sm btn-danger"    id="modal-confirm">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/validacoes.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   Utilitários
+══════════════════════════════════════════════════════════════════════════ */
+const BASE = '../../backend';
+
+async function apiFetch(url, options = {}) {
+    const res = await fetch(url, { credentials: 'same-origin', ...options });
+    if (res.status === 401) { location.href = 'login.html'; return null; }
+    if (res.status === 403) { showAlert('Acesso negado.', 'err'); return null; }
+    return res.json();
+}
+
+function getCsrf() {
+    return document.cookie.split('; ')
+        .find(r => r.startsWith('csrf_token='))
+        ?.split('=')[1] ?? '';
+}
+
+function showAlert(msg, type = 'ok') {
+    const el = document.getElementById(type === 'ok' ? 'alert-ok' : 'alert-err');
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(() => (el.style.display = 'none'), 4000);
+}
+
+function fmt(dateStr) {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('pt-BR');
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Modal de confirmação
+══════════════════════════════════════════════════════════════════════════ */
+let _confirmResolve = null;
+
+function confirm(title, text) {
+    return new Promise(resolve => {
+        _confirmResolve = resolve;
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-text').textContent  = text;
+        document.getElementById('modal-backdrop').classList.add('open');
+    });
+}
+
+document.getElementById('modal-cancel').addEventListener('click', () => {
+    document.getElementById('modal-backdrop').classList.remove('open');
+    _confirmResolve?.(false);
+});
+document.getElementById('modal-confirm').addEventListener('click', () => {
+    document.getElementById('modal-backdrop').classList.remove('open');
+    _confirmResolve?.(true);
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Abas
+══════════════════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+
+        if (btn.dataset.tab === 'overview')  loadStats();
+        if (btn.dataset.tab === 'usuarios')  loadUsuarios(1);
+        if (btn.dataset.tab === 'objetos')   loadObjetos(1);
+    });
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Logout
+══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('btn-logout').addEventListener('click', async () => {
+    await fetch(`${BASE}/auth/logout.php`, { method: 'POST', credentials: 'same-origin' });
+    location.href = 'login.html';
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ABA 1 — Stats
+══════════════════════════════════════════════════════════════════════════ */
+async function loadStats() {
+    const data = await apiFetch(`${BASE}/admin/stats.php`);
+    if (!data?.success) return;
+
+    const t = data.data.totais;
+    const grid = document.getElementById('stats-grid');
+    grid.innerHTML = `
+        <div class="stat-card green">
+            <div class="label">Usuários ativos</div>
+            <div class="value">${t.usuarios_ativos}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Total de usuários</div>
+            <div class="value">${t.total_usuarios}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Total de objetos</div>
+            <div class="value">${t.total_objetos}</div>
+        </div>
+        <div class="stat-card danger">
+            <div class="label">Objetos roubados</div>
+            <div class="value">${t.objetos_roubados}</div>
+        </div>
+        <div class="stat-card warn">
+            <div class="label">Objetos perdidos</div>
+            <div class="value">${t.objetos_perdidos}</div>
+        </div>
+        <div class="stat-card warn">
+            <div class="label">Mensagens não lidas</div>
+            <div class="value">${t.mensagens_nao_lidas}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Exclusões pendentes (LGPD)</div>
+            <div class="value">${t.exclusoes_pendentes}</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Administradores</div>
+            <div class="value">${t.total_admins}</div>
+        </div>
+    `;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ABA 2 — Usuários
+══════════════════════════════════════════════════════════════════════════ */
+let uPage = 1;
+
+async function loadUsuarios(page = 1) {
+    uPage = page;
+    const busca  = document.getElementById('u-busca').value;
+    const status = document.getElementById('u-status').value;
+    const params = new URLSearchParams({ page, per_page: 20, busca, status });
+
+    const data = await apiFetch(`${BASE}/admin/usuarios.php?${params}`);
+    if (!data?.success) return;
+
+    const { usuarios, total, last_page } = data.data;
+    const tbody = document.getElementById('u-tbody');
+
+    if (!usuarios.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="loading">Nenhum usuário encontrado.</td></tr>';
+        document.getElementById('u-pagination').innerHTML = '';
+        return;
+    }
+
+    tbody.innerHTML = usuarios.map(u => `
+        <tr>
+            <td>${u.id}</td>
+            <td>${esc(u.name)}</td>
+            <td>${esc(u.email)}</td>
+            <td>${esc(u.cpf)}</td>
+            <td><span class="badge ${u.is_active ? 'badge-green' : 'badge-red'}">
+                ${u.is_active ? 'Ativo' : 'Inativo'}
+            </span></td>
+            <td>${u.is_admin ? '<span class="badge badge-blue">Admin</span>' : '<span class="badge badge-gray">Usuário</span>'}</td>
+            <td>${u.total_objetos}</td>
+            <td>${fmt(u.created_at)}</td>
+            <td>
+                ${u.is_active
+                    ? `<button class="btn-sm btn-warning" onclick="acoesUsuario(${u.id},'desativar')">Desativar</button>`
+                    : `<button class="btn-sm btn-success" onclick="acoesUsuario(${u.id},'ativar')">Ativar</button>`
+                }
+                ${u.is_admin
+                    ? `<button class="btn-sm btn-secondary" onclick="acoesUsuario(${u.id},'rebaixar')">Rebaixar</button>`
+                    : `<button class="btn-sm btn-primary"   onclick="acoesUsuario(${u.id},'promover')">Promover</button>`
+                }
+                <button class="btn-sm btn-danger" onclick="acoesUsuario(${u.id},'excluir')">Excluir</button>
+            </td>
+        </tr>
+    `).join('');
+
+    renderPagination('u-pagination', page, last_page, loadUsuarios);
+}
+
+async function acoesUsuario(id, acao) {
+    const labels = {
+        ativar:   'Ativar usuário',
+        desativar:'Desativar usuário',
+        promover: 'Promover a admin',
+        rebaixar: 'Rebaixar admin',
+        excluir:  'Excluir usuário',
+    };
+    const ok = await confirm(labels[acao], `Confirma "${labels[acao]}" para o usuário #${id}?`);
+    if (!ok) return;
+
+    const data = await apiFetch(`${BASE}/admin/usuarios.php`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ id, acao, csrf: getCsrf() }),
+    });
+
+    if (data?.success) {
+        showAlert(data.data.mensagem, 'ok');
+        loadUsuarios(uPage);
+    } else {
+        showAlert(data?.message ?? 'Erro ao executar ação.', 'err');
+    }
+}
+
+// Busca com debounce
+let uDebounce;
+document.getElementById('u-busca').addEventListener('input',  () => { clearTimeout(uDebounce); uDebounce = setTimeout(() => loadUsuarios(1), 400); });
+document.getElementById('u-status').addEventListener('change', () => loadUsuarios(1));
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ABA 3 — Objetos
+══════════════════════════════════════════════════════════════════════════ */
+let oPage = 1;
+const statusColors = { normal: 'badge-green', roubado: 'badge-red', perdido: 'badge-yellow' };
+
+async function loadObjetos(page = 1) {
+    oPage = page;
+    const busca  = document.getElementById('o-busca').value;
+    const status = document.getElementById('o-status').value;
+    const params = new URLSearchParams({ page, per_page: 20, busca, status });
+
+    const data = await apiFetch(`${BASE}/admin/objetos.php?${params}`);
+    if (!data?.success) return;
+
+    const { objetos, total, last_page } = data.data;
+    const tbody = document.getElementById('o-tbody');
+
+    if (!objetos.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="loading">Nenhum objeto encontrado.</td></tr>';
+        document.getElementById('o-pagination').innerHTML = '';
+        return;
+    }
+
+    tbody.innerHTML = objetos.map(o => `
+        <tr>
+            <td>${o.id}</td>
+            <td title="${esc(o.descricao)}">${esc(o.descricao.slice(0,40))}${o.descricao.length>40?'…':''}</td>
+            <td><code>${esc(o.serial_number)}</code></td>
+            <td><span class="badge ${statusColors[o.status] ?? 'badge-gray'}">${o.status}</span></td>
+            <td title="${esc(o.user_email)}">${esc(o.user_name)}</td>
+            <td>${o.nfe_validada ? '<span class="badge badge-green">Validada</span>' : (o.nfe_chave ? '<span class="badge badge-yellow">Pendente</span>' : '—')}</td>
+            <td>${o.score}</td>
+            <td>${fmt(o.created_at)}</td>
+            <td>
+                <select class="btn-sm" onchange="alterarStatusObjeto(${o.id}, this)" style="padding:.25rem .5rem; border:1px solid #cbd5e1; border-radius:5px; font-size:.75rem;">
+                    <option value="">Mudar status…</option>
+                    <option value="normal"  ${o.status==='normal'  ?'disabled':''}>Normal</option>
+                    <option value="roubado" ${o.status==='roubado' ?'disabled':''}>Roubado</option>
+                    <option value="perdido" ${o.status==='perdido' ?'disabled':''}>Perdido</option>
+                </select>
+                <button class="btn-sm btn-danger" onclick="acoesObjeto(${o.id},'excluir')">Excluir</button>
+            </td>
+        </tr>
+    `).join('');
+
+    renderPagination('o-pagination', page, last_page, loadObjetos);
+}
+
+async function alterarStatusObjeto(id, sel) {
+    const novoStatus = sel.value;
+    if (!novoStatus) return;
+    sel.value = '';
+
+    const ok = await confirm('Alterar status', `Mudar objeto #${id} para "${novoStatus}"?`);
+    if (!ok) return;
+
+    const data = await apiFetch(`${BASE}/admin/objetos.php`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ id, acao: 'alterar_status', status: novoStatus, csrf: getCsrf() }),
+    });
+
+    if (data?.success) { showAlert(data.data.mensagem, 'ok'); loadObjetos(oPage); }
+    else showAlert(data?.message ?? 'Erro.', 'err');
+}
+
+async function acoesObjeto(id, acao) {
+    const ok = await confirm('Excluir objeto', `Confirma exclusão do objeto #${id}? Esta ação é reversível apenas via banco.`);
+    if (!ok) return;
+
+    const data = await apiFetch(`${BASE}/admin/objetos.php`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ id, acao, csrf: getCsrf() }),
+    });
+
+    if (data?.success) { showAlert(data.data.mensagem, 'ok'); loadObjetos(oPage); }
+    else showAlert(data?.message ?? 'Erro.', 'err');
+}
+
+let oDebounce;
+document.getElementById('o-busca').addEventListener('input',  () => { clearTimeout(oDebounce); oDebounce = setTimeout(() => loadObjetos(1), 400); });
+document.getElementById('o-status').addEventListener('change', () => loadObjetos(1));
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Paginação genérica
+══════════════════════════════════════════════════════════════════════════ */
+function renderPagination(containerId, current, last, cb) {
+    const el = document.getElementById(containerId);
+    if (last <= 1) { el.innerHTML = ''; return; }
+
+    let html = `<span>Página ${current} de ${last}</span>`;
+    html += `<button ${current===1?'disabled':''} onclick="${cb.name}(${current-1})">‹ Anterior</button>`;
+
+    for (let p = Math.max(1, current-2); p <= Math.min(last, current+2); p++) {
+        html += `<button class="${p===current?'current':''}" onclick="${cb.name}(${p})">${p}</button>`;
+    }
+
+    html += `<button ${current===last?'disabled':''} onclick="${cb.name}(${current+1})">Próxima ›</button>`;
+    el.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Escape HTML
+══════════════════════════════════════════════════════════════════════════ */
+function esc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Init
+══════════════════════════════════════════════════════════════════════════ */
+(async () => {
+    // Verifica sessão
+    const me = await apiFetch(`${BASE}/auth/me.php`);
+    if (!me?.success) return;
+    if (!me.data.is_admin) { location.href = 'dashboard.html'; return; }
+    document.getElementById('admin-name').textContent = me.data.name;
+    loadStats();
+})();
+</script>
+</body>
+</html>
