@@ -6,7 +6,7 @@
     <title>SNGuard — Painel Para o Administrador</title>
     <link rel="stylesheet" href="../css/style.css" />
     <style>
-        /* ── Layout base ─────────────────────────────────────────────── */
+        
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -16,7 +16,7 @@
             min-height: 100vh;
         }
 
-        /* ── Topbar ──────────────────────────────────────────────────── */
+        
         .topbar {
             background: #1e293b;
             color: #f8fafc;
@@ -159,7 +159,7 @@
         .btn-danger    { background: #ef4444; color: #fff; }
         .btn-secondary { background: #e2e8f0; color: #1e293b; }
 
-        /* ── Paginação ───────────────────────────────────────────────── */
+        
         .pagination {
             display: flex;
             gap: .4rem;
@@ -183,7 +183,6 @@
         .pagination button.current { background: #2563eb; color: #fff; border-color: #2563eb; }
         .pagination button:disabled { opacity: .4; cursor: default; }
 
-        /* ── Spinner / Feedback ──────────────────────────────────────── */
         .loading { text-align: center; padding: 2rem; color: #94a3b8; font-size: .9rem; }
         .alert {
             padding: .75rem 1rem;
@@ -195,7 +194,7 @@
         .alert-success { background: #dcfce7; color: #15803d; }
         .alert-error   { background: #fee2e2; color: #b91c1c; }
 
-        /* ── Modal de confirmação ─────────────────────────────────────── */
+        
         .modal-backdrop {
             display: none;
             position: fixed;
@@ -221,40 +220,36 @@
 </head>
 <body>
 
-<!-- ── Topbar ──────────────────────────────────────────────────────────── -->
+
 <header class="topbar">
-    <h1>⚙️ SNGuard — Painel Admin</h1>
+    <h1>SNGuard — Painel Admin</h1>
     <span id="admin-name">Carregando…</span>
     <button class="btn-logout" id="btn-logout">Sair</button>
 </header>
 
-<!-- ── Feedback global ────────────────────────────────────────────────── -->
+
 <div class="wrapper">
     <div class="alert alert-success" id="alert-ok"></div>
     <div class="alert alert-error"   id="alert-err"></div>
 
-    <!-- ── Abas ──────────────────────────────────────────────────────── -->
+
     <nav class="tabs">
-        <button class="tab-btn active" data-tab="overview">📊 Visão Geral</button>
-        <button class="tab-btn"        data-tab="usuarios">👤 Usuários</button>
-        <button class="tab-btn"        data-tab="objetos">📦 Objetos</button>
+        <button class="tab-btn active" data-tab="overview"> Visão Geral</button>
+        <button class="tab-btn"        data-tab="usuarios"> Usuários</button>
+        <button class="tab-btn"        data-tab="objetos">Objetos</button>
     </nav>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         ABA 1 — VISÃO GERAL
-    ══════════════════════════════════════════════════════════════════ -->
+   
     <section class="tab-panel active" id="tab-overview">
         <div class="stats-grid" id="stats-grid">
             <div class="loading">Carregando métricas…</div>
         </div>
     </section>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         ABA 2 — USUÁRIOS
-    ══════════════════════════════════════════════════════════════════ -->
+   
     <section class="tab-panel" id="tab-usuarios">
         <div class="table-controls">
-            <input type="search" id="u-busca"  placeholder="🔍 Buscar por nome, e-mail ou CPF…" />
+            <input type="search" id="u-busca"  placeholder=" Buscar por nome, e-mail ou CPF…" />
             <select id="u-status">
                 <option value="todos">Todos os status</option>
                 <option value="ativo">Ativos</option>
@@ -285,12 +280,10 @@
         </div>
     </section>
 
-    <!-- ══════════════════════════════════════════════════════════════════
-         ABA 3 — OBJETOS
-    ══════════════════════════════════════════════════════════════════ -->
+   
     <section class="tab-panel" id="tab-objetos">
         <div class="table-controls">
-            <input type="search" id="o-busca" placeholder="🔍 Buscar por descrição, serial ou dono…" />
+            <input type="search" id="o-busca" placeholder="Buscar por descrição, serial ou dono…" />
             <select id="o-status">
                 <option value="todos">Todos os status</option>
                 <option value="normal">Normal</option>
@@ -323,7 +316,6 @@
     </section>
 </div><!-- /.wrapper -->
 
-<!-- ── Modal de confirmação ──────────────────────────────────────────────── -->
 <div class="modal-backdrop" id="modal-backdrop">
     <div class="modal">
         <h3 id="modal-title">Confirmar ação</h3>
@@ -337,9 +329,7 @@
 
 <script src="../js/validacoes.js"></script>
 <script>
-/* ══════════════════════════════════════════════════════════════════════════
-   Utilitários
-══════════════════════════════════════════════════════════════════════════ */
+
 const BASE = '../../backend';
 
 async function apiFetch(url, options = {}) {
@@ -367,9 +357,7 @@ function fmt(dateStr) {
     return new Date(dateStr).toLocaleDateString('pt-BR');
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   Modal de confirmação
-══════════════════════════════════════════════════════════════════════════ */
+
 let _confirmResolve = null;
 
 function confirm(title, text) {
@@ -390,9 +378,6 @@ document.getElementById('modal-confirm').addEventListener('click', () => {
     _confirmResolve?.(true);
 });
 
-/* ══════════════════════════════════════════════════════════════════════════
-   Abas
-══════════════════════════════════════════════════════════════════════════ */
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -406,17 +391,13 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     });
 });
 
-/* ══════════════════════════════════════════════════════════════════════════
-   Logout
-══════════════════════════════════════════════════════════════════════════ */
+
 document.getElementById('btn-logout').addEventListener('click', async () => {
     await fetch(`${BASE}/auth/logout.php`, { method: 'POST', credentials: 'same-origin' });
     location.href = 'login.html';
 });
 
-/* ══════════════════════════════════════════════════════════════════════════
-   ABA 1 — Stats
-══════════════════════════════════════════════════════════════════════════ */
+
 async function loadStats() {
     const data = await apiFetch(`${BASE}/admin/stats.php`);
     if (!data?.success) return;
@@ -459,9 +440,7 @@ async function loadStats() {
     `;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   ABA 2 — Usuários
-══════════════════════════════════════════════════════════════════════════ */
+
 let uPage = 1;
 
 async function loadUsuarios(page = 1) {
@@ -541,9 +520,6 @@ let uDebounce;
 document.getElementById('u-busca').addEventListener('input',  () => { clearTimeout(uDebounce); uDebounce = setTimeout(() => loadUsuarios(1), 400); });
 document.getElementById('u-status').addEventListener('change', () => loadUsuarios(1));
 
-/* ══════════════════════════════════════════════════════════════════════════
-   ABA 3 — Objetos
-══════════════════════════════════════════════════════════════════════════ */
 let oPage = 1;
 const statusColors = { normal: 'badge-green', roubado: 'badge-red', perdido: 'badge-yellow' };
 
@@ -626,9 +602,6 @@ let oDebounce;
 document.getElementById('o-busca').addEventListener('input',  () => { clearTimeout(oDebounce); oDebounce = setTimeout(() => loadObjetos(1), 400); });
 document.getElementById('o-status').addEventListener('change', () => loadObjetos(1));
 
-/* ══════════════════════════════════════════════════════════════════════════
-   Paginação genérica
-══════════════════════════════════════════════════════════════════════════ */
 function renderPagination(containerId, current, last, cb) {
     const el = document.getElementById(containerId);
     if (last <= 1) { el.innerHTML = ''; return; }
@@ -644,16 +617,10 @@ function renderPagination(containerId, current, last, cb) {
     el.innerHTML = html;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   Escape HTML
-══════════════════════════════════════════════════════════════════════════ */
 function esc(str) {
     return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   Init
-══════════════════════════════════════════════════════════════════════════ */
 (async () => {
     // Verifica sessão
     const me = await apiFetch(`${BASE}/auth/me.php`);
