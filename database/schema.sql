@@ -1,6 +1,6 @@
 SET FOREIGN_KEY_CHECKS = 0;
 SET NAMES utf8mb4;
- 
+--implementar melhores views de uso de cada usuário
 CREATE TABLE IF NOT EXISTS users (
     id            INT UNSIGNED        AUTO_INCREMENT PRIMARY KEY,
     name          VARCHAR(100)        NOT NULL,
