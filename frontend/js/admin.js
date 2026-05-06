@@ -107,7 +107,7 @@ async function loadUsuarios(page = 1) {
     const { usuarios, total, last_page } = data.data;
     const tbody = document.getElementById('u-tbody');
     if (!usuarios.length) {
-        tbody.innerHTML = '<tr><td colspan="9" class="loading">Nenhum usuário encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" class="loading">Nenhum usuário encontrado.</td></tr>';
         document.getElementById('u-pagination').innerHTML = '';
         return;
     }
@@ -120,6 +120,9 @@ async function loadUsuarios(page = 1) {
             <td><span class="badge ${u.is_active ? 'badge-green' : 'badge-red'}">${u.is_active ? 'Ativo' : 'Inativo'}</span></td>
             <td>${u.is_admin ? '<span class="badge badge-blue">Admin</span>' : '<span class="badge badge-gray">Usuário</span>'}</td>
             <td>${u.total_objetos}</td>
+            <td>${u.objetos_normais}</td>
+            <td>${u.objetos_roubados}</td>
+            <td>${u.objetos_perdidos}</td>
             <td>${fmt(u.created_at)}</td>
             <td>
                 <select class="select-acoes" onchange="acoesUsuario(${u.id}, this)">

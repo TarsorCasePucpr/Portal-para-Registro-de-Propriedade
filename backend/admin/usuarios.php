@@ -38,11 +38,15 @@ if ($method === 'GET') {
         $total = (int) $stmtCount->fetchColumn();
 
         $stmtList = $pdo->prepare(
-            "SELECT id, name, email, cpf, is_active, mfa_enabled, created_at,
-                    is_admin, total_objetos
-             FROM   v_admin_users
+            "SELECT u.id, u.name, u.email, u.cpf, u.is_active, u.mfa_enabled, u.created_at,
+                    u.is_admin, u.total_objetos,
+                    COALESCE(c.objetos_normais, 0) AS objetos_normais,
+                    COALESCE(c.objetos_roubados, 0) AS objetos_roubados,
+                    COALESCE(c.objetos_perdidos, 0) AS objetos_perdidos
+             FROM   v_admin_users u
+             LEFT JOIN v_user_object_counts c ON c.user_id = u.id
              $sql
-             ORDER  BY created_at DESC
+             ORDER  BY u.created_at DESC
              LIMIT  :limit OFFSET :offset"
         );
         foreach ($params as $k => $v) $stmtList->bindValue($k, $v);

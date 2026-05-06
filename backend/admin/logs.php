@@ -20,7 +20,7 @@ $where  = ['1=1'];
 $params = [];
 
 if ($busca !== '') {
-    $where[]     = '(l.action LIKE :b OR l.entity LIKE :b OR l.ip LIKE :b OR u.email LIKE :b)';
+    $where[]     = '(l.action LIKE :b OR l.entity LIKE :b OR l.ip LIKE :b OR user_email LIKE :b)';
     $params['b'] = '%' . $busca . '%';
 }
 if (in_array($role, ['user','admin'], true)) {
@@ -32,20 +32,17 @@ $sql = 'WHERE ' . implode(' AND ', $where);
 
 try {
     $stmtCount = $pdo->prepare(
-        "SELECT COUNT(*) FROM action_logs l LEFT JOIN users u ON u.id = l.user_id $sql"
+        "SELECT COUNT(*) FROM v_admin_action_logs l $sql"
     );
     $stmtCount->execute($params);
     $total = (int) $stmtCount->fetchColumn();
 
     $stmtList = $pdo->prepare(
-        "SELECT l.id, l.role, l.action, l.entity, l.entity_id, l.ip, l.created_at,
-                l.details,
-                COALESCE(u.email, '[removido]') AS user_email,
-                COALESCE(u.name,  '[removido]') AS user_name
-         FROM   action_logs l
-         LEFT JOIN users u ON u.id = l.user_id
+        "SELECT id, role, action, entity, entity_id, ip, created_at, details,
+                user_email, user_name
+         FROM   v_admin_action_logs l
          $sql
-         ORDER  BY l.created_at DESC
+         ORDER  BY created_at DESC
          LIMIT  :limit OFFSET :offset"
     );
     foreach ($params as $k => $v) $stmtList->bindValue($k, $v);

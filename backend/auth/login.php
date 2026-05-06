@@ -25,11 +25,36 @@ $captchaAnswer = trim($_POST['captcha'] ?? '');
 $captchaHash   = $_SESSION['captcha_hash'] ?? '';
 $captchaSalt   = $_SESSION['captcha_salt'] ?? '';
 $captchaAt     = (int) ($_SESSION['captcha_at'] ?? 0);
-unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at']);
-if ($captchaHash === '' || (time() - $captchaAt) > 300 ||
-    !hash_equals($captchaHash, hash('sha256', (string)(int)$captchaAnswer . $captchaSalt))) {
-    redirect('../../frontend/pages/login.html?erro=' . urlencode('Resposta do desafio incorreta. Tente novamente.'));
+$captchaTtl    = (int) ($_SESSION['captcha_ttl'] ?? 120);
+$captchaTries  = (int) ($_SESSION['captcha_tries'] ?? 0);
+$captchaMax    = (int) ($_SESSION['captcha_max_tries'] ?? 3);
+$now           = time();
+
+$sessionBind = substr(session_id(), 0, 8);
+
+if ($captchaHash === '' || ($now - $captchaAt) > $captchaTtl) {
+    unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at'],
+          $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
+    redirect('../../frontend/pages/login.html?erro=' .
+        urlencode('Captcha expirado. Recarregue e tente novamente.'));
 }
+
+if ($captchaTries >= $captchaMax) {
+    unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at'],
+          $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
+    redirect('../../frontend/pages/login.html?erro=' .
+        urlencode('Muitas tentativas incorretas. Recarregue o captcha.'));
+}
+
+$expectedHash = hash('sha256', (string)(int)$captchaAnswer . $captchaSalt . $sessionBind);
+if (!hash_equals($captchaHash, $expectedHash)) {
+    $_SESSION['captcha_tries'] = $captchaTries + 1;
+    redirect('../../frontend/pages/login.html?erro=' .
+        urlencode('Resposta do desafio incorreta. Tente novamente.'));
+}
+
+unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at'],
+      $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
 
 $pdo = getDb();
 $ip  = $_SERVER['REMOTE_ADDR'];

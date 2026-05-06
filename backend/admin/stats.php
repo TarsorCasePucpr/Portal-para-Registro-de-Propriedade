@@ -20,7 +20,7 @@ try {
             (SELECT COUNT(*) FROM objects WHERE status = 'roubado' AND deleted_at IS NULL)         AS objetos_roubados,
             (SELECT COUNT(*) FROM objects WHERE status = 'perdido'  AND deleted_at IS NULL)        AS objetos_perdidos,
             (SELECT COUNT(*) FROM contact_messages WHERE lida = 0)                                 AS mensagens_nao_lidas,
-            (SELECT COUNT(*) FROM lgpd_deletion_requests WHERE purged_at IS NULL)                  AS exclusoes_pendentes,
+            (SELECT COALESCE(SUM(total_requests - total_purgadas), 0) FROM v_lgpd_deletion_summary) AS exclusoes_pendentes,
             (SELECT COUNT(*) FROM admin_profiles)                                                  AS total_admins"
     )->fetch();
 

@@ -168,6 +168,45 @@ CREATE OR REPLACE VIEW v_user_objects AS
     JOIN   users u ON u.id = o.user_id
     WHERE  o.deleted_at IS NULL AND u.deleted_at IS NULL;
 
+CREATE OR REPLACE VIEW v_user_object_counts AS
+    SELECT u.id AS user_id,
+           u.name,
+           u.email,
+           COUNT(o.id) AS total_objetos,
+           SUM(o.status = 'normal') AS objetos_normais,
+           SUM(o.status = 'roubado') AS objetos_roubados,
+           SUM(o.status = 'perdido') AS objetos_perdidos
+    FROM users u
+    LEFT JOIN objects o ON o.user_id = u.id AND o.deleted_at IS NULL
+    WHERE u.deleted_at IS NULL
+    GROUP BY u.id, u.name, u.email;
+
+CREATE OR REPLACE VIEW v_admin_action_logs AS
+    SELECT l.id,
+           l.created_at,
+           l.role,
+           l.action,
+           l.entity,
+           l.entity_id,
+           l.ip,
+           l.user_agent,
+           l.details,
+           COALESCE(u.email, '[removido]') AS user_email,
+           COALESCE(u.name, '[removido]') AS user_name
+    FROM action_logs l
+    LEFT JOIN users u ON u.id = l.user_id;
+
+CREATE OR REPLACE VIEW v_lgpd_deletion_summary AS
+    SELECT u.id AS user_id,
+           u.email,
+           r.type,
+           COUNT(*) AS total_requests,
+           SUM(r.purged_at IS NOT NULL) AS total_purgadas,
+           MAX(r.requested_at) AS ultima_solicitacao
+    FROM lgpd_deletion_requests r
+    JOIN users u ON u.id = r.user_id
+    GROUP BY u.id, u.email, r.type;
+
 -- ── DB users / grants (run as root) ──────────────────────────────────────────
 -- CREATE USER IF NOT EXISTS 'app_rw'@'%'  IDENTIFIED BY 'CHANGE_ME_RW';
 -- CREATE USER IF NOT EXISTS 'app_ro'@'%'  IDENTIFIED BY 'CHANGE_ME_RO';
