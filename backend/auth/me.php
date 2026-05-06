@@ -16,9 +16,11 @@ $pdo    = getDb();
 
 try {
     $stmt = $pdo->prepare(
-        'SELECT name, email, mfa_enabled
-         FROM   users
-         WHERE  id = :id AND deleted_at IS NULL AND is_active = 1'
+        'SELECT u.name, u.email, u.mfa_enabled,
+                IF(ap.id IS NOT NULL, 1, 0) AS is_admin
+         FROM   users u
+         LEFT JOIN admin_profiles ap ON ap.user_id = u.id
+         WHERE  u.id = :id AND u.deleted_at IS NULL AND u.is_active = 1'
     );
     $stmt->execute(['id' => $userId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -27,11 +29,12 @@ try {
         jsonError('Usuário não encontrado.', 404);
     }
 
-    jsonSuccess([
+    jsonSuccess(['data' => [
         'name'        => $user['name'],
         'email'       => $user['email'],
         'mfa_enabled' => (bool) $user['mfa_enabled'],
-    ]);
+        'is_admin'    => (bool) $user['is_admin'],
+    ]]);
 
 } catch (PDOException $e) {
     error_log('[me.php] ' . $e->getMessage());

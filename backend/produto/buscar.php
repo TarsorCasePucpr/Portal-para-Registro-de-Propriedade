@@ -38,9 +38,8 @@ $serial = preg_replace('/[\x00-\x1F\x7F]/u', '', $serial);
 try {
     $stmt = $pdo->prepare(
         'SELECT status
-         FROM   objects
+         FROM   v_objects_public
          WHERE  serial_number = :serial
-           AND  deleted_at    IS NULL
          LIMIT  1'
     );
     $stmt->execute(['serial' => $serial]);

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_samesite', 'Strict');
+ini_set('session.cookie_samesite', 'Lax');
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -14,6 +14,7 @@ require_once __DIR__ . '/../utils/hash.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/mailer.php';
 require_once __DIR__ . '/../utils/validadores.php';
+require_once __DIR__ . '/../utils/logger.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('../../frontend/pages/cadastro-usuario.html');
@@ -34,6 +35,16 @@ if (!validateCsrfToken($_POST['csrf'] ?? '')) {
         '../../frontend/pages/cadastro-usuario.html?erro=' .
         urlencode('Token de segurança inválido. Recarregue a página e tente novamente.')
     );
+}
+
+$captchaAnswer = trim($_POST['captcha'] ?? '');
+$captchaHash   = $_SESSION['captcha_hash'] ?? '';
+$captchaSalt   = $_SESSION['captcha_salt'] ?? '';
+$captchaAt     = (int) ($_SESSION['captcha_at'] ?? 0);
+unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at']);
+if ($captchaHash === '' || (time() - $captchaAt) > 300 ||
+    !hash_equals($captchaHash, hash('sha256', (string)(int)$captchaAnswer . $captchaSalt))) {
+    redirect('../../frontend/pages/cadastro-usuario.html?erro=' . urlencode('Resposta do desafio incorreta. Tente novamente.'));
 }
 
 $nome      = trim(htmlspecialchars($_POST['nome']        ?? '', ENT_QUOTES, 'UTF-8'));
@@ -125,6 +136,7 @@ try {
         'ip'  => $ip,
         'ua'  => $userAgent,
     ]);
+    logAction($pdo, $userId, 'user_registered', 'user', $userId, ['ip' => $ip], 'user');
 
     $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
              . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');

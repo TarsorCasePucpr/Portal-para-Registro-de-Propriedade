@@ -2,13 +2,16 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../utils/response.php';
+require_once __DIR__ . '/../config/db.php';
 
 if (!function_exists('startSessionSafe')) {
     function startSessionSafe(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             ini_set('session.cookie_httponly', '1');
-            ini_set('session.cookie_samesite', 'Strict');
+            ini_set('session.cookie_samesite', 'Lax');
+            ini_set('session.cookie_secure',   '1');
+            ini_set('session.gc_maxlifetime',  '14400'); 
             session_start();
         }
     }
@@ -41,4 +44,19 @@ function requireAuth(): void
     }
 
     $_SESSION['last_activity'] = time();
+}
+
+function requireAdmin(): void
+{
+    requireAuth();
+
+    if (!empty($_SESSION['is_admin'])) return;
+
+    $pdo  = getDb();
+    $stmt = $pdo->prepare('SELECT id FROM admin_profiles WHERE user_id = ?');
+    $stmt->execute([$_SESSION['user_id']]);
+    if (!$stmt->fetch()) {
+        jsonError('Acesso negado. Área restrita a administradores.', 403);
+    }
+    $_SESSION['is_admin'] = true;
 }

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_samesite', 'Strict');
+ini_set('session.cookie_samesite', 'Lax');
 session_start();
 
 require_once __DIR__ . '/../config/db.php';
@@ -10,6 +10,7 @@ require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/hash.php';
 require_once __DIR__ . '/../utils/response.php';
+require_once __DIR__ . '/../utils/logger.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('../../frontend/pages/login.html');
@@ -18,6 +19,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 if (!validateCsrfToken($_POST['csrf'] ?? '')) {
     redirect('../../frontend/pages/login.html?erro=' .
         urlencode('Token de segurança inválido.'));
+}
+
+$captchaAnswer = trim($_POST['captcha'] ?? '');
+$captchaHash   = $_SESSION['captcha_hash'] ?? '';
+$captchaSalt   = $_SESSION['captcha_salt'] ?? '';
+$captchaAt     = (int) ($_SESSION['captcha_at'] ?? 0);
+unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at']);
+if ($captchaHash === '' || (time() - $captchaAt) > 300 ||
+    !hash_equals($captchaHash, hash('sha256', (string)(int)$captchaAnswer . $captchaSalt))) {
+    redirect('../../frontend/pages/login.html?erro=' . urlencode('Resposta do desafio incorreta. Tente novamente.'));
 }
 
 $pdo = getDb();
@@ -51,6 +62,7 @@ try {
 
     if (!$usuario || !verifyPassword($senha, $hashVerificacao)) {
         recordFailedAttempt($pdo, $ip, 'login');
+        logAction($pdo, null, 'login_failed', 'user', null, ['email' => $email, 'ip' => $ip], 'user');
         redirect('../../frontend/pages/login.html?erro=' .
             urlencode('E-mail ou senha incorretos.'));
     }
@@ -78,6 +90,7 @@ try {
     }
 
     $_SESSION['user_id'] = $usuario['id'];
+    logAction($pdo, (int) $usuario['id'], 'login_success', 'user', (int) $usuario['id'], [], 'user');
     redirect('../../frontend/pages/dashboard.html');
 
 } catch (PDOException $e) {

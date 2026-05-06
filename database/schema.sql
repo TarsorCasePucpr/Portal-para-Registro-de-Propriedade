@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS tokens (
     id          INT UNSIGNED        AUTO_INCREMENT PRIMARY KEY,
     user_id     INT UNSIGNED        NOT NULL,
     token_hash  VARCHAR(64)         NOT NULL UNIQUE,
-    type        ENUM('confirm','recovery','mfa_email') NOT NULL,
+    type        ENUM('confirm','recovery','mfa_email','admin_otp') NOT NULL,
     expires_at  DATETIME            NOT NULL,
     used_at     DATETIME            NULL,
     created_at  DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -124,9 +124,72 @@ CREATE TABLE IF NOT EXISTS contact_messages (
     INDEX idx_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
  
+CREATE TABLE IF NOT EXISTS action_logs (
+    id         INT UNSIGNED        AUTO_INCREMENT PRIMARY KEY,
+    user_id    INT UNSIGNED        NULL,
+    role       ENUM('user','admin') NOT NULL DEFAULT 'user',
+    action     VARCHAR(80)         NOT NULL,
+    entity     VARCHAR(50)         NULL,
+    entity_id  INT UNSIGNED        NULL,
+    ip         VARCHAR(45)         NOT NULL,
+    user_agent VARCHAR(500)        NOT NULL DEFAULT '',
+    details    JSON                NULL,
+    created_at DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_log_user    (user_id),
+    INDEX idx_log_action  (action),
+    INDEX idx_log_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;
- 
+
+-- ── Views ────────────────────────────────────────────────────────────────────
+
 CREATE OR REPLACE VIEW v_objects_public AS
     SELECT serial_number, status
     FROM   objects
     WHERE  deleted_at IS NULL;
+
+CREATE OR REPLACE VIEW v_admin_users AS
+    SELECT u.id, u.name, u.email, u.cpf, u.is_active, u.mfa_enabled,
+           u.created_at, u.deleted_at,
+           (SELECT COUNT(*) FROM objects o WHERE o.user_id = u.id AND o.deleted_at IS NULL) AS total_objetos,
+           IF(ap.id IS NOT NULL, 1, 0) AS is_admin
+    FROM   users u
+    LEFT JOIN admin_profiles ap ON ap.user_id = u.id;
+
+CREATE OR REPLACE VIEW v_user_objects AS
+    SELECT o.id, o.user_id, o.descricao, o.serial_number, o.status,
+           o.nfe_chave, o.nfe_validada, o.data_compra, o.score,
+           o.created_at, o.updated_at,
+           u.name AS user_name, u.email AS user_email
+    FROM   objects o
+    JOIN   users u ON u.id = o.user_id
+    WHERE  o.deleted_at IS NULL AND u.deleted_at IS NULL;
+
+-- ── DB users / grants (run as root) ──────────────────────────────────────────
+-- CREATE USER IF NOT EXISTS 'app_rw'@'%'  IDENTIFIED BY 'CHANGE_ME_RW';
+-- CREATE USER IF NOT EXISTS 'app_ro'@'%'  IDENTIFIED BY 'CHANGE_ME_RO';
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON portal_propriedade.* TO 'app_rw'@'%';
+-- GRANT SELECT ON portal_propriedade.v_objects_public  TO 'app_ro'@'%';
+-- GRANT SELECT ON portal_propriedade.v_admin_users     TO 'app_ro'@'%';
+-- GRANT SELECT ON portal_propriedade.v_user_objects    TO 'app_ro'@'%';
+-- FLUSH PRIVILEGES;
+
+-- ── Seed: administrador inicial ──────────────────────────────────────────────
+-- Cria o usuário admin e vincula o perfil com chat_id do Telegram.
+-- password_hash é de uma senha placeholder — admin nunca usa senha (login é via Telegram OTP).
+INSERT IGNORE INTO users (name, email, cpf, password_hash, is_active)
+VALUES (
+    'Gerard Gonzalez',
+    'gerard.gonzalez@pucpr.edu.br',
+    '000.000.000-00',
+    '$2b$13$n6BnASHfPYZWgogftHVTrO45Ig96Ix1wlZo7N35akTCRVZYPpNeHm',
+    1
+);
+
+INSERT IGNORE INTO admin_profiles (user_id, email, telegram_chat_id)
+SELECT id, email, '8199427665'
+FROM   users
+WHERE  email = 'gerard.gonzalez@pucpr.edu.br';

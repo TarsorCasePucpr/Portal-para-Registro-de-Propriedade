@@ -4,6 +4,15 @@ if (empty($_SESSION['csrf'])) {
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
 }
 $_csrf = $_SESSION['csrf'];
+$_ca   = random_int(2, 20);
+$_cb   = random_int(1, $_ca);
+$_plus = (bool) random_int(0, 1);
+$_cAnswer = $_plus ? ($_ca + $_cb) : ($_ca - $_cb);
+$_cSalt   = bin2hex(random_bytes(8));
+$_SESSION['captcha_hash'] = hash('sha256', (string) $_cAnswer . $_cSalt);
+$_SESSION['captcha_salt'] = $_cSalt;
+$_SESSION['captcha_at']   = time();
+$_captchaQ = "Quanto é {$_ca} " . ($_plus ? '+' : '−') . " {$_cb}?";
 session_write_close();
 ?>
 <!DOCTYPE html>
@@ -68,6 +77,12 @@ session_write_close();
           <span class="erro" id="erro-senha" role="alert"></span>
         </div>
 
+        <div class="campo">
+          <label for="captcha"><?= htmlspecialchars($_captchaQ, ENT_QUOTES, 'UTF-8') ?></label>
+          <input type="number" id="captcha" name="captcha" required min="-20" max="40" placeholder="Resposta">
+          <span class="erro" id="erro-captcha" role="alert"></span>
+        </div>
+
         <div id="msg-erro" role="alert" aria-live="polite"></div>
 
         <button type="submit" id="btn-login">Entrar</button>
@@ -85,10 +100,13 @@ session_write_close();
     <a href="politica_privacidade.html">Política de Privacidade</a>
     <span>|</span>
     <a href="termo_de_uso.html">Termos de Uso</a>
+    <span>|</span>
+    <a href="admin-login.html" style="color:var(--texto-leve);font-size:.8rem;">Área administrativa</a>
   </footer>
 
   <script src="../js/validacoes.js" defer></script>
   <script src="../js/main.js" defer></script>
+  <script src="../js/cookie-banner.js" defer></script>
 
   <script>
     const erroServidor = new URLSearchParams(window.location.search).get('erro');
@@ -99,4 +117,3 @@ session_write_close();
 
 </body>
 </html>
-#Implmentar a sessao e verificar em todas as paginas 

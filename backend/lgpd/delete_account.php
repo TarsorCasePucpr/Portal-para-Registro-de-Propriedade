@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../utils/hash.php';
 require_once __DIR__ . '/../../utils/response.php';
 require_once __DIR__ . '/../../middleware/csrf.php';
+require_once __DIR__ . '/../../utils/logger.php';
 
 startSessionSafe();
 
@@ -117,6 +118,7 @@ try {
     ]);
 
     $pdo->commit();
+    logAction($pdo, $userId, "account_deleted_{$type}", 'user', $userId, ['ip' => $ip, 'type' => $type], 'user');
 } catch (\PDOException $e) {
     $pdo->rollBack();
     error_log('[delete_account] DB error delete: ' . $e->getMessage());
