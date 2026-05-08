@@ -86,13 +86,15 @@ $serial = preg_replace('/[\x00-\x1F\x7F]/u', '', $serial);
 
 if ($dataCompra !== '') {
     $dt = DateTimeImmutable::createFromFormat('Y-m-d', $dataCompra);
-    if (!$dt || $dt > new DateTimeImmutable('today')) {
-        $erros[] = 'Data de compra inválida.';
+    $fechaMinima = new DateTimeImmutable('1970-01-01');
+    if (!$dt || $dt > new DateTimeImmutable('today') || $dt < $fechaMinima) {
+        $erros[] = 'Data de compra inválida (deve ser entre 1970 e hoje).';
         $dataCompra = null;
     }
 } else {
     $dataCompra = null;
 }
+
 
 if ($nfeChave !== '' && strlen($nfeChave) !== 44) {
     $nfeChave = '';
