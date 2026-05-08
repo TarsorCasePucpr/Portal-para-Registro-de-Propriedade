@@ -17,7 +17,8 @@ function validarSenhaForte(string $v): bool
     );
 }
 
-function validarCPF(string $v): bool
+function validarCPF(string $cpf): bool
+{
     if (!preg_match('/^\d{3}\.\d{3}\.\d{3}-\d{2}$/', $cpf)) {
         return false;
     }
