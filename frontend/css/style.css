@@ -775,3 +775,55 @@ button[type="submit"]:disabled,
 #cookie-banner p { flex: 1; margin: 0; font-size: .875rem; min-width: 200px; }
 .cookie-btns { display: flex; gap: .5rem; }
 
+
+/* ── Política de privacidade scrollável (cadastro) ──────────────── */
+.policy-titulo { font-size: .88rem; color: var(--texto); margin-bottom: .4rem; }
+
+#policy-box {
+  overflow-y: scroll;
+  max-height: 220px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  padding: .875rem 1rem;
+  font-size: .82rem;
+  line-height: 1.55;
+  background: var(--fundo);
+  color: var(--texto);
+  scroll-behavior: smooth;
+}
+#policy-box h3 { font-size: .85rem; margin: .75rem 0 .25rem; color: var(--azul-escuro, #1e40af); }
+#policy-box ul  { padding-left: 1.25rem; margin: .25rem 0 .5rem; }
+#policy-box p   { margin: .3rem 0; }
+
+.policy-aviso {
+  font-size: .8rem;
+  color: var(--texto-claro, #6b7280);
+  margin: .35rem 0 .5rem;
+  text-align: center;
+}
+.policy-aviso--lida { color: var(--sucesso); }
+
+#aceite-lgpd:disabled + * { opacity: .5; }
+
+/* ── Alternativa de código manual (confirmação de cadastro) ─────── */
+.alternativa-codigo {
+  margin-top: 1.25rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  font-size: .875rem;
+}
+.alternativa-codigo summary {
+  padding: .6rem .875rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--azul);
+  user-select: none;
+}
+.alternativa-codigo summary:hover { text-decoration: underline; }
+.alternativa-codigo-corpo {
+  padding: .75rem .875rem 1rem;
+  border-top: 1px solid var(--borda);
+}
+.alternativa-codigo-corpo p     { margin-bottom: .75rem; color: var(--texto); }
+.alternativa-codigo-corpo .campo { margin-bottom: .6rem; }
+#msg-codigo { font-size: .82rem; color: var(--erro); margin-top: .5rem; min-height: 1.2em; }

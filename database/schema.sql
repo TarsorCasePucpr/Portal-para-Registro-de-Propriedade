@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS tokens (
     user_id     INT UNSIGNED        NOT NULL,
     token_hash  VARCHAR(64)         NOT NULL UNIQUE,
     type        ENUM('confirm','recovery','mfa_email','admin_otp') NOT NULL,
+    short_code  VARCHAR(8)          NULL,
     expires_at  DATETIME            NOT NULL,
     used_at     DATETIME            NULL,
     created_at  DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,

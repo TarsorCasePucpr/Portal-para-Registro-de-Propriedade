@@ -59,8 +59,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  const checkLGPD = document.getElementById('aceite-lgpd');
+  const checkLGPD    = document.getElementById('aceite-lgpd');
   const btnCadastrar = document.getElementById('btn-cadastrar');
+  const policyBox    = document.getElementById('policy-box');
+  const policyAviso  = document.getElementById('policy-aviso');
+
+  if (policyBox && checkLGPD) {
+    policyBox.addEventListener('scroll', function () {
+      const atBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 10;
+      if (atBottom) {
+        checkLGPD.disabled = false;
+        if (policyAviso) {
+          policyAviso.textContent = 'Você chegou ao final. Agora pode aceitar a política.';
+          policyAviso.classList.add('policy-aviso--lida');
+        }
+      }
+    });
+  }
 
   if (checkLGPD && btnCadastrar) {
     checkLGPD.addEventListener('change', function () {

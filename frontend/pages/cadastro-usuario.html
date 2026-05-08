@@ -112,8 +112,80 @@
         </div>
 
         <div id="consentimento-lgpd" class="campo">
-          <label class="label-checkbox">
-            <input type="checkbox" id="aceite-lgpd" name="aceite_lgpd" value="1" required>
+          <p class="policy-titulo"><strong>Política de Privacidade</strong></p>
+          <div id="policy-box" tabindex="0" role="region" aria-label="Política de Privacidade" aria-scrollable="true">
+            <p><strong>Última atualização: março de 2026 — Versão 1.0</strong></p>
+            <p>Esta Política está em conformidade com a <strong>Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)</strong>.</p>
+
+            <h3>1. Quem somos</h3>
+            <p>O SNGuard é um portal acadêmico desenvolvido por estudantes de Cibersegurança da PUCPR para registro de objetos pessoais por número de série.</p>
+
+            <h3>2. Dados coletados</h3>
+            <ul>
+              <li><strong>Nome completo</strong> — identificação da conta.</li>
+              <li><strong>E-mail</strong> — confirmação de conta e recuperação de senha.</li>
+              <li><strong>CPF</strong> — exclusivamente para vinculação com Nota Fiscal Eletrônica. Não compartilhado com terceiros.</li>
+              <li><strong>Senha</strong> — armazenada como hash bcrypt. Nunca em texto simples.</li>
+              <li><strong>Endereço IP</strong> — registrado temporariamente para rate limiting. Eliminado após 30 dias.</li>
+              <li><strong>Dados dos objetos</strong> — número de série, descrição e status.</li>
+            </ul>
+
+            <h3>3. Finalidade do uso</h3>
+            <ul>
+              <li>Criar e autenticar sua conta.</li>
+              <li>Vincular objetos ao seu CPF via NF-e.</li>
+              <li>Enviar e-mails de confirmação e recuperação de senha.</li>
+              <li>Proteger a plataforma contra acessos indevidos.</li>
+              <li>Permitir consulta pública do <em>status</em> de um objeto — sem expor dados pessoais do proprietário.</li>
+            </ul>
+
+            <h3>4. Base legal (Art. 7, LGPD)</h3>
+            <ul>
+              <li><strong>Consentimento (Art. 7, I):</strong> fornecido no ato do cadastro.</li>
+              <li><strong>Execução de contrato (Art. 7, V):</strong> necessário para prestação dos serviços.</li>
+              <li><strong>Legítimo interesse (Art. 7, IX):</strong> segurança e prevenção de fraudes.</li>
+            </ul>
+
+            <h3>5. Compartilhamento de dados</h3>
+            <p>O SNGuard <strong>não vende, aluga ou compartilha</strong> seus dados com terceiros para fins comerciais. Acesso restrito à equipe de desenvolvimento e, quando exigido, a autoridades competentes.</p>
+
+            <h3>6. Retenção dos dados</h3>
+            <ul>
+              <li>Dados da conta: enquanto a conta estiver ativa.</li>
+              <li>Após exclusão: dados anonimizados e removidos em até 30 dias (Art. 16, LGPD).</li>
+              <li>Logs de IP: eliminados após 30 dias.</li>
+              <li>Registros de consentimento: mantidos pelo prazo legal.</li>
+            </ul>
+
+            <h3>7. Segurança</h3>
+            <ul>
+              <li>Senhas: hash bcrypt (custo 13).</li>
+              <li>Comunicação: HTTPS em produção.</li>
+              <li>Proteção: SQL Injection (PDO), CSRF, rate limiting, sessões com expiração automática.</li>
+              <li>MFA (autenticação em dois fatores) disponível.</li>
+            </ul>
+
+            <h3>8. Seus direitos (Art. 18, LGPD)</h3>
+            <ul>
+              <li>Confirmação e acesso aos seus dados.</li>
+              <li>Correção de dados incompletos ou desatualizados.</li>
+              <li>Exclusão ou anonimização dos dados.</li>
+              <li>Portabilidade em formato estruturado.</li>
+              <li>Revogação do consentimento a qualquer momento.</li>
+            </ul>
+
+            <h3>9. Cookies</h3>
+            <p>Usamos apenas cookies de sessão estritamente necessários. Não utilizamos cookies de rastreamento, analytics ou marketing.</p>
+
+            <h3>10. Contato</h3>
+            <p>Em caso de dúvidas, entre em contato pelos canais institucionais da PUCPR ou pelo e-mail responsável pelo projeto.</p>
+
+            <h3>11. Alterações</h3>
+            <p>Esta política pode ser atualizada. Mudanças relevantes serão comunicadas por e-mail ou aviso na plataforma.</p>
+          </div>
+          <p id="policy-aviso" class="policy-aviso" aria-live="polite">Role até o final para poder aceitar</p>
+          <label class="label-checkbox" id="label-lgpd">
+            <input type="checkbox" id="aceite-lgpd" name="aceite_lgpd" value="1" required disabled>
             Li e concordo com a
             <a href="politica_privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>
             e autorizo o uso dos meus dados para os fins descritos.

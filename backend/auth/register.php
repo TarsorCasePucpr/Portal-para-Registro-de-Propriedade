@@ -144,12 +144,19 @@ try {
     $tokenHash = hash('sha256', $tokenRaw);
     $expira    = date('Y-m-d H:i:s', time() + 86400);
 
+    $codeChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    $shortCode = '';
+    for ($i = 0; $i < 6; $i++) {
+        $shortCode .= $codeChars[random_int(0, strlen($codeChars) - 1)];
+    }
+
     $pdo->prepare(
-        "INSERT INTO tokens (user_id, token_hash, type, expires_at)
-         VALUES (:uid, :hash, 'confirm', :exp)"
+        "INSERT INTO tokens (user_id, token_hash, type, short_code, expires_at)
+         VALUES (:uid, :hash, 'confirm', :code, :exp)"
     )->execute([
         'uid'  => $userId,
         'hash' => $tokenHash,
+        'code' => $shortCode,
         'exp'  => $expira,
     ]);
 
@@ -175,6 +182,9 @@ try {
             corpo:        "Olá, {$nome}!\n\n" .
                           "Clique no link abaixo para ativar sua conta (válido por 24 horas):\n\n" .
                           "{$linkConfirmacao}\n\n" .
+                          "Se o link acima não funcionar no seu e-mail, acesse a página de\n" .
+                          "confirmação e informe seu e-mail junto com o código abaixo:\n\n" .
+                          "Código de confirmação: {$shortCode}\n\n" .
                           "Se você não criou esta conta, ignore esta mensagem.\n\n" .
                           "— Equipe SNGuard"
         );
