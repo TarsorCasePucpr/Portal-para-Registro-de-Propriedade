@@ -67,8 +67,10 @@ function validarPlacaVeiculo(string $v): bool
 
 function validarNome(string $v): bool
 {
-    $len = mb_strlen(trim($v));
+    $v = trim($v);
+    $len = mb_strlen($v);
     if ($len < 3 || $len > 100) return false;
-    if (preg_match('/(.)\1{3,}/', $v)) return false;
+    if (preg_match('/(.)\1{3,}/u', $v)) return false;
+    if (!preg_match('/^[a-zA-ZÀ-ÿ\s\'\-]+$/u', $v)) return false;
     return true;
 }

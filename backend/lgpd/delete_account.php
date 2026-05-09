@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../config/db.php';
-require_once __DIR__ . '/../../utils/hash.php';
-require_once __DIR__ . '/../../utils/response.php';
-require_once __DIR__ . '/../../middleware/csrf.php';
-require_once __DIR__ . '/../../utils/logger.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../utils/hash.php';
+require_once __DIR__ . '/../utils/response.php';
+require_once __DIR__ . '/../middleware/csrf.php';
+require_once __DIR__ . '/../utils/logger.php';
 
 startSessionSafe();
 

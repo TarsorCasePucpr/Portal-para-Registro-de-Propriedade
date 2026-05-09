@@ -170,8 +170,12 @@ try {
     ]);
     logAction($pdo, $userId, 'user_registered', 'user', $userId, ['ip' => $ip], 'user');
 
-    $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
-             . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    $baseUrl = rtrim(
+        getenv('APP_URL') ?:
+        ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+        . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')),
+        '/'
+    );
     $linkConfirmacao = $baseUrl . '/backend/auth/confirm.php?token=' . urlencode($tokenRaw);
 
     try {

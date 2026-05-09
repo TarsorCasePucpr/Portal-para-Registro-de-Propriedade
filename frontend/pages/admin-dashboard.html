@@ -39,6 +39,7 @@ unset($__pdo, $__stmt);
     <button class="admin-tab"        data-tab="usuarios">Usuários</button>
     <button class="admin-tab"        data-tab="objetos">Objetos</button>
     <button class="admin-tab"        data-tab="logs">Log de Ações</button>
+    <button class="admin-tab"        data-tab="lgpd">LGPD</button>
   </nav>
 
   
@@ -126,6 +127,24 @@ unset($__pdo, $__stmt);
         </tbody>
       </table>
       <div class="pagination" id="l-pagination"></div>
+    </div>
+  </section>
+
+
+  <section class="tab-panel" id="tab-lgpd">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Tipo</th><th>User ID</th>
+            <th>Nome (anonimizado)</th><th>E-mail (anonimizado)</th><th>CPF (anonimizado)</th>
+            <th>IP</th><th>Solicitado em</th><th>Purge em</th><th>Purgado em</th>
+          </tr>
+        </thead>
+        <tbody id="lgpd-tbody">
+          <tr><td colspan="10" class="td-empty">Carregando…</td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 

@@ -71,6 +71,7 @@ session_write_close();
             type="date"
             id="data-compra"
             name="data_compra"
+            min="1970-01-01"
             max=""
           >
           <span id="erro-data" class="erro" role="alert"></span>
@@ -140,7 +141,20 @@ session_write_close();
   <script defer>
   (function () {
 
-    document.getElementById('data-compra').max = new Date().toISOString().split('T')[0];
+    const dataInput = document.getElementById('data-compra');
+    const hoje = new Date().toISOString().split('T')[0];
+    dataInput.max = hoje;
+
+    dataInput.addEventListener('blur', function () {
+      const erroData = document.getElementById('erro-data');
+      if (!this.value) { erroData.textContent = ''; return; }
+      const ano = parseInt(this.value.split('-')[0], 10);
+      if (ano < 1970 || this.value > hoje) {
+        erroData.textContent = 'Data inválida. Use uma data entre 01/01/1970 e hoje.';
+      } else {
+        erroData.textContent = '';
+      }
+    });
 
     const txtDescricao = document.getElementById('descricao');
     const contadorEl   = document.getElementById('contador-descricao');
@@ -163,7 +177,7 @@ session_write_close();
       const btn       = document.getElementById('btn-cadastrar-produto');
       const msgEl     = document.getElementById('msg-cadastro');
 
-      ['erro-descricao', 'erro-serial', 'erro-termos', 'erro-nfe'].forEach(id => {
+      ['erro-descricao', 'erro-serial', 'erro-termos', 'erro-nfe', 'erro-data'].forEach(id => {
         document.getElementById(id).textContent = '';
       });
       msgEl.textContent = '';
@@ -175,6 +189,15 @@ session_write_close();
       if (!serial || serial.length < 3) {
         document.getElementById('erro-serial').textContent = 'Informe o número de série.';
         valido = false;
+      }
+
+      const dataVal = document.getElementById('data-compra').value;
+      if (dataVal) {
+        const ano = parseInt(dataVal.split('-')[0], 10);
+        if (ano < 1970 || dataVal > hoje) {
+          document.getElementById('erro-data').textContent = 'Data inválida. Use uma data entre 01/01/1970 e hoje.';
+          valido = false;
+        }
       }
 
       const nfeChave = document.getElementById('nfe-chave').value.replace(/\D/g, '');

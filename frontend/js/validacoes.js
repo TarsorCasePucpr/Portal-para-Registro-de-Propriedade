@@ -1,6 +1,12 @@
 function validarEmail(email) {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(email.trim());
+  const regex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z.\-]+\.[a-zA-Z]{2,}$/;
+  return regex.test(email.trim()) && email.trim().length <= 255;
+}
+
+function validarNome(nome) {
+  const v = nome.trim();
+  if (v.length < 3 || v.length > 100) return false;
+  return /^[a-zA-ZÀ-ÿ\s'\-]+$/.test(v);
 }
 
 function validarFormatoCPF(cpf) {

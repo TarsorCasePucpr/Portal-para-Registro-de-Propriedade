@@ -66,6 +66,7 @@ document.querySelectorAll('.admin-tab').forEach(btn => {
         if (btn.dataset.tab === 'usuarios')  loadUsuarios(1);
         if (btn.dataset.tab === 'objetos')   loadObjetos(1);
         if (btn.dataset.tab === 'logs')      loadLogs(1);
+        if (btn.dataset.tab === 'lgpd')      loadLgpd();
     });
 });
 
@@ -272,6 +273,33 @@ document.getElementById('l-busca')?.addEventListener('input', () => { clearTimeo
 document.getElementById('l-busca')?.addEventListener('search', () => { clearTimeout(lDebounce); loadLogs(1); });
 document.getElementById('l-busca')?.addEventListener('keydown', e => { if (e.key === 'Enter') { clearTimeout(lDebounce); loadLogs(1); } });
 document.getElementById('l-role')?.addEventListener('change', () => loadLogs(1));
+
+async function loadLgpd() {
+    const data = await apiFetch(`${BASE}/admin/lgpd.php`);
+    if (!data?.success) return;
+    const { solicitacoes } = data.data;
+    const tbody = document.getElementById('lgpd-tbody');
+    if (!solicitacoes.length) {
+        tbody.innerHTML = '<tr><td colspan="10" class="loading">Nenhuma solicitação de exclusão registrada.</td></tr>';
+        return;
+    }
+    const typeLabels = { partial: 'Parcial', total: 'Total' };
+    const typeBadge  = { partial: 'badge-yellow', total: 'badge-red' };
+    tbody.innerHTML = solicitacoes.map(r => `
+        <tr>
+            <td>${r.id}</td>
+            <td><span class="badge ${typeBadge[r.type] ?? 'badge-gray'}">${typeLabels[r.type] ?? r.type}</span></td>
+            <td>${r.user_id}</td>
+            <td>${esc(r.user_name)}</td>
+            <td>${esc(r.user_email)}</td>
+            <td>${esc(r.user_cpf)}</td>
+            <td>${esc(r.ip)}</td>
+            <td style="white-space:nowrap;">${new Date(r.requested_at).toLocaleString('pt-BR')}</td>
+            <td style="white-space:nowrap;">${fmt(r.purge_after)}</td>
+            <td>${r.purged_at ? new Date(r.purged_at).toLocaleString('pt-BR') : '<span class="badge badge-yellow">Pendente</span>'}</td>
+        </tr>
+    `).join('');
+}
 
 function renderPagination(containerId, current, last, cb) {
     const el = document.getElementById(containerId);
