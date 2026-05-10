@@ -251,6 +251,50 @@ session_write_close();
     }
   </script>
 
+  <script>
+  (function () {
+    function init() {
+      var checkLGPD   = document.getElementById('aceite-lgpd');
+      var policyBox   = document.getElementById('policy-box');
+      var policyAviso = document.getElementById('policy-aviso');
+      var btnCadastrar= document.getElementById('btn-cadastrar');
+      if (!checkLGPD || !policyBox) return;
+
+      var liberado = false;
+      function liberar() {
+        if (liberado) return;
+        liberado = true;
+        checkLGPD.disabled = false;
+        if (policyAviso) {
+          policyAviso.textContent = 'Política lida. Você pode aceitar.';
+          policyAviso.classList.add('policy-aviso--lida');
+        }
+      }
+
+      if (policyBox.scrollHeight <= policyBox.clientHeight + 4) liberar();
+
+      ['scroll','wheel','touchmove','keydown','click','mousedown','mouseenter'].forEach(function (ev) {
+        policyBox.addEventListener(ev, liberar, { passive: true });
+      });
+
+      var label = document.getElementById('label-lgpd');
+      if (label) label.addEventListener('click', liberar);
+
+      setTimeout(liberar, 4000);
+
+      if (checkLGPD && btnCadastrar) {
+        checkLGPD.addEventListener('change', function () {
+          btnCadastrar.disabled = !this.checked;
+        });
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+  </script>
 
 </body>
 </html>
