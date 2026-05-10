@@ -38,7 +38,10 @@ function getDb(): PDO {
     $port = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: '3306';
     $name = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: 'portal_propriedade';
     $user = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: '';
-    $pass = $_ENV['DB_PASS'] ?? getenv('DB_PASS') ?: '';
+    $passSecret = '/run/secrets/db_pass';
+    $pass = is_readable($passSecret)
+        ? trim((string) file_get_contents($passSecret))
+        : ($_ENV['DB_PASS'] ?? getenv('DB_PASS') ?: '');
 
     $pdo = new PDO(
         "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4",

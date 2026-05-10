@@ -1,11 +1,13 @@
 SET FOREIGN_KEY_CHECKS = 0;
 SET NAMES utf8mb4;
---implementar melhores views de uso de cada usuário
+-- implementar melhores views de uso de cada usuário
 CREATE TABLE IF NOT EXISTS users (
     id            INT UNSIGNED        AUTO_INCREMENT PRIMARY KEY,
     name          VARCHAR(100)        NOT NULL,
-    email         VARCHAR(255)        NOT NULL UNIQUE,
-    cpf           VARCHAR(14)         NOT NULL UNIQUE,
+    email         VARCHAR(512)        NOT NULL,
+    email_hash    VARCHAR(64)         NOT NULL DEFAULT '',
+    cpf           VARCHAR(100)        NOT NULL,
+    cpf_hash      VARCHAR(64)         NOT NULL DEFAULT '',
     password_hash VARCHAR(255)        NOT NULL,
     is_active     TINYINT(1)          NOT NULL DEFAULT 0,
     mfa_enabled   TINYINT(1)          NOT NULL DEFAULT 0,
@@ -14,9 +16,9 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at    DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP
                                                 ON UPDATE CURRENT_TIMESTAMP,
     deleted_at    DATETIME            NULL,
- 
-    INDEX idx_email   (email),
-    INDEX idx_cpf     (cpf),
+
+    UNIQUE INDEX idx_email_hash (email_hash),
+    UNIQUE INDEX idx_cpf_hash   (cpf_hash),
     INDEX idx_active  (is_active),
     INDEX idx_deleted (deleted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

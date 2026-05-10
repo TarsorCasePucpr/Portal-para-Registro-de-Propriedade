@@ -6,6 +6,7 @@ require_once __DIR__ . '/../utils/hash.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../utils/logger.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 startSessionSafe();
 
@@ -69,21 +70,25 @@ if (!verifyPassword($password, $user['password_hash'])) {
 try {
     $pdo->beginTransaction();
 
-    $now       = date('Y-m-d H:i:s');
-    $purgeDate = date('Y-m-d H:i:s', strtotime('+30 days'));
-    $anonEmail = "removed_{$userId}@deleted.local";
-    $anonHash  = hashPassword(bin2hex(random_bytes(32)));
+    $now           = date('Y-m-d H:i:s');
+    $purgeDate     = date('Y-m-d H:i:s', strtotime('+30 days'));
+    $anonEmailPlain = "removed_{$userId}@deleted.local";
+    $anonCpfPlain   = "REMOVED_{$userId}";
+    $anonHash       = hashPassword(bin2hex(random_bytes(32)));
 
     $pdo->prepare(
         'UPDATE users
-         SET name = :name, email = :email, cpf = :cpf,
+         SET name = :name, email = :email, email_hash = :eh,
+             cpf = :cpf, cpf_hash = :ch,
              password_hash = :hash, mfa_secret = NULL,
              updated_at = :now
          WHERE id = :id'
     )->execute([
         'name'  => 'REMOVED',
-        'email' => $anonEmail,
-        'cpf'   => '000.000.000-00',
+        'email' => encryptField($anonEmailPlain),
+        'eh'    => hashField($anonEmailPlain),
+        'cpf'   => encryptField($anonCpfPlain),
+        'ch'    => hashField($anonCpfPlain),
         'hash'  => $anonHash,
         'now'   => $now,
         'id'    => $userId,

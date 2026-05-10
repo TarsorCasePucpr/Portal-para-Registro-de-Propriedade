@@ -15,6 +15,7 @@ require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/mailer.php';
 require_once __DIR__ . '/../utils/validadores.php';
 require_once __DIR__ . '/../utils/logger.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('../../frontend/pages/cadastro-usuario.html');
@@ -114,10 +115,15 @@ if (!empty($erros)) {
 }
 
 try {
+    $emailHash = hashField($email);
+    $cpfHash   = hashField($cpf);
+    $emailEnc  = encryptField($email);
+    $cpfEnc    = encryptField($cpf);
+
     $stmt = $pdo->prepare(
-        'SELECT id FROM users WHERE (email = :email OR cpf = :cpf) AND deleted_at IS NULL'
+        'SELECT id FROM users WHERE (email_hash = :eh OR cpf_hash = :ch) AND deleted_at IS NULL'
     );
-    $stmt->execute(['email' => $email, 'cpf' => $cpf]);
+    $stmt->execute(['eh' => $emailHash, 'ch' => $cpfHash]);
 
     if ($stmt->fetch()) {
         redirect(
@@ -129,13 +135,15 @@ try {
     $hashSenha = hashPassword($senha);
 
     $stmt = $pdo->prepare(
-        'INSERT INTO users (name, email, cpf, password_hash, is_active)
-         VALUES (:nome, :email, :cpf, :hash, 0)'
+        'INSERT INTO users (name, email, email_hash, cpf, cpf_hash, password_hash, is_active)
+         VALUES (:nome, :email, :eh, :cpf, :ch, :hash, 0)'
     );
     $stmt->execute([
         'nome'  => $nome,
-        'email' => $email,
-        'cpf'   => $cpf,
+        'email' => $emailEnc,
+        'eh'    => $emailHash,
+        'cpf'   => $cpfEnc,
+        'ch'    => $cpfHash,
         'hash'  => $hashSenha,
     ]);
     $userId = (int) $pdo->lastInsertId();

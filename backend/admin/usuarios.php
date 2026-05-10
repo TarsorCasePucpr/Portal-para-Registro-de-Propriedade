@@ -6,6 +6,7 @@ require_once __DIR__ . '/../middleware/auth_guard.php';
 require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/logger.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 requireAdmin();
 
@@ -24,8 +25,14 @@ if ($method === 'GET') {
     $params = [];
 
     if ($busca !== '') {
-        $where[]     = '(name LIKE :b OR email LIKE :b OR cpf LIKE :b)';
-        $params['b'] = '%' . $busca . '%';
+        if (str_contains($busca, '@')) {
+            $where[]       = '(name LIKE :b OR email_hash = :eh)';
+            $params['b']   = '%' . $busca . '%';
+            $params['eh']  = hashField($busca);
+        } else {
+            $where[]     = 'name LIKE :b';
+            $params['b'] = '%' . $busca . '%';
+        }
     }
     if ($status === 'ativo')   { $where[] = 'is_active = 1'; }
     if ($status === 'inativo') { $where[] = 'is_active = 0'; }
@@ -53,7 +60,11 @@ if ($method === 'GET') {
         $stmtList->bindValue(':limit',  $perPage, PDO::PARAM_INT);
         $stmtList->bindValue(':offset', $offset,  PDO::PARAM_INT);
         $stmtList->execute();
-        $usuarios = $stmtList->fetchAll();
+        $usuarios = array_map(function (array $u): array {
+            $u['email'] = decryptField($u['email']);
+            $u['cpf']   = decryptField($u['cpf']);
+            return $u;
+        }, $stmtList->fetchAll());
 
         jsonSuccess(['data' => [
             'usuarios'  => $usuarios,
@@ -99,7 +110,7 @@ if ($method === 'PATCH') {
                 if (!$u) jsonError('Usuário não encontrado.', 404);
                 $pdo->prepare(
                     'INSERT IGNORE INTO admin_profiles (user_id, email) VALUES (?, ?)'
-                )->execute([$id, $u['email']]);
+                )->execute([$id, decryptField($u['email'])]);
                 $msg = 'Usuário promovido a administrador.';
                 break;
             case 'rebaixar':
@@ -107,10 +118,22 @@ if ($method === 'PATCH') {
                 $msg = 'Administrador rebaixado.';
                 break;
             case 'excluir':
-                $now = date('Y-m-d H:i:s');
+                $now            = date('Y-m-d H:i:s');
+                $anonEmailPlain = "removed_{$id}@deleted.local";
+                $anonCpfPlain   = "REMOVED_{$id}";
                 $pdo->prepare(
-                    "UPDATE users SET deleted_at = :now, name = 'REMOVED', email = CONCAT('removed_',:id,'@deleted.local'), cpf = '000.000.000-00' WHERE id = :id2"
-                )->execute(['now' => $now, 'id' => $id, 'id2' => $id]);
+                    "UPDATE users SET deleted_at = :now, name = 'REMOVED',
+                     email = :email, email_hash = :eh,
+                     cpf = :cpf, cpf_hash = :ch
+                     WHERE id = :id"
+                )->execute([
+                    'now'   => $now,
+                    'email' => encryptField($anonEmailPlain),
+                    'eh'    => hashField($anonEmailPlain),
+                    'cpf'   => encryptField($anonCpfPlain),
+                    'ch'    => hashField($anonCpfPlain),
+                    'id'    => $id,
+                ]);
                 $msg = 'Usuário excluído.';
                 break;
         }

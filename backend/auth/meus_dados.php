@@ -17,6 +17,7 @@ require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../middleware/auth_guard.php';
 require_once __DIR__ . '/../utils/hash.php';
 require_once __DIR__ . '/../utils/response.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 requireAuth();
 $userId = (int) $_SESSION['user_id'];
@@ -38,7 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             jsonError('Usuário não encontrado.', 404);
         }
 
-        $cpf = $usuario['cpf'];
+        $usuario['email'] = decryptField($usuario['email']);
+        $cpf = decryptField($usuario['cpf']);
         $usuario['cpf_mascarado'] = substr($cpf, 0, 4) . '***.***-' . substr($cpf, -2);
         unset($usuario['cpf']);
 

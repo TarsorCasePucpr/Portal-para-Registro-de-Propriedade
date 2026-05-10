@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../middleware/rate_limiter.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido.', 405);
@@ -32,15 +33,15 @@ try {
         "SELECT t.id, t.user_id
          FROM tokens t
          JOIN users u ON u.id = t.user_id
-         WHERE u.email      = :email
-           AND t.short_code = :code
-           AND t.type       = 'confirm'
-           AND t.used_at    IS NULL
-           AND t.expires_at > NOW()
-           AND u.deleted_at IS NULL
+         WHERE u.email_hash  = :eh
+           AND t.short_code  = :code
+           AND t.type        = 'confirm'
+           AND t.used_at     IS NULL
+           AND t.expires_at  > NOW()
+           AND u.deleted_at  IS NULL
          LIMIT 1"
     );
-    $stmt->execute(['email' => $email, 'code' => $code]);
+    $stmt->execute(['eh' => hashField($email), 'code' => $code]);
     $token = $stmt->fetch();
 } catch (\PDOException $e) {
     error_log('[confirm_code] DB fetch: ' . $e->getMessage());

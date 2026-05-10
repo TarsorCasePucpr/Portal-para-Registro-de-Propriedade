@@ -6,6 +6,7 @@ require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/mailer.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/validadores.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -31,16 +32,18 @@ if (!validarEmail($email)) {
 
 try {
     $stmt = $pdo->prepare(
-        'SELECT id, name FROM users
-         WHERE email = :email AND is_active = 0 AND deleted_at IS NULL
+        'SELECT id, name, email FROM users
+         WHERE email_hash = :eh AND is_active = 0 AND deleted_at IS NULL
          LIMIT 1'
     );
-    $stmt->execute(['email' => $email]);
+    $stmt->execute(['eh' => hashField($email)]);
     $user = $stmt->fetch();
 
     if (!$user) {
         jsonSuccess(['message' => $genericMsg]);
     }
+
+    $email = decryptField($user['email']);
 
     $pdo->prepare(
         "UPDATE tokens SET used_at = NOW()

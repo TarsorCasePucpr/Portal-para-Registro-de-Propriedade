@@ -11,6 +11,7 @@ require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/hash.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/logger.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('../../frontend/pages/login.html');
@@ -76,9 +77,9 @@ try {
     $stmt = $pdo->prepare(
         "SELECT id, password_hash, is_active, mfa_enabled
          FROM users
-         WHERE email = :email AND deleted_at IS NULL"
+         WHERE email_hash = :eh AND deleted_at IS NULL"
     );
-    $stmt->execute(['email' => $email]);
+    $stmt->execute(['eh' => hashField($email)]);
     $usuario = $stmt->fetch();
 
     $hashVerificacao = $usuario
