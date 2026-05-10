@@ -45,9 +45,17 @@ try {
     redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Erro interno.'));
 }
 
-if (!$admin || !$admin['telegram_chat_id']) {
+if (!$admin) {
     recordFailedAttempt($pdo, $ip, 'admin_otp_request');
-    redirect('../../frontend/pages/admin-otp.html?email=' . urlencode($email));
+    redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Usuário administrador não encontrado.'));
+}
+
+$_SESSION['admin_pending_id'] = $admin['user_id'];
+$_SESSION['admin_pending_at'] = time();
+
+if (empty($admin['telegram_chat_id'])) {
+    $_SESSION['admin_fallback_questions'] = true;
+    redirect('../../frontend/pages/admin-questions.html?email=' . urlencode($email));
 }
 
 $otp      = (string) random_int(100000, 999999);
@@ -82,8 +90,11 @@ $sent = sendTelegramMessage(
 
 if (!$sent) {
     error_log("[admin-request-otp] Telegram falhou para user_id={$admin['user_id']}");
+    $_SESSION['admin_fallback_questions'] = true;
+    redirect('../../frontend/pages/admin-questions.html?email=' . urlencode($email));
 }
 
+unset($_SESSION['admin_fallback_questions']);
 $_SESSION['admin_pending_id'] = $admin['user_id'];
 $_SESSION['admin_pending_at'] = time();
 
