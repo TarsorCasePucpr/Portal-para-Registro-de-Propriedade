@@ -108,7 +108,7 @@ async function loadUsuarios(page = 1) {
     const { usuarios, total, last_page } = data.data;
     const tbody = document.getElementById('u-tbody');
     if (!usuarios.length) {
-        tbody.innerHTML = '<tr><td colspan="12" class="loading">Nenhum usuário encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" class="td-empty">Nenhum usuário encontrado.</td></tr>';
         document.getElementById('u-pagination').innerHTML = '';
         return;
     }
@@ -177,7 +177,7 @@ async function loadObjetos(page = 1) {
     const { objetos, total, last_page } = data.data;
     const tbody = document.getElementById('o-tbody');
     if (!objetos.length) {
-        tbody.innerHTML = '<tr><td colspan="9" class="loading">Nenhum objeto encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="td-empty">Nenhum objeto encontrado.</td></tr>';
         document.getElementById('o-pagination').innerHTML = '';
         return;
     }
@@ -250,7 +250,7 @@ async function loadLogs(page = 1) {
     const { logs, last_page } = data.data;
     const tbody = document.getElementById('l-tbody');
     if (!logs.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="loading">Nenhum log encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="td-empty">Nenhum log encontrado.</td></tr>';
         document.getElementById('l-pagination').innerHTML = '';
         return;
     }
@@ -280,7 +280,7 @@ async function loadLgpd() {
     const { solicitacoes } = data.data;
     const tbody = document.getElementById('lgpd-tbody');
     if (!solicitacoes.length) {
-        tbody.innerHTML = '<tr><td colspan="10" class="loading">Nenhuma solicitação de exclusão registrada.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="td-empty">Nenhuma solicitação de exclusão registrada.</td></tr>';
         return;
     }
     const typeLabels = { partial: 'Parcial', total: 'Total' };

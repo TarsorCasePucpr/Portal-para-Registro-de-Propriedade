@@ -9,9 +9,13 @@ $_cb   = random_int(1, $_ca);
 $_plus = (bool) random_int(0, 1);
 $_cAnswer = $_plus ? ($_ca + $_cb) : ($_ca - $_cb);
 $_cSalt   = bin2hex(random_bytes(8));
-$_SESSION['captcha_hash'] = hash('sha256', (string) $_cAnswer . $_cSalt);
+$_sessionBind = substr(session_id(), 0, 8);
+$_SESSION['captcha_hash'] = hash('sha256', (string) $_cAnswer . $_cSalt . $_sessionBind);
 $_SESSION['captcha_salt'] = $_cSalt;
 $_SESSION['captcha_at']   = time();
+$_SESSION['captcha_ttl']  = 300;
+$_SESSION['captcha_tries']     = 0;
+$_SESSION['captcha_max_tries'] = 3;
 $_captchaQ = "Quanto é {$_ca} " . ($_plus ? '+' : '−') . " {$_cb}?";
 session_write_close();
 ?>

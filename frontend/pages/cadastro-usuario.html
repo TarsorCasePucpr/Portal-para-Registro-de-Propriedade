@@ -278,14 +278,13 @@ session_write_close();
 
       if (policyBox.scrollHeight <= policyBox.clientHeight + 4) liberar();
 
-      ['scroll','wheel','touchmove','keydown','click','mousedown','mouseenter'].forEach(function (ev) {
-        policyBox.addEventListener(ev, liberar, { passive: true });
-      });
-
-      var label = document.getElementById('label-lgpd');
-      if (label) label.addEventListener('click', liberar);
-
-      setTimeout(liberar, 4000);
+      function onPolicyScroll() {
+        if (policyBox.scrollTop + policyBox.clientHeight >= policyBox.scrollHeight - 8) {
+          liberar();
+        }
+      }
+      policyBox.addEventListener('scroll', onPolicyScroll, { passive: true });
+      policyBox.addEventListener('touchmove', onPolicyScroll, { passive: true });
 
       if (checkLGPD && btnCadastrar) {
         checkLGPD.addEventListener('change', function () {
