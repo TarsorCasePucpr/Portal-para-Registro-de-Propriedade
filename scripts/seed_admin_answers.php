@@ -7,6 +7,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require_once __DIR__ . '/../backend/config/db.php';
+require_once __DIR__ . '/../backend/utils/crypto.php';
 
 $base = dirname(__DIR__);
 loadEnv($base . '/.env');
@@ -54,7 +55,8 @@ try {
             (user_id, answer1_hash, answer2_hash, answer3_hash, answer4_hash)
          SELECT u.id, :h1, :h2, :h3, :h4
          FROM   users u
-         WHERE  u.email = :email
+         JOIN   admin_profiles ap ON ap.user_id = u.id
+         WHERE  u.email_hash = :eh AND u.deleted_at IS NULL AND u.is_active = 1
          ON DUPLICATE KEY UPDATE
              answer1_hash = VALUES(answer1_hash),
              answer2_hash = VALUES(answer2_hash),
@@ -63,15 +65,15 @@ try {
              updated_at   = CURRENT_TIMESTAMP'
     );
     $stmt->execute([
-        'h1'    => $hashes[0],
-        'h2'    => $hashes[1],
-        'h3'    => $hashes[2],
-        'h4'    => $hashes[3],
-        'email' => $adminEmail,
+        'h1' => $hashes[0],
+        'h2' => $hashes[1],
+        'h3' => $hashes[2],
+        'h4' => $hashes[3],
+        'eh' => hashField($adminEmail),
     ]);
 
     if ($stmt->rowCount() === 0) {
-        fwrite(STDERR, "ERRO: admin com esse email não existe.\n");
+        fwrite(STDERR, "ERRO: admin ativo com esse email não existe (verifique users.email_hash + admin_profiles).\n");
         exit(1);
     }
 
