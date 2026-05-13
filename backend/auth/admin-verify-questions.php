@@ -41,39 +41,58 @@ if (isRateLimited($pdo, $ip, 'admin_question_verify', 5, 10)) {
     redirect('../../frontend/pages/admin-questions.html?erro=' . urlencode('Muitas tentativas. Aguarde.'));
 }
 
+
 $q1 = strtolower(trim($_POST['q1'] ?? ''));
 $q2 = strtolower(trim($_POST['q2'] ?? ''));
 $q3 = trim($_POST['q3'] ?? '');
+$q4 = strtolower(trim($_POST['q4'] ?? ''));
 
+// q2: aceita "4" ou "quatro"
 $q2Normalized = preg_replace('/\D+/', '', $q2);
-$q2Ok = $q2Normalized === '4' || $q2 === 'quatro';
-$q3Normalized = preg_replace('/\D+/', '', $q3);
-
-if ($q1 !== 'pucpr' || !$q2Ok || $q3Normalized !== '2026') {
-    recordFailedAttempt($pdo, $ip, 'admin_question_verify');
-    $email = urlencode($_POST['email'] ?? '');
-    redirect('../../frontend/pages/admin-questions.html?email=' . $email . '&erro=' . urlencode('Respostas incorretas. Tente novamente.'));
+if ($q2Normalized === '') {
+    $q2Normalized = ($q2 === 'quatro') ? '4' : $q2;
 }
 
+// q3: extrai só dígitos
+$q3Normalized = preg_replace('/\D+/', '', $q3);
+
+// ── Busca hashes no banco
 try {
     $stmt = $pdo->prepare(
-        'SELECT u.id
-         FROM users u
-         JOIN admin_profiles ap ON ap.user_id = u.id
-         WHERE u.id = :uid AND u.deleted_at IS NULL AND u.is_active = 1'
+        'SELECT sa.answer1_hash, sa.answer2_hash, sa.answer3_hash, sa.answer4_hash
+         FROM   admin_security_answers sa
+         JOIN   users u           ON u.id  = sa.user_id
+         JOIN   admin_profiles ap ON ap.user_id = u.id
+         WHERE  sa.user_id    = :uid
+           AND  u.deleted_at  IS NULL
+           AND  u.is_active   = 1'
     );
     $stmt->execute(['uid' => $pendingId]);
-    $admin = $stmt->fetch();
+    $row = $stmt->fetch();
 } catch (\PDOException $e) {
     error_log('[admin-verify-questions] DB: ' . $e->getMessage());
     redirect('../../frontend/pages/admin-questions.html?erro=' . urlencode('Erro interno.'));
 }
 
-if (!$admin) {
+if (!$row) {
     session_unset();
     redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Sessão inválida.'));
 }
 
+// ── Comparação
+$ok =  password_verify($q1,           $row['answer1_hash'])
+    && password_verify($q2Normalized, $row['answer2_hash'])
+    && password_verify($q3Normalized, $row['answer3_hash'])
+    && password_verify($q4,           $row['answer4_hash']);
+
+if (!$ok) {
+    recordFailedAttempt($pdo, $ip, 'admin_question_verify');
+    $email = urlencode($_POST['email'] ?? '');
+    redirect('../../frontend/pages/admin-questions.html?email=' . $email
+           . '&erro=' . urlencode('Respostas incorretas. Tente novamente.'));
+}
+
+// ── Autenticação
 unset($_SESSION['admin_pending_id'], $_SESSION['admin_pending_at'], $_SESSION['admin_fallback_questions']);
 session_regenerate_id(true);
 

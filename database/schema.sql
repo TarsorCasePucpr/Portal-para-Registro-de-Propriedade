@@ -235,3 +235,27 @@ INSERT IGNORE INTO admin_profiles (user_id, email, telegram_chat_id)
 SELECT id, email, '8199427665'
 FROM   users
 WHERE  email = 'gerard.gonzalez@pucpr.edu.br';
+
+CREATE TABLE IF NOT EXISTS admin_security_answers (
+    id           INT UNSIGNED  AUTO_INCREMENT PRIMARY KEY,
+    user_id      INT UNSIGNED  NOT NULL UNIQUE,
+    answer1_hash VARCHAR(255)  NOT NULL,
+    answer2_hash VARCHAR(255)  NOT NULL,
+    answer3_hash VARCHAR(255)  NOT NULL,
+    answer4_hash VARCHAR(255)  NOT NULL,
+    created_at   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                        ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_admin_answers_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO admin_security_answers (user_id, answer1_hash, answer2_hash, answer3_hash, answer4_hash)
+SELECT u.id,
+    '$2y$12$Pdb9Fv5bGp2MvTDRsA23UuSUQTv8XJ840LAfCTJ21Izl0AtQW0nSu',
+    '$2y$12$OnEI2sit7z9u0cwW1x19VOjQ9xltrKG.401pqLq5Muc2kycmiafWq',
+    '$2y$12$aDMyAzyOupqzwazN7cuA6On5JspCoXVu4hVwcTe1lwJRVQQLE0Q4O',
+    '$2y$12$lOWEObQGiIK2R8RzT242FupRKi9rXB6.sbQ3lF.MlSpQ1EQ5UAqqa'
+FROM users u
+WHERE u.email = 'gerard.gonzalez@pucpr.edu.br';
