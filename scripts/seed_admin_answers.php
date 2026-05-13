@@ -1,27 +1,9 @@
 <?php
 declare(strict_types=1);
 
-/**
- * Seed das respostas de segurança do administrador.
- *
- * Uso:
- *   php scripts/seed_admin_answers.php
- *
- * Lê do .env (ou ambiente):
- *   ADMIN_EMAIL       — email do admin alvo (default: gerard.gonzalez@pucpr.edu.br)
- *   ADMIN_ANSWER_1..4 — respostas em texto plano (NUNCA commitar)
- *
- * Normalização aplicada (idêntica a admin-verify-questions.php):
- *   q1, q4 — mb_strtolower(trim())
- *   q2     — só dígitos; aceita "quatro" → "4"
- *   q3     — só dígitos
- *
- * Idempotente: usa ON DUPLICATE KEY UPDATE.
- */
-
 if (PHP_SAPI !== 'cli') {
     http_response_code(403);
-    exit("Este script só pode ser executado via CLI.\n");
+    exit("CLI only.\n");
 }
 
 require_once __DIR__ . '/../backend/config/db.php';
@@ -29,7 +11,11 @@ require_once __DIR__ . '/../backend/config/db.php';
 $base = dirname(__DIR__);
 loadEnv($base . '/.env');
 
-$adminEmail = getenv('ADMIN_EMAIL') ?: 'gerard.gonzalez@pucpr.edu.br';
+$adminEmail = getenv('ADMIN_EMAIL') ?: '';
+if ($adminEmail === '') {
+    fwrite(STDERR, "ERRO: ADMIN_EMAIL não definido no .env\n");
+    exit(1);
+}
 
 $raw = [
     1 => getenv('ADMIN_ANSWER_1'),
@@ -45,7 +31,6 @@ foreach ($raw as $i => $v) {
     }
 }
 
-// Mesmas regras de admin-verify-questions.php — manter sincronizado.
 $q1 = mb_strtolower(trim((string) $raw[1]));
 $q2 = mb_strtolower(trim((string) $raw[2]));
 $q2 = preg_replace('/\D+/', '', $q2) ?: (($q2 === 'quatro') ? '4' : $q2);
@@ -57,10 +42,9 @@ if ($q1 === '' || $q2 === '' || $q3 === '' || $q4 === '') {
     exit(1);
 }
 
-$normalized = [$q1, $q2, $q3, $q4];
-$hashes     = array_map(
+$hashes = array_map(
     fn(string $r) => password_hash($r, PASSWORD_BCRYPT, ['cost' => 13]),
-    $normalized
+    [$q1, $q2, $q3, $q4]
 );
 
 try {
@@ -87,12 +71,11 @@ try {
     ]);
 
     if ($stmt->rowCount() === 0) {
-        fwrite(STDERR, "ERRO: usuário admin com email {$adminEmail} não existe na tabela users.\n");
+        fwrite(STDERR, "ERRO: admin com esse email não existe.\n");
         exit(1);
     }
 
-    echo "OK — respostas seedadas/atualizadas para {$adminEmail}.\n";
-    echo "Lembrete: zere ADMIN_ANSWER_1..4 do .env após validar o login.\n";
+    echo "OK\n";
 } catch (\PDOException $e) {
     fwrite(STDERR, "ERRO de DB: " . $e->getMessage() . "\n");
     exit(1);

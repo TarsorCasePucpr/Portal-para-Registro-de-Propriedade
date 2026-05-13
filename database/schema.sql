@@ -250,6 +250,3 @@ CREATE TABLE IF NOT EXISTS admin_security_answers (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_admin_answers_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Seed das respostas: rodar `php scripts/seed_admin_answers.php` (CLI-only, lê ADMIN_ANSWER_1..4 do .env).
--- Hashes nunca devem ser commitados no schema.
