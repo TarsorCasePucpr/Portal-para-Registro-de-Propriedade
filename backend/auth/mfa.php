@@ -28,7 +28,7 @@ if (isset($_SESSION['mfa_pending_at']) &&
 }
 
 $pdo = getDb();
-$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip  = getClientIp();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('../../frontend/pages/mfa.html');

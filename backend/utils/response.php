@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/client_ip.php';
+
 function jsonSuccess(array $data = [], int $code = 200): never {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');

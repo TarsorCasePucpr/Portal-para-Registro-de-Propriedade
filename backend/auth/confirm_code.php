@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido.', 405);
 }
 
-$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip  = getClientIp();
 $pdo = getDb();
 
 if (!checkRateLimit($pdo, $ip, 'confirm_code', 10, 10)) {

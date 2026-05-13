@@ -30,7 +30,7 @@ if (!validateCsrfToken($_POST['csrf'] ?? '')) {
 }
 
 $pdo = getDb();
-$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip  = getClientIp();
 
 if (!checkRateLimit($pdo, $ip, 'alterar_status', 20, 60)) {
     jsonError('Muitas alterações. Aguarde e tente novamente.', 429);

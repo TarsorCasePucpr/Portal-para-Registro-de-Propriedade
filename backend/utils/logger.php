@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/client_ip.php';
+
 function logAction(
     PDO    $pdo,
     ?int   $userId,
@@ -20,7 +22,7 @@ function logAction(
             'action'  => $action,
             'entity'  => $entity !== '' ? $entity : null,
             'eid'     => $entityId,
-            'ip'      => $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0',
+            'ip'      => getClientIp(),
             'ua'      => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 500),
             'details' => !empty($details) ? json_encode($details) : null,
         ]);

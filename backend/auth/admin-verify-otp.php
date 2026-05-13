@@ -29,13 +29,16 @@ if (!$pendingId || (time() - (int) $pendingAt) > 900) {
     redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Sessão expirada. Faça login novamente.'));
 }
 
-$pdo = getDb();
-$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+if (empty($_SESSION['admin_email_verified'])) {
+    redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Confirme seu e-mail antes de validar o código do Telegram.'));
+}
 
-// TODO: re-enable rate limit after admin testing window (disabled 2026-05-13)
-// if (isRateLimited($pdo, $ip, 'admin_otp_verify', 5, 10)) {
-//     redirect('../../frontend/pages/admin-otp.html?erro=' . urlencode('Muitas tentativas. Aguarde.'));
-// }
+$pdo = getDb();
+$ip  = getClientIp();
+
+if (isRateLimited($pdo, $ip, 'admin_otp_verify', 5, 10)) {
+    redirect('../../frontend/pages/admin-otp.html?erro=' . urlencode('Muitas tentativas. Aguarde.'));
+}
 
 $otp = trim($_POST['otp'] ?? '');
 if (!preg_match('/^\d{6}$/', $otp)) {

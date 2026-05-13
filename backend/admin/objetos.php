@@ -6,6 +6,8 @@ require_once __DIR__ . '/../middleware/auth_guard.php';
 require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/logger.php';
+require_once __DIR__ . '/../utils/crypto.php';
+require_once __DIR__ . '/../utils/admin_search.php';
 
 requireAdmin();
 
@@ -23,10 +25,6 @@ if ($method === 'GET') {
     $where  = [];
     $params = [];
 
-    if ($busca !== '') {
-        $where[]     = '(descricao LIKE :b OR serial_number LIKE :b OR user_name LIKE :b OR user_email LIKE :b)';
-        $params['b'] = '%' . $busca . '%';
-    }
     if (in_array($status, ['normal','roubado','perdido'], true)) {
         $where[]          = 'status = :status';
         $params['status'] = $status;
@@ -35,29 +33,35 @@ if ($method === 'GET') {
     $sql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
     try {
-        $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM v_user_objects $sql");
-        $stmtCount->execute($params);
-        $total = (int) $stmtCount->fetchColumn();
-
         $stmtList = $pdo->prepare(
             "SELECT id, descricao, serial_number, status, nfe_chave, nfe_validada,
                     score, created_at, user_name, user_email
              FROM   v_user_objects
              $sql
-             ORDER  BY created_at DESC
-             LIMIT  :limit OFFSET :offset"
+             ORDER  BY created_at DESC"
         );
         foreach ($params as $k => $v) $stmtList->bindValue($k, $v);
-        $stmtList->bindValue(':limit',  $perPage, PDO::PARAM_INT);
-        $stmtList->bindValue(':offset', $offset,  PDO::PARAM_INT);
         $stmtList->execute();
-        $objetos = $stmtList->fetchAll();
+
+        $objetos = array_map(function (array $o): array {
+            $o['user_email'] = decryptField((string) $o['user_email']);
+            return $o;
+        }, $stmtList->fetchAll());
+
+        if ($busca !== '') {
+            $objetos = array_values(array_filter(
+                $objetos,
+                fn(array $r) => rowMatchesTerm($r, $busca, ['descricao', 'serial_number', 'nfe_chave', 'user_name', 'user_email'])
+            ));
+        }
+
+        $pag = paginateArray($objetos, $page, $perPage);
 
         jsonSuccess(['data' => [
-            'objetos'   => $objetos,
-            'total'     => $total,
+            'objetos'   => $pag['items'],
+            'total'     => $pag['total'],
             'page'      => $page,
-            'last_page' => (int) ceil($total / $perPage),
+            'last_page' => $pag['last_page'],
         ]]);
 
     } catch (\PDOException $e) {

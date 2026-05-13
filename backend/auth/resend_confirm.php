@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $pdo = getDb();
-$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip  = getClientIp();
 
 // Generic response regardless of outcome — prevents email enumeration
 $genericMsg = 'Se o e-mail existir, um novo link será enviado.';

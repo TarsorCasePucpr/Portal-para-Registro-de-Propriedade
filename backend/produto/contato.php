@@ -21,7 +21,7 @@ require_once __DIR__ . '/../utils/mailer.php';
 require_once __DIR__ . '/../utils/crypto.php';
 
 $pdo    = getDb();
-$ip     = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip     = getClientIp();
 $metodo = $_SERVER['REQUEST_METHOD'];
 
 if ($metodo === 'GET' && ($_GET['acao'] ?? '') === 'listar_pendentes') {

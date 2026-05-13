@@ -12,7 +12,7 @@ require_once "../utils/crypto.php";
 startSessionSafe();
 
 $pdo = getDb();
-$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip  = getClientIp();
 
 $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
          . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');

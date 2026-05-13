@@ -10,6 +10,7 @@ require_once __DIR__ . '/../middleware/auth_guard.php';
 require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/telegram.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 requireAdmin();
 
@@ -58,7 +59,7 @@ if ($method === 'POST') {
     try {
         $affected = $pdo->prepare(
             'UPDATE admin_profiles SET telegram_chat_id = :cid WHERE user_id = :uid'
-        )->execute(['cid' => $chatId, 'uid' => $userId]);
+        )->execute(['cid' => encryptField($chatId), 'uid' => $userId]);
 
         if (!$pdo->prepare('SELECT id FROM admin_profiles WHERE user_id = ?')->execute([$userId])) {
             jsonError('Perfil admin não encontrado.', 404);

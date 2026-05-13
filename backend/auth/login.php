@@ -58,7 +58,7 @@ unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_a
       $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
 
 $pdo = getDb();
-$ip  = $_SERVER['REMOTE_ADDR'];
+$ip  = getClientIp();
 
 if (isRateLimited($pdo, $ip, 'login', 5, 15)) {
     redirect('../../frontend/pages/login.html?erro=' .

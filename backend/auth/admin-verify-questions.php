@@ -30,8 +30,12 @@ if (!$pendingId || !$fallback || (time() - (int) $pendingAt) > 900) {
     redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Sessão expirada. Faça login novamente.'));
 }
 
+if (empty($_SESSION['admin_email_verified'])) {
+    redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Confirme seu e-mail antes de responder as perguntas de segurança.'));
+}
+
 $pdo = getDb();
-$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip  = getClientIp();
 
 if (isRateLimited($pdo, $ip, 'admin_question_verify', 5, 10)) {
     redirect('../../frontend/pages/admin-questions.html?erro=' . urlencode('Muitas tentativas. Aguarde.'));

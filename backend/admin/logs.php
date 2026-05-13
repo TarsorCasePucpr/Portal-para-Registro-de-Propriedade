@@ -4,6 +4,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../middleware/auth_guard.php';
 require_once __DIR__ . '/../utils/response.php';
+require_once __DIR__ . '/../utils/crypto.php';
+require_once __DIR__ . '/../utils/admin_search.php';
 
 requireAdmin();
 
@@ -19,10 +21,6 @@ $offset  = ($page - 1) * $perPage;
 $where  = ['1=1'];
 $params = [];
 
-if ($busca !== '') {
-    $where[]     = '(l.action LIKE :b OR l.entity LIKE :b OR l.ip LIKE :b OR user_email LIKE :b)';
-    $params['b'] = '%' . $busca . '%';
-}
 if (in_array($role, ['user','admin'], true)) {
     $where[]         = 'l.role = :role';
     $params['role']  = $role;
@@ -31,31 +29,38 @@ if (in_array($role, ['user','admin'], true)) {
 $sql = 'WHERE ' . implode(' AND ', $where);
 
 try {
-    $stmtCount = $pdo->prepare(
-        "SELECT COUNT(*) FROM v_admin_action_logs l $sql"
-    );
-    $stmtCount->execute($params);
-    $total = (int) $stmtCount->fetchColumn();
-
     $stmtList = $pdo->prepare(
         "SELECT id, role, action, entity, entity_id, ip, created_at, details,
                 user_email, user_name
          FROM   v_admin_action_logs l
          $sql
          ORDER  BY created_at DESC
-         LIMIT  :limit OFFSET :offset"
+         LIMIT 2000"
     );
     foreach ($params as $k => $v) $stmtList->bindValue($k, $v);
-    $stmtList->bindValue(':limit',  $perPage, PDO::PARAM_INT);
-    $stmtList->bindValue(':offset', $offset,  PDO::PARAM_INT);
     $stmtList->execute();
-    $logs = $stmtList->fetchAll();
+
+    $logs = array_map(function (array $r): array {
+        if (isset($r['user_email']) && $r['user_email'] !== '[removido]') {
+            $r['user_email'] = decryptField((string) $r['user_email']);
+        }
+        return $r;
+    }, $stmtList->fetchAll());
+
+    if ($busca !== '') {
+        $logs = array_values(array_filter(
+            $logs,
+            fn(array $r) => rowMatchesTerm($r, $busca, ['action', 'entity', 'ip', 'user_email', 'user_name', 'details'])
+        ));
+    }
+
+    $pag = paginateArray($logs, $page, $perPage);
 
     jsonSuccess(['data' => [
-        'logs'      => $logs,
-        'total'     => $total,
+        'logs'      => $pag['items'],
+        'total'     => $pag['total'],
         'page'      => $page,
-        'last_page' => (int) ceil($total / $perPage),
+        'last_page' => $pag['last_page'],
     ]]);
 
 } catch (\PDOException $e) {

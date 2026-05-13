@@ -8,22 +8,33 @@ if (empty($_SESSION['csrf'])) {
 }
 $_csrf = $_SESSION['csrf'];
 
-$now = time();
-$op = random_int(0, 2);
-switch ($op) {
-    case 0:  $a = random_int(2, 20);  $b = random_int(3, 20);     $answer = $a + $b; $opStr = '+'; break;
-    case 1:  $a = random_int(10, 30); $b = random_int(1, $a - 1); $answer = $a - $b; $opStr = '−'; break;
-    default: $a = random_int(2, 9);   $b = random_int(2, 9);      $answer = $a * $b; $opStr = '×'; break;
+$now    = time();
+$window = 300;
+$maxGen = 5;
+if (!isset($_SESSION['captcha_gen_times'])) $_SESSION['captcha_gen_times'] = [];
+$_SESSION['captcha_gen_times'] = array_filter(
+    $_SESSION['captcha_gen_times'],
+    fn(int $t) => ($now - $t) < $window
+);
+$captchaQuestion = 'Resolva o cálculo de segurança';
+if (count($_SESSION['captcha_gen_times']) < $maxGen) {
+    $_SESSION['captcha_gen_times'][] = $now;
+    $op = random_int(0, 2);
+    switch ($op) {
+        case 0:  $a = random_int(2, 20);  $b = random_int(3, 20);     $answer = $a + $b; $opStr = '+'; break;
+        case 1:  $a = random_int(10, 30); $b = random_int(1, $a - 1); $answer = $a - $b; $opStr = '−'; break;
+        default: $a = random_int(2, 9);   $b = random_int(2, 9);      $answer = $a * $b; $opStr = '×'; break;
+    }
+    $salt        = bin2hex(random_bytes(16));
+    $sessionBind = substr(session_id(), 0, 8);
+    $_SESSION['captcha_hash']      = hash('sha256', (string)(int)$answer . $salt . $sessionBind);
+    $_SESSION['captcha_salt']      = $salt;
+    $_SESSION['captcha_at']        = $now;
+    $_SESSION['captcha_ttl']       = 120;
+    $_SESSION['captcha_tries']     = 0;
+    $_SESSION['captcha_max_tries'] = 3;
+    $captchaQuestion = "Quanto é {$a} {$opStr} {$b}?";
 }
-$salt        = bin2hex(random_bytes(16));
-$sessionBind = substr(session_id(), 0, 8);
-$_SESSION['captcha_hash']      = hash('sha256', (string)(int)$answer . $salt . $sessionBind);
-$_SESSION['captcha_salt']      = $salt;
-$_SESSION['captcha_at']        = $now;
-$_SESSION['captcha_ttl']       = 120;
-$_SESSION['captcha_tries']     = 0;
-$_SESSION['captcha_max_tries'] = 99;
-$captchaQuestion = "Quanto é {$a} {$opStr} {$b}?";
 session_write_close();
 ?>
 <!DOCTYPE html>

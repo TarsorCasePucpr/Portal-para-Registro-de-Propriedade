@@ -17,7 +17,7 @@ require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/response.php';
 
 $pdo = getDb();
-$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip  = getClientIp();
 
 if (!checkRateLimit($pdo, $ip, 'busca_serial', 10, 1)) {
     jsonError('Muitas consultas. Aguarde 1 minuto e tente novamente.', 429);

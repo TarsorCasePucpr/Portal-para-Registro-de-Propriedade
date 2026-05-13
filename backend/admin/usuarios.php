@@ -7,6 +7,7 @@ require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/logger.php';
 require_once __DIR__ . '/../utils/crypto.php';
+require_once __DIR__ . '/../utils/admin_search.php';
 
 requireAdmin();
 
@@ -24,26 +25,12 @@ if ($method === 'GET') {
     $where  = ['deleted_at IS NULL'];
     $params = [];
 
-    if ($busca !== '') {
-        if (str_contains($busca, '@')) {
-            $where[]       = '(name LIKE :b OR email_hash = :eh)';
-            $params['b']   = '%' . $busca . '%';
-            $params['eh']  = hashField($busca);
-        } else {
-            $where[]     = 'name LIKE :b';
-            $params['b'] = '%' . $busca . '%';
-        }
-    }
     if ($status === 'ativo')   { $where[] = 'is_active = 1'; }
     if ($status === 'inativo') { $where[] = 'is_active = 0'; }
 
     $sql = 'WHERE ' . implode(' AND ', $where);
 
     try {
-        $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM v_admin_users $sql");
-        $stmtCount->execute($params);
-        $total = (int) $stmtCount->fetchColumn();
-
         $stmtList = $pdo->prepare(
             "SELECT u.id, u.name, u.email, u.cpf, u.is_active, u.mfa_enabled, u.created_at,
                     u.is_admin, u.total_objetos,
@@ -53,24 +40,31 @@ if ($method === 'GET') {
              FROM   v_admin_users u
              LEFT JOIN v_user_object_counts c ON c.user_id = u.id
              $sql
-             ORDER  BY u.created_at DESC
-             LIMIT  :limit OFFSET :offset"
+             ORDER  BY u.created_at DESC"
         );
         foreach ($params as $k => $v) $stmtList->bindValue($k, $v);
-        $stmtList->bindValue(':limit',  $perPage, PDO::PARAM_INT);
-        $stmtList->bindValue(':offset', $offset,  PDO::PARAM_INT);
         $stmtList->execute();
+
         $usuarios = array_map(function (array $u): array {
-            $u['email'] = decryptField($u['email']);
-            $u['cpf']   = decryptField($u['cpf']);
+            $u['email'] = decryptField((string) $u['email']);
+            $u['cpf']   = decryptField((string) $u['cpf']);
             return $u;
         }, $stmtList->fetchAll());
 
+        if ($busca !== '') {
+            $usuarios = array_values(array_filter(
+                $usuarios,
+                fn(array $r) => rowMatchesTerm($r, $busca, ['name', 'email', 'cpf'])
+            ));
+        }
+
+        $pag = paginateArray($usuarios, $page, $perPage);
+
         jsonSuccess(['data' => [
-            'usuarios'  => $usuarios,
-            'total'     => $total,
+            'usuarios'  => $pag['items'],
+            'total'     => $pag['total'],
             'page'      => $page,
-            'last_page' => (int) ceil($total / $perPage),
+            'last_page' => $pag['last_page'],
         ]]);
 
     } catch (\PDOException $e) {

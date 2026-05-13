@@ -43,7 +43,7 @@ if ($password === '') {
 }
 
 $userId = (int) $_SESSION['user_id'];
-$ip     = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip     = getClientIp();
 
 try {
     $pdo  = getDb();

@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS tokens (
     id          INT UNSIGNED        AUTO_INCREMENT PRIMARY KEY,
     user_id     INT UNSIGNED        NOT NULL,
     token_hash  VARCHAR(64)         NOT NULL UNIQUE,
-    type        ENUM('confirm','recovery','mfa_email','admin_otp') NOT NULL,
+    type        ENUM('confirm','recovery','mfa_email','admin_otp','admin_email') NOT NULL,
     short_code  VARCHAR(8)          NULL,
     expires_at  DATETIME            NOT NULL,
     used_at     DATETIME            NULL,
