@@ -251,11 +251,5 @@ CREATE TABLE IF NOT EXISTS admin_security_answers (
     INDEX idx_admin_answers_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT IGNORE INTO admin_security_answers (user_id, answer1_hash, answer2_hash, answer3_hash, answer4_hash)
-SELECT u.id,
-    '$2y$12$Pdb9Fv5bGp2MvTDRsA23UuSUQTv8XJ840LAfCTJ21Izl0AtQW0nSu',
-    '$2y$12$OnEI2sit7z9u0cwW1x19VOjQ9xltrKG.401pqLq5Muc2kycmiafWq',
-    '$2y$12$aDMyAzyOupqzwazN7cuA6On5JspCoXVu4hVwcTe1lwJRVQQLE0Q4O',
-    '$2y$12$lOWEObQGiIK2R8RzT242FupRKi9rXB6.sbQ3lF.MlSpQ1EQ5UAqqa'
-FROM users u
-WHERE u.email = 'gerard.gonzalez@pucpr.edu.br';
+-- Seed das respostas: rodar `php scripts/seed_admin_answers.php` (CLI-only, lê ADMIN_ANSWER_1..4 do .env).
+-- Hashes nunca devem ser commitados no schema.
