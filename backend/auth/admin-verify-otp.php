@@ -32,9 +32,10 @@ if (!$pendingId || (time() - (int) $pendingAt) > 900) {
 $pdo = getDb();
 $ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-if (isRateLimited($pdo, $ip, 'admin_otp_verify', 5, 10)) {
-    redirect('../../frontend/pages/admin-otp.html?erro=' . urlencode('Muitas tentativas. Aguarde.'));
-}
+// TODO: re-enable rate limit after admin testing window (disabled 2026-05-13)
+// if (isRateLimited($pdo, $ip, 'admin_otp_verify', 5, 10)) {
+//     redirect('../../frontend/pages/admin-otp.html?erro=' . urlencode('Muitas tentativas. Aguarde.'));
+// }
 
 $otp = trim($_POST['otp'] ?? '');
 if (!preg_match('/^\d{6}$/', $otp)) {

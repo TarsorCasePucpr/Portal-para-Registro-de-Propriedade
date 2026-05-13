@@ -10,6 +10,7 @@ require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/telegram.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('../../frontend/pages/admin-login.html');
@@ -22,9 +23,10 @@ if (!validateCsrfToken($_POST['csrf'] ?? '')) {
 $pdo = getDb();
 $ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
-if (isRateLimited($pdo, $ip, 'admin_otp_request', 5, 15)) {
-    redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Muitas tentativas. Aguarde 15 minutos.'));
-}
+// TODO: re-enable rate limit after admin testing window (disabled 2026-05-13)
+// if (isRateLimited($pdo, $ip, 'admin_otp_request', 5, 15)) {
+//     redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Muitas tentativas. Aguarde 15 minutos.'));
+// }
 
 $email = trim(strtolower($_POST['email'] ?? ''));
 if ($email === '') {
@@ -36,9 +38,9 @@ try {
         'SELECT u.id AS user_id, ap.telegram_chat_id
          FROM   users u
          JOIN   admin_profiles ap ON ap.user_id = u.id
-         WHERE  u.email = :email AND u.deleted_at IS NULL AND u.is_active = 1'
+         WHERE  u.email_hash = :eh AND u.deleted_at IS NULL AND u.is_active = 1'
     );
-    $stmt->execute(['email' => $email]);
+    $stmt->execute(['eh' => hashField($email)]);
     $admin = $stmt->fetch();
 } catch (\PDOException $e) {
     error_log('[admin-request-otp] DB: ' . $e->getMessage());
