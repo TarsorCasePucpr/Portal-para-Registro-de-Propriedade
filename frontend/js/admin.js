@@ -126,16 +126,14 @@ async function loadUsuarios(page = 1) {
             <td>${u.objetos_perdidos}</td>
             <td>${fmt(u.created_at)}</td>
             <td>
+                ${u.is_admin ? '<span class="text-muted">—</span>' : `
                 <select class="select-acoes" onchange="acoesUsuario(${u.id}, this)">
                     <option value="">Ações…</option>
                     ${u.is_active
                         ? '<option value="desativar">Desativar</option>'
                         : '<option value="ativar">Ativar</option>'}
-                    ${u.is_admin
-                        ? '<option value="rebaixar">Rebaixar admin</option>'
-                        : '<option value="promover">Promover a admin</option>'}
                     <option value="excluir">Excluir</option>
-                </select>
+                </select>`}
             </td>
         </tr>
     `).join('');
@@ -146,7 +144,7 @@ async function acoesUsuario(id, sel) {
     const acao = sel.value;
     if (!acao) return;
     sel.value = '';
-    const labels = { ativar:'Ativar usuário', desativar:'Desativar usuário', promover:'Promover a admin', rebaixar:'Rebaixar admin', excluir:'Excluir usuário' };
+    const labels = { ativar:'Ativar usuário', desativar:'Desativar usuário', excluir:'Excluir usuário' };
     const ok = await adminConfirm(labels[acao], `Confirma "${labels[acao]}" para o usuário #${id}?`);
     if (!ok) return;
     const data = await apiFetch(`${BASE}/admin/usuarios.php`, {

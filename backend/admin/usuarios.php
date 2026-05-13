@@ -82,10 +82,16 @@ if ($method === 'PATCH') {
     $id   = (int) ($body['id']   ?? 0);
     $acao = trim((string) ($body['acao'] ?? ''));
 
-    if ($id <= 0 || !in_array($acao, ['ativar','desativar','promover','rebaixar','excluir'], true)) {
+    if ($id <= 0 || !in_array($acao, ['ativar','desativar','excluir'], true)) {
         jsonError('Parâmetros inválidos.');
     }
     if ($id === $adminId) jsonError('Não é possível modificar a própria conta.');
+
+    $stmtAdm = $pdo->prepare('SELECT 1 FROM admin_profiles WHERE user_id = ?');
+    $stmtAdm->execute([$id]);
+    if ($stmtAdm->fetchColumn()) {
+        jsonError('Ações sobre administradores não são permitidas neste painel.', 403);
+    }
 
     try {
         switch ($acao) {
@@ -96,20 +102,6 @@ if ($method === 'PATCH') {
             case 'desativar':
                 $pdo->prepare('UPDATE users SET is_active = 0 WHERE id = ?')->execute([$id]);
                 $msg = 'Usuário desativado.';
-                break;
-            case 'promover':
-                $stmt = $pdo->prepare('SELECT email FROM users WHERE id = ?');
-                $stmt->execute([$id]);
-                $u = $stmt->fetch();
-                if (!$u) jsonError('Usuário não encontrado.', 404);
-                $pdo->prepare(
-                    'INSERT IGNORE INTO admin_profiles (user_id, email) VALUES (?, ?)'
-                )->execute([$id, decryptField($u['email'])]);
-                $msg = 'Usuário promovido a administrador.';
-                break;
-            case 'rebaixar':
-                $pdo->prepare('DELETE FROM admin_profiles WHERE user_id = ?')->execute([$id]);
-                $msg = 'Administrador rebaixado.';
                 break;
             case 'excluir':
                 $now            = date('Y-m-d H:i:s');
