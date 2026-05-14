@@ -26,9 +26,22 @@ function showAlert(msg, type = 'ok') {
     setTimeout(() => (el.style.display = 'none'), 4000);
 }
 
+function parseDbDate(s) {
+    if (!s) return null;
+    if (s instanceof Date) return s;
+    const str = String(s);
+    if (str.includes('T') || str.endsWith('Z')) return new Date(str);
+    return new Date(str.replace(' ', 'T') + 'Z');
+}
+
 function fmt(dateStr) {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('pt-BR');
+    const d = parseDbDate(dateStr);
+    return d ? d.toLocaleDateString('pt-BR') : '—';
+}
+
+function fmtDateTime(dateStr) {
+    const d = parseDbDate(dateStr);
+    return d ? d.toLocaleString('pt-BR') : '—';
 }
 
 function esc(str) {
@@ -127,7 +140,7 @@ async function loadUsuarios(page = 1) {
             <td>${fmt(u.created_at)}</td>
             <td>
                 ${u.is_admin ? '<span class="text-muted">—</span>' : `
-                <select class="select-acoes" onchange="acoesUsuario(${u.id}, this)">
+                <select class="select-acoes js-acao-usuario" data-id="${u.id}">
                     <option value="">Ações…</option>
                     ${u.is_active
                         ? '<option value="desativar">Desativar</option>'
@@ -162,6 +175,12 @@ document.getElementById('u-busca').addEventListener('search', () => { clearTimeo
 document.getElementById('u-busca').addEventListener('keydown', e => { if (e.key === 'Enter') { clearTimeout(uDebounce); loadUsuarios(1); } });
 document.getElementById('u-status').addEventListener('change', () => loadUsuarios(1));
 
+document.getElementById('u-tbody').addEventListener('change', (e) => {
+    const sel = e.target.closest('.js-acao-usuario');
+    if (!sel) return;
+    acoesUsuario(Number(sel.dataset.id), sel);
+});
+
 let oPage = 1;
 const statusColors = { normal: 'badge-green', roubado: 'badge-red', perdido: 'badge-yellow' };
 
@@ -190,14 +209,14 @@ async function loadObjetos(page = 1) {
             <td>${o.score}</td>
             <td>${fmt(o.created_at)}</td>
             <td>
-                <select class="btn-sm" onchange="alterarStatusObjeto(${o.id}, this)"
+                <select class="btn-sm js-mudar-status" data-id="${o.id}"
                     style="padding:.28rem .5rem;border:1.5px solid var(--border);border-radius:6px;font-size:.75rem;font-family:inherit;background:var(--surface);color:var(--navy);">
                     <option value="">Mudar status…</option>
                     <option value="normal"  ${o.status==='normal'  ?'disabled':''}>Normal</option>
                     <option value="roubado" ${o.status==='roubado' ?'disabled':''}>Roubado</option>
                     <option value="perdido" ${o.status==='perdido' ?'disabled':''}>Perdido</option>
                 </select>
-                <button class="btn-sm btn-danger" onclick="acoesObjeto(${o.id},'excluir')">Excluir</button>
+                <button class="btn-sm btn-danger js-excluir-objeto" data-id="${o.id}">Excluir</button>
             </td>
         </tr>
     `).join('');
@@ -237,6 +256,17 @@ document.getElementById('o-busca').addEventListener('search', () => { clearTimeo
 document.getElementById('o-busca').addEventListener('keydown', e => { if (e.key === 'Enter') { clearTimeout(oDebounce); loadObjetos(1); } });
 document.getElementById('o-status').addEventListener('change', () => loadObjetos(1));
 
+document.getElementById('o-tbody').addEventListener('change', (e) => {
+    const sel = e.target.closest('.js-mudar-status');
+    if (!sel) return;
+    alterarStatusObjeto(Number(sel.dataset.id), sel);
+});
+document.getElementById('o-tbody').addEventListener('click', (e) => {
+    const btn = e.target.closest('.js-excluir-objeto');
+    if (!btn) return;
+    acoesObjeto(Number(btn.dataset.id), 'excluir');
+});
+
 let lPage = 1;
 async function loadLogs(page = 1) {
     lPage = page;
@@ -254,7 +284,7 @@ async function loadLogs(page = 1) {
     }
     tbody.innerHTML = logs.map(l => `
         <tr>
-            <td style="white-space:nowrap;">${new Date(l.created_at).toLocaleString('pt-BR')}</td>
+            <td style="white-space:nowrap;">${fmtDateTime(l.created_at)}</td>
             <td><span class="badge ${l.role==='admin'?'badge-blue':'badge-gray'}">${l.role}</span></td>
             <td>${esc(l.user_email)}</td>
             <td><code style="font-size:.78rem;">${esc(l.action)}</code></td>
@@ -292,24 +322,35 @@ async function loadLgpd() {
             <td>${esc(r.user_email)}</td>
             <td>${esc(r.user_cpf)}</td>
             <td>${esc(r.ip)}</td>
-            <td style="white-space:nowrap;">${new Date(r.requested_at).toLocaleString('pt-BR')}</td>
+            <td style="white-space:nowrap;">${fmtDateTime(r.requested_at)}</td>
             <td style="white-space:nowrap;">${fmt(r.purge_after)}</td>
-            <td>${r.purged_at ? new Date(r.purged_at).toLocaleString('pt-BR') : '<span class="badge badge-yellow">Pendente</span>'}</td>
+            <td>${r.purged_at ? fmtDateTime(r.purged_at) : '<span class="badge badge-yellow">Pendente</span>'}</td>
         </tr>
     `).join('');
 }
 
+const _pageCallbacks = {};
 function renderPagination(containerId, current, last, cb) {
     const el = document.getElementById(containerId);
     if (last <= 1) { el.innerHTML = ''; return; }
+    _pageCallbacks[containerId] = cb;
     let html = `<span>Página ${current} de ${last}</span>`;
-    html += `<button ${current===1?'disabled':''} onclick="${cb.name}(${current-1})">‹ Anterior</button>`;
+    html += `<button ${current===1?'disabled':''} data-page="${current-1}">‹ Anterior</button>`;
     for (let p = Math.max(1, current-2); p <= Math.min(last, current+2); p++) {
-        html += `<button class="${p===current?'current':''}" onclick="${cb.name}(${p})">${p}</button>`;
+        html += `<button class="${p===current?'current':''}" data-page="${p}">${p}</button>`;
     }
-    html += `<button ${current===last?'disabled':''} onclick="${cb.name}(${current+1})">Próxima ›</button>`;
+    html += `<button ${current===last?'disabled':''} data-page="${current+1}">Próxima ›</button>`;
     el.innerHTML = html;
 }
+
+['u-pagination', 'o-pagination', 'l-pagination'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-page]');
+        if (!btn || btn.disabled) return;
+        const cb = _pageCallbacks[id];
+        if (cb) cb(Number(btn.dataset.page));
+    });
+});
 
 (async () => {
     const csrf = await fetch(`${BASE}/auth/get_csrf.php`, { credentials: 'same-origin' })

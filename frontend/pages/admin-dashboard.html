@@ -5,11 +5,12 @@ startSessionSafe();
 if (empty($_SESSION['user_id'])) { header('Location: admin-login.html'); exit; }
 try {
     $__pdo  = getDb();
-    $__stmt = $__pdo->prepare('SELECT id FROM admin_profiles WHERE user_id = ?');
+    $__stmt = $__pdo->prepare('SELECT is_admin FROM v_user_is_admin WHERE user_id = ?');
     $__stmt->execute([$_SESSION['user_id']]);
-    if (!$__stmt->fetch()) { header('Location: admin-login.html'); exit; }
+    $__row = $__stmt->fetch();
+    if (!$__row || (int) $__row['is_admin'] !== 1) { header('Location: admin-login.html'); exit; }
 } catch (\PDOException $e) { header('Location: admin-login.html'); exit; }
-unset($__pdo, $__stmt);
+unset($__pdo, $__stmt, $__row);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -161,6 +162,6 @@ unset($__pdo, $__stmt);
   </div>
 </div>
 
-<script src="../js/admin.js?v=5" defer></script>
+<script src="../js/admin.js?v=6" defer></script>
 </body>
 </html>

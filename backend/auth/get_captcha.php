@@ -8,7 +8,7 @@ startSessionSafe();
 
 $now = time();
 $window = 300; // 5 minutos
-$maxGen = 5;
+$maxGen = 10;
 
 if (!isset($_SESSION['captcha_gen_times'])) {
     $_SESSION['captcha_gen_times'] = [];
@@ -59,7 +59,7 @@ $_SESSION['captcha_salt'] = $salt;
 $_SESSION['captcha_at'] = $now;
 $_SESSION['captcha_ttl'] = $ttl;
 $_SESSION['captcha_tries'] = 0;
-$_SESSION['captcha_max_tries'] = 3;
+$_SESSION['captcha_max_tries'] = 5;
 
 jsonSuccess(['question' => "Quanto é {$a} {$opStr} {$b}?"]);
 
