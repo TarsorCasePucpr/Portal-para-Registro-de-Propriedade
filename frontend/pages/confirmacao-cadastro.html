@@ -34,6 +34,24 @@
           <p class="link">
             <a href="cadastro-usuario.html">Usar outro e-mail</a>
           </p>
+
+          <details class="alternativa-codigo">
+            <summary>O link do e-mail não funcionou?</summary>
+            <div class="alternativa-codigo-corpo">
+              <p>Informe seu e-mail e o <strong>código de 6 caracteres</strong> que você recebeu no e-mail:</p>
+              <div class="campo">
+                <label for="email-codigo">E-mail</label>
+                <input type="email" id="email-codigo" placeholder="seu@email.com" autocomplete="email" maxlength="255">
+              </div>
+              <div class="campo">
+                <label for="code-input">Código de confirmação</label>
+                <input type="text" id="code-input" maxlength="6" placeholder="Ex: AB3K7X"
+                       autocomplete="off" style="text-transform:uppercase; letter-spacing:0.15em;">
+              </div>
+              <button id="btn-confirmar-codigo">Confirmar conta</button>
+              <p id="msg-codigo" role="alert" aria-live="polite"></p>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -77,6 +95,59 @@
 
   <script src="../js/validacoes.js" defer></script>
   <script src="../js/main.js" defer></script>
+
+  <script>
+    (function () {
+      const btnCodigo = document.getElementById('btn-confirmar-codigo');
+      const msgCodigo = document.getElementById('msg-codigo');
+
+      if (!btnCodigo) return;
+
+      btnCodigo.addEventListener('click', async function () {
+        const email = (document.getElementById('email-codigo').value || '').trim();
+        const code  = (document.getElementById('code-input').value  || '').trim().toUpperCase();
+
+        msgCodigo.textContent = '';
+
+        if (!email || !code) {
+          msgCodigo.textContent = 'Preencha o e-mail e o código.';
+          return;
+        }
+        if (code.length !== 6) {
+          msgCodigo.textContent = 'O código deve ter 6 caracteres.';
+          return;
+        }
+
+        btnCodigo.disabled = true;
+        btnCodigo.textContent = 'Verificando...';
+
+        try {
+          const body = new FormData();
+          body.append('email', email);
+          body.append('code', code);
+
+          const resp = await fetch('../../backend/auth/confirm_code.php', {
+            method: 'POST',
+            body,
+          });
+          const data = await resp.json();
+
+          if (data.success) {
+            document.getElementById('estado-aguardando').style.display = 'none';
+            document.getElementById('estado-sucesso').style.display    = 'block';
+          } else {
+            msgCodigo.textContent = data.error || 'Código inválido. Verifique e tente novamente.';
+            btnCodigo.disabled    = false;
+            btnCodigo.textContent = 'Confirmar conta';
+          }
+        } catch (_) {
+          msgCodigo.textContent = 'Erro de conexão. Tente novamente.';
+          btnCodigo.disabled    = false;
+          btnCodigo.textContent = 'Confirmar conta';
+        }
+      });
+    })();
+  </script>
 
 </body>
 </html>

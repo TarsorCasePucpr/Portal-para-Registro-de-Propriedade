@@ -71,6 +71,7 @@ session_write_close();
             type="date"
             id="data-compra"
             name="data_compra"
+            min="1970-01-01"
             max=""
           >
           <span id="erro-data" class="erro" role="alert"></span>
@@ -140,7 +141,30 @@ session_write_close();
   <script defer>
   (function () {
 
-    document.getElementById('data-compra').max = new Date().toISOString().split('T')[0];
+    const dataInput = document.getElementById('data-compra');
+    const hoje = new Date().toISOString().split('T')[0];
+    dataInput.max = hoje;
+
+    function clampDataCompra(el) {
+      const v = el.value;
+      if (!v) return;
+      const parts = v.split('-');
+      if (parts.length !== 3) return;
+      let [y, m, d] = parts.map(s => parseInt(s, 10));
+      if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return;
+      if (m < 1) m = 1; else if (m > 12) m = 12;
+      const lastDay = new Date(y, m, 0).getDate();
+      if (d < 1) d = 1; else if (d > lastDay) d = lastDay;
+      let fixed = `${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      if (fixed < '1970-01-01') fixed = '1970-01-01';
+      else if (fixed > hoje)    fixed = hoje;
+      if (fixed !== el.value) el.value = fixed;
+    }
+    dataInput.addEventListener('blur', function () {
+      clampDataCompra(this);
+      document.getElementById('erro-data').textContent = '';
+    });
+    dataInput.addEventListener('change', function () { clampDataCompra(this); });
 
     const txtDescricao = document.getElementById('descricao');
     const contadorEl   = document.getElementById('contador-descricao');
@@ -163,7 +187,7 @@ session_write_close();
       const btn       = document.getElementById('btn-cadastrar-produto');
       const msgEl     = document.getElementById('msg-cadastro');
 
-      ['erro-descricao', 'erro-serial', 'erro-termos', 'erro-nfe'].forEach(id => {
+      ['erro-descricao', 'erro-serial', 'erro-termos', 'erro-nfe', 'erro-data'].forEach(id => {
         document.getElementById(id).textContent = '';
       });
       msgEl.textContent = '';
@@ -176,6 +200,9 @@ session_write_close();
         document.getElementById('erro-serial').textContent = 'Informe o número de série.';
         valido = false;
       }
+
+      const dataEl = document.getElementById('data-compra');
+      clampDataCompra(dataEl);
 
       const nfeChave = document.getElementById('nfe-chave').value.replace(/\D/g, '');
       if (nfeChave.length > 0 && nfeChave.length !== 44) {

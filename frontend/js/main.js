@@ -59,8 +59,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  const checkLGPD = document.getElementById('aceite-lgpd');
+  const checkLGPD    = document.getElementById('aceite-lgpd');
   const btnCadastrar = document.getElementById('btn-cadastrar');
+  const policyBox    = document.getElementById('policy-box');
+  const policyAviso  = document.getElementById('policy-aviso');
+
+  if (policyBox && checkLGPD) {
+    policyBox.addEventListener('scroll', function () {
+      const atBottom = this.scrollTop + this.clientHeight >= this.scrollHeight - 10;
+      if (atBottom) {
+        checkLGPD.disabled = false;
+        if (policyAviso) {
+          policyAviso.textContent = 'Você chegou ao final. Agora pode aceitar a política.';
+          policyAviso.classList.add('policy-aviso--lida');
+        }
+      }
+    });
+  }
 
   if (checkLGPD && btnCadastrar) {
     checkLGPD.addEventListener('change', function () {
@@ -124,8 +139,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const confirma = document.getElementById('confirmar-senha').value;
       const lgpd = document.getElementById('aceite-lgpd').checked;
 
-      if (nome === '' || nome.length > 100) {
-        mostrarErro('erro-nome', 'Preencha seu nome completo.');
+      if (!validarNome(nome)) {
+        mostrarErro('erro-nome', 'Nome inválido. Use entre 3 e 100 caracteres, somente letras e espaços.');
         valido = false;
       } else {
         limparErro('erro-nome');
@@ -203,17 +218,38 @@ if (status === "success") {
 const btnReenviar = document.getElementById("btn-reenviar");
 
 if (btnReenviar) {
-  btnReenviar.addEventListener("click", () => {
+  btnReenviar.addEventListener("click", async () => {
+    const email = localStorage.getItem("emailCadastro") || "";
+    if (!email) return;
+    btnReenviar.disabled = true;
+    btnReenviar.textContent = "Enviando...";
+    try {
+      const body = new FormData();
+      body.append("email", email);
+      await fetch("../../backend/auth/resend_confirm.php", { method: "POST", body });
+    } catch (_) {}
     alert("Se o e-mail existir, um novo link será enviado.");
+    btnReenviar.disabled = false;
+    btnReenviar.textContent = "Reenviar e-mail";
   });
 }
 
 const formReenvio = document.getElementById("form-reenvio");
 
 if (formReenvio) {
-  formReenvio.addEventListener("submit", (e) => {
+  formReenvio.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const emailInput = formReenvio.querySelector('input[name="email"]');
+    const email = emailInput ? emailInput.value.trim() : "";
+    const btn = formReenvio.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = "Enviando..."; }
+    try {
+      const body = new FormData();
+      body.append("email", email);
+      await fetch("../../backend/auth/resend_confirm.php", { method: "POST", body });
+    } catch (_) {}
     alert("Se o e-mail existir, um novo link será enviado.");
+    if (btn) { btn.disabled = false; btn.textContent = "Reenviar link"; }
   });
 }
 

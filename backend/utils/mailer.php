@@ -7,6 +7,7 @@ use PHPMailer\PHPMailer\Exception;
 require __DIR__ . "/../lib/PHPMailer/src/PHPMailer.php";
 require __DIR__ . "/../lib/PHPMailer/src/Exception.php";
 require __DIR__ . "/../lib/PHPMailer/src/SMTP.php";
+require_once __DIR__ . "/crypto.php";
 
 function enviarEmail(
     string $destinatario,
@@ -14,9 +15,9 @@ function enviarEmail(
     string $assunto,
     string $corpo
 ): void {
-    $user     = $_ENV['MAIL_USER']      ?? getenv('MAIL_USER')      ?: '';
-    $pass     = $_ENV['MAIL_PASS']      ?? getenv('MAIL_PASS')      ?: '';
-    $fromName = $_ENV['MAIL_FROM_NAME'] ?? getenv('MAIL_FROM_NAME') ?: 'SNGuard';
+    $user     = (string) ($_ENV['MAIL_USER']      ?? getenv('MAIL_USER')      ?: '');
+    $fromName = (string) ($_ENV['MAIL_FROM_NAME'] ?? getenv('MAIL_FROM_NAME') ?: 'SNGuard');
+    $pass     = readSecret('mail_pass', 'MAIL_PASS');
 
     if ($user === '' || $pass === '') {
         throw new \RuntimeException('Credenciais de e-mail não configuradas.');

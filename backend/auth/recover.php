@@ -7,11 +7,12 @@ require_once "../utils/hash.php";
 require_once "../utils/response.php";
 require_once "../utils/mailer.php";
 require_once "../utils/validadores.php";
+require_once "../utils/crypto.php";
 
 startSessionSafe();
 
 $pdo = getDb();
-$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip  = getClientIp();
 
 $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
          . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
@@ -132,13 +133,15 @@ if ($acao === 'redefinir_senha') {
 
 function _gerarEEnviarToken(PDO $pdo, string $email, string $baseUrl): void
 {
-    $stmt = $pdo->prepare('SELECT id, name FROM users WHERE email = :email AND deleted_at IS NULL LIMIT 1');
-    $stmt->execute(['email' => $email]);
+    $stmt = $pdo->prepare('SELECT id, name, email FROM users WHERE email_hash = :eh AND deleted_at IS NULL LIMIT 1');
+    $stmt->execute(['eh' => hashField($email)]);
     $user = $stmt->fetch();
 
     if (!$user) {
         return;
     }
+
+    $email = decryptField($user['email']);
 
     $token     = bin2hex(random_bytes(32));
     $tokenHash = hash('sha256', $token);

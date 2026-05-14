@@ -18,9 +18,10 @@ require_once __DIR__ . '/../middleware/auth_guard.php';
 require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/mailer.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 $pdo    = getDb();
-$ip     = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip     = getClientIp();
 $metodo = $_SERVER['REQUEST_METHOD'];
 
 if ($metodo === 'GET' && ($_GET['acao'] ?? '') === 'listar_pendentes') {
@@ -153,8 +154,12 @@ $corpo = "Olá, {$objeto['dono_nome']}!\n\n"
        . "Este e-mail foi gerado automaticamente. Nenhum dado do remetente foi coletado.";
 
 try {
+    $donoEmail = decryptField($objeto['dono_email']);
+    if ($donoEmail === '' || !filter_var($donoEmail, FILTER_VALIDATE_EMAIL)) {
+        throw new \RuntimeException('E-mail do destinatário inválido após decriptação.');
+    }
     enviarEmail(
-        destinatario: $objeto['dono_email'],
+        destinatario: $donoEmail,
         nome:         $objeto['dono_nome'],
         assunto:      "SNGuard — Alguém encontrou seu produto ({$statusFormatado})",
         corpo:        $corpo

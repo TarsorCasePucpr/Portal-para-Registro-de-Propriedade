@@ -22,7 +22,7 @@ requireAuth();
 $userId = (int) $_SESSION['user_id'];
 
 $pdo = getDb();
-$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip  = getClientIp();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonError('Método não permitido.', 405);
@@ -86,13 +86,15 @@ $serial = preg_replace('/[\x00-\x1F\x7F]/u', '', $serial);
 
 if ($dataCompra !== '') {
     $dt = DateTimeImmutable::createFromFormat('Y-m-d', $dataCompra);
-    if (!$dt || $dt > new DateTimeImmutable('today')) {
-        $erros[] = 'Data de compra inválida.';
+    $fechaMinima = new DateTimeImmutable('1970-01-01');
+    if (!$dt || $dt > new DateTimeImmutable('today') || $dt < $fechaMinima) {
+        $erros[] = 'Data de compra inválida (deve ser entre 1970 e hoje).';
         $dataCompra = null;
     }
 } else {
     $dataCompra = null;
 }
+
 
 if ($nfeChave !== '' && strlen($nfeChave) !== 44) {
     $nfeChave = '';

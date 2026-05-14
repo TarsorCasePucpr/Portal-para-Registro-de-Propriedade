@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_samesite', 'Strict');
+ini_set('session.cookie_samesite', 'Lax');
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -14,13 +14,15 @@ require_once __DIR__ . '/../utils/hash.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/mailer.php';
 require_once __DIR__ . '/../utils/validadores.php';
+require_once __DIR__ . '/../utils/logger.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('../../frontend/pages/cadastro-usuario.html');
 }
 
 $pdo = getDb();
-$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$ip  = getClientIp();
 
 if (!checkRateLimit($pdo, $ip, 'registro', 20, 10)) {
     redirect(
@@ -35,6 +37,41 @@ if (!validateCsrfToken($_POST['csrf'] ?? '')) {
         urlencode('Token de segurança inválido. Recarregue a página e tente novamente.')
     );
 }
+
+$captchaAnswer = trim($_POST['captcha'] ?? '');
+$captchaHash   = $_SESSION['captcha_hash'] ?? '';
+$captchaSalt   = $_SESSION['captcha_salt'] ?? '';
+$captchaAt     = (int) ($_SESSION['captcha_at'] ?? 0);
+$captchaTtl    = (int) ($_SESSION['captcha_ttl'] ?? 120);
+$captchaTries  = (int) ($_SESSION['captcha_tries'] ?? 0);
+$captchaMax    = (int) ($_SESSION['captcha_max_tries'] ?? 3);
+$now           = time();
+
+$sessionBind = substr(session_id(), 0, 8);
+
+if ($captchaHash === '' || ($now - $captchaAt) > $captchaTtl) {
+    unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at'],
+          $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
+    redirect('../../frontend/pages/cadastro-usuario.html?erro=' .
+        urlencode('Captcha expirado. Recarregue e tente novamente.'));
+}
+
+if ($captchaTries >= $captchaMax) {
+    unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at'],
+          $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
+    redirect('../../frontend/pages/cadastro-usuario.html?erro=' .
+        urlencode('Muitas tentativas incorretas. Recarregue o captcha.'));
+}
+
+$expectedHash = hash('sha256', (string)(int)$captchaAnswer . $captchaSalt . $sessionBind);
+if (!hash_equals($captchaHash, $expectedHash)) {
+    $_SESSION['captcha_tries'] = $captchaTries + 1;
+    redirect('../../frontend/pages/cadastro-usuario.html?erro=' .
+        urlencode('Resposta do desafio incorreta. Tente novamente.'));
+}
+
+unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at'],
+      $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
 
 $nome      = trim(htmlspecialchars($_POST['nome']        ?? '', ENT_QUOTES, 'UTF-8'));
 $email     = trim(strtolower($_POST['email']             ?? ''));
@@ -78,10 +115,15 @@ if (!empty($erros)) {
 }
 
 try {
+    $emailHash = hashField($email);
+    $cpfHash   = hashField($cpf);
+    $emailEnc  = encryptField($email);
+    $cpfEnc    = encryptField($cpf);
+
     $stmt = $pdo->prepare(
-        'SELECT id FROM users WHERE (email = :email OR cpf = :cpf) AND deleted_at IS NULL'
+        'SELECT id FROM users WHERE (email_hash = :eh OR cpf_hash = :ch) AND deleted_at IS NULL'
     );
-    $stmt->execute(['email' => $email, 'cpf' => $cpf]);
+    $stmt->execute(['eh' => $emailHash, 'ch' => $cpfHash]);
 
     if ($stmt->fetch()) {
         redirect(
@@ -93,13 +135,15 @@ try {
     $hashSenha = hashPassword($senha);
 
     $stmt = $pdo->prepare(
-        'INSERT INTO users (name, email, cpf, password_hash, is_active)
-         VALUES (:nome, :email, :cpf, :hash, 0)'
+        'INSERT INTO users (name, email, email_hash, cpf, cpf_hash, password_hash, is_active)
+         VALUES (:nome, :email, :eh, :cpf, :ch, :hash, 0)'
     );
     $stmt->execute([
         'nome'  => $nome,
-        'email' => $email,
-        'cpf'   => $cpf,
+        'email' => $emailEnc,
+        'eh'    => $emailHash,
+        'cpf'   => $cpfEnc,
+        'ch'    => $cpfHash,
         'hash'  => $hashSenha,
     ]);
     $userId = (int) $pdo->lastInsertId();
@@ -108,12 +152,19 @@ try {
     $tokenHash = hash('sha256', $tokenRaw);
     $expira    = date('Y-m-d H:i:s', time() + 86400);
 
+    $codeChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    $shortCode = '';
+    for ($i = 0; $i < 6; $i++) {
+        $shortCode .= $codeChars[random_int(0, strlen($codeChars) - 1)];
+    }
+
     $pdo->prepare(
-        "INSERT INTO tokens (user_id, token_hash, type, expires_at)
-         VALUES (:uid, :hash, 'confirm', :exp)"
+        "INSERT INTO tokens (user_id, token_hash, type, short_code, expires_at)
+         VALUES (:uid, :hash, 'confirm', :code, :exp)"
     )->execute([
         'uid'  => $userId,
         'hash' => $tokenHash,
+        'code' => $shortCode,
         'exp'  => $expira,
     ]);
 
@@ -125,9 +176,14 @@ try {
         'ip'  => $ip,
         'ua'  => $userAgent,
     ]);
+    logAction($pdo, $userId, 'user_registered', 'user', $userId, ['ip' => $ip], 'user');
 
-    $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
-             . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    $baseUrl = rtrim(
+        getenv('APP_URL') ?:
+        ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+        . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost')),
+        '/'
+    );
     $linkConfirmacao = $baseUrl . '/backend/auth/confirm.php?token=' . urlencode($tokenRaw);
 
     try {
@@ -138,6 +194,9 @@ try {
             corpo:        "Olá, {$nome}!\n\n" .
                           "Clique no link abaixo para ativar sua conta (válido por 24 horas):\n\n" .
                           "{$linkConfirmacao}\n\n" .
+                          "Se o link acima não funcionar no seu e-mail, acesse a página de\n" .
+                          "confirmação e informe seu e-mail junto com o código abaixo:\n\n" .
+                          "Código de confirmação: {$shortCode}\n\n" .
                           "Se você não criou esta conta, ignore esta mensagem.\n\n" .
                           "— Equipe SNGuard"
         );

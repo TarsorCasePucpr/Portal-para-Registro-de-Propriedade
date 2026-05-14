@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_samesite', 'Strict');
+ini_set('session.cookie_samesite', 'Lax');
 session_start();
 
 require_once __DIR__ . '/../config/db.php';
@@ -10,6 +10,8 @@ require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/hash.php';
 require_once __DIR__ . '/../utils/response.php';
+require_once __DIR__ . '/../utils/logger.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('../../frontend/pages/login.html');
@@ -20,8 +22,43 @@ if (!validateCsrfToken($_POST['csrf'] ?? '')) {
         urlencode('Token de segurança inválido.'));
 }
 
+$captchaAnswer = trim($_POST['captcha'] ?? '');
+$captchaHash   = $_SESSION['captcha_hash'] ?? '';
+$captchaSalt   = $_SESSION['captcha_salt'] ?? '';
+$captchaAt     = (int) ($_SESSION['captcha_at'] ?? 0);
+$captchaTtl    = (int) ($_SESSION['captcha_ttl'] ?? 120);
+$captchaTries  = (int) ($_SESSION['captcha_tries'] ?? 0);
+$captchaMax    = (int) ($_SESSION['captcha_max_tries'] ?? 3);
+$now           = time();
+
+$sessionBind = substr(session_id(), 0, 8);
+
+if ($captchaHash === '' || ($now - $captchaAt) > $captchaTtl) {
+    unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at'],
+          $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
+    redirect('../../frontend/pages/login.html?erro=' .
+        urlencode('Captcha expirado. Recarregue e tente novamente.'));
+}
+
+if ($captchaTries >= $captchaMax) {
+    unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at'],
+          $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
+    redirect('../../frontend/pages/login.html?erro=' .
+        urlencode('Muitas tentativas incorretas. Recarregue o captcha.'));
+}
+
+$expectedHash = hash('sha256', (string)(int)$captchaAnswer . $captchaSalt . $sessionBind);
+if (!hash_equals($captchaHash, $expectedHash)) {
+    $_SESSION['captcha_tries'] = $captchaTries + 1;
+    redirect('../../frontend/pages/login.html?erro=' .
+        urlencode('Resposta do desafio incorreta. Tente novamente.'));
+}
+
+unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at'],
+      $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
+
 $pdo = getDb();
-$ip  = $_SERVER['REMOTE_ADDR'];
+$ip  = getClientIp();
 
 if (isRateLimited($pdo, $ip, 'login', 5, 15)) {
     redirect('../../frontend/pages/login.html?erro=' .
@@ -40,9 +77,9 @@ try {
     $stmt = $pdo->prepare(
         "SELECT id, password_hash, is_active, mfa_enabled
          FROM users
-         WHERE email = :email AND deleted_at IS NULL"
+         WHERE email_hash = :eh AND deleted_at IS NULL"
     );
-    $stmt->execute(['email' => $email]);
+    $stmt->execute(['eh' => hashField($email)]);
     $usuario = $stmt->fetch();
 
     $hashVerificacao = $usuario
@@ -51,6 +88,7 @@ try {
 
     if (!$usuario || !verifyPassword($senha, $hashVerificacao)) {
         recordFailedAttempt($pdo, $ip, 'login');
+        logAction($pdo, null, 'login_failed', 'user', null, ['email' => $email, 'ip' => $ip], 'user');
         redirect('../../frontend/pages/login.html?erro=' .
             urlencode('E-mail ou senha incorretos.'));
     }
@@ -78,6 +116,7 @@ try {
     }
 
     $_SESSION['user_id'] = $usuario['id'];
+    logAction($pdo, (int) $usuario['id'], 'login_success', 'user', (int) $usuario['id'], [], 'user');
     redirect('../../frontend/pages/dashboard.html');
 
 } catch (PDOException $e) {
