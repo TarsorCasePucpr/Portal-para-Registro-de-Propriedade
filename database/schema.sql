@@ -217,22 +217,7 @@ CREATE OR REPLACE VIEW v_user_is_admin AS
     LEFT JOIN admin_profiles ap ON ap.user_id = u.id
     WHERE  u.deleted_at IS NULL AND u.is_active = 1;
 
--- ── Seed: administrador inicial ──────────────────────────────────────────────
--- Cria o usuário admin e vincula o perfil com chat_id do Telegram.
--- password_hash é de uma senha placeholder — admin nunca usa senha (login é via Telegram OTP).
-INSERT IGNORE INTO users (name, email, cpf, password_hash, is_active)
-VALUES (
-    'Gerard Gonzalez',
-    'gerard.gonzalez@pucpr.edu.br',
-    '000.000.000-00',
-    '$2b$13$n6BnASHfPYZWgogftHVTrO45Ig96Ix1wlZo7N35akTCRVZYPpNeHm',
-    1
-);
-
-INSERT IGNORE INTO admin_profiles (user_id, email, telegram_chat_id)
-SELECT id, email, '8199427665'
-FROM   users
-WHERE  email = 'gerard.gonzalez@pucpr.edu.br';
+-- Admins são criados via scripts/seed_admins.php (precisa de PHP para cifrar/HMAC).
 
 CREATE TABLE IF NOT EXISTS admin_security_answers (
     id           INT UNSIGNED  AUTO_INCREMENT PRIMARY KEY,
