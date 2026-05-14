@@ -217,11 +217,6 @@ CREATE OR REPLACE VIEW v_user_is_admin AS
     LEFT JOIN admin_profiles ap ON ap.user_id = u.id
     WHERE  u.deleted_at IS NULL AND u.is_active = 1;
 
--- ── DB users / grants ────────────────────────────────────────────────────────
--- Aplicar via database/grants.sh en docker-entrypoint-initdb.d/.
--- snguard       → privilegios mínimos (endpoints públicos y user-autenticados)
--- snguard_admin → privilegios admin (panel admin y flujos admin-OTP)
-
 -- ── Seed: administrador inicial ──────────────────────────────────────────────
 -- Cria o usuário admin e vincula o perfil com chat_id do Telegram.
 -- password_hash é de uma senha placeholder — admin nunca usa senha (login é via Telegram OTP).
