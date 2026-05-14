@@ -53,9 +53,10 @@ function requireAdmin(): void
     if (!empty($_SESSION['is_admin'])) return;
 
     $pdo  = getDb();
-    $stmt = $pdo->prepare('SELECT id FROM admin_profiles WHERE user_id = ?');
+    $stmt = $pdo->prepare('SELECT is_admin FROM v_user_is_admin WHERE user_id = ?');
     $stmt->execute([$_SESSION['user_id']]);
-    if (!$stmt->fetch()) {
+    $row = $stmt->fetch();
+    if (!$row || (int) $row['is_admin'] !== 1) {
         jsonError('Acesso negado. Área restrita a administradores.', 403);
     }
     $_SESSION['is_admin'] = true;

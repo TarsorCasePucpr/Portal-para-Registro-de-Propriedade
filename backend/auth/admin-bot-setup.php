@@ -14,7 +14,7 @@ require_once __DIR__ . '/../utils/crypto.php';
 
 requireAdmin();
 
-$pdo    = getDb();
+$pdo    = getAdminDb();
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {

@@ -11,7 +11,7 @@ require_once __DIR__ . '/../utils/admin_search.php';
 
 requireAdmin();
 
-$pdo      = getDb();
+$pdo      = getAdminDb();
 $adminId  = (int) $_SESSION['user_id'];
 $method   = $_SERVER['REQUEST_METHOD'];
 

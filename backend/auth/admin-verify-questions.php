@@ -34,7 +34,7 @@ if (empty($_SESSION['admin_email_verified'])) {
     redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Confirme seu e-mail antes de responder as perguntas de segurança.'));
 }
 
-$pdo = getDb();
+$pdo = getAdminDb();
 $ip  = getClientIp();
 
 if (isRateLimited($pdo, $ip, 'admin_question_verify', 5, 10)) {

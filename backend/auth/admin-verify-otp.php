@@ -33,7 +33,7 @@ if (empty($_SESSION['admin_email_verified'])) {
     redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Confirme seu e-mail antes de validar o código do Telegram.'));
 }
 
-$pdo = getDb();
+$pdo = getAdminDb();
 $ip  = getClientIp();
 
 if (isRateLimited($pdo, $ip, 'admin_otp_verify', 5, 10)) {

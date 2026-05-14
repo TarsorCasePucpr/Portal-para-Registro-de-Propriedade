@@ -28,7 +28,7 @@ if ($pendingId <= 0 || (time() - $pendingAt) > 900) {
     redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Sessão expirada. Solicite o e-mail novamente.'));
 }
 
-$pdo   = getDb();
+$pdo   = getAdminDb();
 $ip    = getClientIp();
 $email = trim(strtolower($_POST['email'] ?? ''));
 $code  = strtoupper(trim($_POST['code']  ?? ''));

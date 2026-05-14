@@ -57,4 +57,34 @@ function getDb(): PDO {
     return $pdo;
 }
 
+function getAdminDb(): PDO {
+    static $pdo = null;
+    if ($pdo !== null) return $pdo;
+
+    $base = dirname(__DIR__, 2);
+    loadEnv($base . '/.env');
+
+    $host = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: 'localhost';
+    $port = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: '3306';
+    $name = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: 'portal_propriedade';
+    $user = $_ENV['DB_ADMIN_USER'] ?? getenv('DB_ADMIN_USER') ?: 'snguard_admin';
+    $passSecret = '/run/secrets/db_admin_pass';
+    $pass = is_readable($passSecret)
+        ? trim((string) file_get_contents($passSecret))
+        : ($_ENV['DB_ADMIN_PASS'] ?? getenv('DB_ADMIN_PASS') ?: '');
+
+    $pdo = new PDO(
+        "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4",
+        $user,
+        $pass,
+        [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::MYSQL_ATTR_FOUND_ROWS   => true,
+        ]
+    );
+    return $pdo;
+}
+
 applySecurityHeaders();

@@ -210,14 +210,17 @@ CREATE OR REPLACE VIEW v_lgpd_deletion_summary AS
     JOIN users u ON u.id = r.user_id
     GROUP BY u.id, u.email, r.type;
 
--- ── DB users / grants (run as root) ──────────────────────────────────────────
--- CREATE USER IF NOT EXISTS 'app_rw'@'%'  IDENTIFIED BY 'CHANGE_ME_RW';
--- CREATE USER IF NOT EXISTS 'app_ro'@'%'  IDENTIFIED BY 'CHANGE_ME_RO';
--- GRANT SELECT, INSERT, UPDATE, DELETE ON portal_propriedade.* TO 'app_rw'@'%';
--- GRANT SELECT ON portal_propriedade.v_objects_public  TO 'app_ro'@'%';
--- GRANT SELECT ON portal_propriedade.v_admin_users     TO 'app_ro'@'%';
--- GRANT SELECT ON portal_propriedade.v_user_objects    TO 'app_ro'@'%';
--- FLUSH PRIVILEGES;
+CREATE OR REPLACE VIEW v_user_is_admin AS
+    SELECT u.id AS user_id,
+           IF(ap.id IS NOT NULL, 1, 0) AS is_admin
+    FROM   users u
+    LEFT JOIN admin_profiles ap ON ap.user_id = u.id
+    WHERE  u.deleted_at IS NULL AND u.is_active = 1;
+
+-- ── DB users / grants ────────────────────────────────────────────────────────
+-- Aplicar via database/grants.sh en docker-entrypoint-initdb.d/.
+-- snguard       → privilegios mínimos (endpoints públicos y user-autenticados)
+-- snguard_admin → privilegios admin (panel admin y flujos admin-OTP)
 
 -- ── Seed: administrador inicial ──────────────────────────────────────────────
 -- Cria o usuário admin e vincula o perfil com chat_id do Telegram.

@@ -49,7 +49,7 @@ $hashes = array_map(
 );
 
 try {
-    $pdo  = getDb();
+    $pdo  = getAdminDb();
     $stmt = $pdo->prepare(
         'INSERT INTO admin_security_answers
             (user_id, answer1_hash, answer2_hash, answer3_hash, answer4_hash)

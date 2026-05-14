@@ -16,6 +16,7 @@ Dockerfile
 docker/
 db_data/
 secrets/*.txt
+scripts/seed_admin_henrique.php
 .claude/
 setup.bat
 setup.sh

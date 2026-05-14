@@ -9,7 +9,7 @@ requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') jsonError('Método não permitido.', 405);
 
-$pdo = getDb();
+$pdo = getAdminDb();
 
 try {
     $rows = $pdo->query(

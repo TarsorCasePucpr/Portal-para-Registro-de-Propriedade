@@ -20,7 +20,7 @@ if (!validateCsrfToken($_POST['csrf'] ?? '')) {
     redirect('../../frontend/pages/admin-login.html?erro=' . urlencode('Token de segurança inválido.'));
 }
 
-$pdo = getDb();
+$pdo = getAdminDb();
 $ip  = getClientIp();
 
 if (isRateLimited($pdo, $ip, 'admin_otp_request', 5, 15)) {

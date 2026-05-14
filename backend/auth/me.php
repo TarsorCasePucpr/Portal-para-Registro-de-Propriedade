@@ -17,9 +17,9 @@ $pdo    = getDb();
 try {
     $stmt = $pdo->prepare(
         'SELECT u.name, u.email, u.mfa_enabled,
-                IF(ap.id IS NOT NULL, 1, 0) AS is_admin
+                COALESCE(via.is_admin, 0) AS is_admin
          FROM   users u
-         LEFT JOIN admin_profiles ap ON ap.user_id = u.id
+         LEFT JOIN v_user_is_admin via ON via.user_id = u.id
          WHERE  u.id = :id AND u.deleted_at IS NULL AND u.is_active = 1'
     );
     $stmt->execute(['id' => $userId]);

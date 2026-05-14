@@ -11,7 +11,7 @@ requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') jsonError('Método não permitido.', 405);
 
-$pdo     = getDb();
+$pdo     = getAdminDb();
 $page    = max(1, (int) ($_GET['page']     ?? 1));
 $perPage = min(100, max(1, (int) ($_GET['per_page'] ?? 50)));
 $busca   = trim($_GET['busca']   ?? '');

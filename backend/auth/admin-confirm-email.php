@@ -18,7 +18,7 @@ if ($tokenRaw === '') {
 $tokenHash = hash('sha256', $tokenRaw);
 
 try {
-    $pdo  = getDb();
+    $pdo  = getAdminDb();
     $stmt = $pdo->prepare(
         "SELECT t.id, t.user_id, ap.email
          FROM   tokens t
