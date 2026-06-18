@@ -10,6 +10,7 @@ require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../middleware/rate_limiter.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/totp.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 $pendingId = isset($_SESSION['mfa_pending_user_id'])
     ? (int) $_SESSION['mfa_pending_user_id']
@@ -73,7 +74,9 @@ if (empty($usuario['mfa_secret'])) {
         urlencode('App autenticador não configurado. Contate o suporte.'));
 }
 
-if (!verifyTotp($usuario['mfa_secret'], $code)) {
+$totpSecret = decryptField((string) $usuario['mfa_secret']);
+
+if (!verifyTotp($totpSecret, $code)) {
     recordFailedAttempt($pdo, $ip, 'mfa');
     redirect('../../frontend/pages/mfa.html?erro=' .
         urlencode('Código incorreto ou expirado. Tente novamente.'));

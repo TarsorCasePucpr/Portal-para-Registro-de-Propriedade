@@ -17,7 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $pdo = getDb();
 $ip  = getClientIp();
 
-// Generic response regardless of outcome — prevents email enumeration
 $genericMsg = 'Se o e-mail existir, um novo link será enviado.';
 
 if (!checkRateLimit($pdo, $ip, 'resend_confirm', 3, 10)) {
@@ -43,6 +42,7 @@ try {
         jsonSuccess(['message' => $genericMsg]);
     }
 
+    $user['name'] = decryptField((string) $user['name']);
     $email = decryptField($user['email']);
 
     $pdo->prepare(

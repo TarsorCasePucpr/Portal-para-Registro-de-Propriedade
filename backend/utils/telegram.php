@@ -1,9 +1,11 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/store.php';
+
 function sendTelegramMessage(string $chatId, string $text): bool
 {
-    $token = $_ENV['TELEGRAM_BOT_TOKEN'] ?? getenv('TELEGRAM_BOT_TOKEN') ?: '';
+    $token = secretGet('telegram_bot_token');
     if ($token === '' || $chatId === '') return false;
 
     $url = "https://api.telegram.org/bot{$token}/sendMessage";

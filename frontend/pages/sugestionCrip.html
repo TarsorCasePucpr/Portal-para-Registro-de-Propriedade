@@ -1,0 +1,58 @@
+cat > /tmp/demo-hybrid/index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><title>Demo Criptografia Híbrida</title></head>
+<body>
+<h2>Demo S.3.1 — Criptografia Híbrida</h2>
+<button onclick="enviar()">Enviar mensagem cifrada</button>
+<pre id="log"></pre>
+<script type="module">
+window.enviar = async function() {
+  const log = document.getElementById('log');
+
+  let pub_der = await fetch("public.der").then(r => r.arrayBuffer());
+  log.textContent += "[S.3.1.a] Chave pública RSA-2048 obtida do servidor (" + pub_der.byteLength + " bytes)\n";
+
+  let pub = await crypto.subtle.importKey(
+    "spki", pub_der,
+    { name: "RSA-OAEP", hash: "SHA-1" },
+    false, ["encrypt"]
+  );
+
+  let aes = await crypto.subtle.generateKey(
+    { name: "AES-GCM", length: 256 }, true, ["encrypt"]
+  );
+  let aes_raw = await crypto.subtle.exportKey("raw", aes);
+  let hex = Array.from(new Uint8Array(aes_raw)).map(b => b.toString(16).padStart(2,'0')).join('');
+  log.textContent += "[S.3.1.b] AES-256-GCM session key gerada (32 bytes): " + hex + "\n";
+
+  let key_cifrada = await crypto.subtle.encrypt({ name: "RSA-OAEP" }, pub, aes_raw);
+  let key_b64 = btoa(String.fromCharCode(...new Uint8Array(key_cifrada)));
+  log.textContent += "[S.3.1.c] Session key cifrada com RSA-OAEP (base64): " + key_b64.substring(0,60) + "...\n";
+
+  let iv = crypto.getRandomValues(new Uint8Array(12));
+  let dados = JSON.stringify({ nome: "Joao Teste", email: "joao@teste.com", cpf: "123.456.789-00" });
+  let cifrado = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, aes, new TextEncoder().encode(dados));
+
+  let iv_b64   = btoa(String.fromCharCode(...iv));
+  let data_b64 = btoa(String.fromCharCode(...new Uint8Array(cifrado)));
+
+  log.textContent += "[S.3.1.d] Dados do form cifrados com AES-GCM\n";
+  log.textContent += "[S.3.1.e] Corpo do POST (dados NÃO legíveis): cipher=" + data_b64.substring(0,60) + "...\n";
+
+  let pacote = { key: key_b64, iv: iv_b64, data: data_b64 };
+
+  let r = await fetch("receber.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(pacote)
+  });
+
+  let resp = await r.json();
+  log.textContent += "[S.3.1.f] Resposta do servidor: " + resp.mensagem + "\n";
+  log.textContent += "[S.3.1.f] Log no servidor: usuario:hostname> dados descriptografados (ver terminal)\n";
+}
+</script>
+</body>
+</html>
+EOF

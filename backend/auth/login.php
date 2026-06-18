@@ -12,6 +12,7 @@ require_once __DIR__ . '/../utils/hash.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/logger.php';
 require_once __DIR__ . '/../utils/crypto.php';
+require_once __DIR__ . '/../utils/turnstile.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirect('../../frontend/pages/login.html');
@@ -22,43 +23,14 @@ if (!validateCsrfToken($_POST['csrf'] ?? '')) {
         urlencode('Token de segurança inválido.'));
 }
 
-$captchaAnswer = trim($_POST['captcha'] ?? '');
-$captchaHash   = $_SESSION['captcha_hash'] ?? '';
-$captchaSalt   = $_SESSION['captcha_salt'] ?? '';
-$captchaAt     = (int) ($_SESSION['captcha_at'] ?? 0);
-$captchaTtl    = (int) ($_SESSION['captcha_ttl'] ?? 120);
-$captchaTries  = (int) ($_SESSION['captcha_tries'] ?? 0);
-$captchaMax    = (int) ($_SESSION['captcha_max_tries'] ?? 3);
-$now           = time();
-
-$sessionBind = substr(session_id(), 0, 8);
-
-if ($captchaHash === '' || ($now - $captchaAt) > $captchaTtl) {
-    unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at'],
-          $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
-    redirect('../../frontend/pages/login.html?erro=' .
-        urlencode('Captcha expirado. Recarregue e tente novamente.'));
-}
-
-if ($captchaTries >= $captchaMax) {
-    unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at'],
-          $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
-    redirect('../../frontend/pages/login.html?erro=' .
-        urlencode('Muitas tentativas incorretas. Recarregue o captcha.'));
-}
-
-$expectedHash = hash('sha256', (string)(int)$captchaAnswer . $captchaSalt . $sessionBind);
-if (!hash_equals($captchaHash, $expectedHash)) {
-    $_SESSION['captcha_tries'] = $captchaTries + 1;
-    redirect('../../frontend/pages/login.html?erro=' .
-        urlencode('Resposta do desafio incorreta. Tente novamente.'));
-}
-
-unset($_SESSION['captcha_hash'], $_SESSION['captcha_salt'], $_SESSION['captcha_at'],
-      $_SESSION['captcha_ttl'], $_SESSION['captcha_tries'], $_SESSION['captcha_max_tries']);
-
 $pdo = getDb();
 $ip  = getClientIp();
+
+$turnstileToken = trim((string) ($_POST['cf-turnstile-response'] ?? ''));
+if (!verifyTurnstile($turnstileToken, $ip)) {
+    redirect('../../frontend/pages/login.html?erro=' .
+        urlencode('Verificação anti-bot falhou. Recarregue a página e tente novamente.'));
+}
 
 if (isRateLimited($pdo, $ip, 'login', 5, 15)) {
     redirect('../../frontend/pages/login.html?erro=' .

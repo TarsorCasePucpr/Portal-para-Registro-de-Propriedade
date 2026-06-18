@@ -141,6 +141,7 @@ function _gerarEEnviarToken(PDO $pdo, string $email, string $baseUrl): void
         return;
     }
 
+    $user['name'] = decryptField((string) $user['name']);
     $email = decryptField($user['email']);
 
     $token     = bin2hex(random_bytes(32));

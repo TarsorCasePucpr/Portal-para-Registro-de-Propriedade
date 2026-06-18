@@ -11,6 +11,7 @@ require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/telegram.php';
 require_once __DIR__ . '/../utils/crypto.php';
+require_once __DIR__ . '/../utils/store.php';
 
 requireAdmin();
 
@@ -18,8 +19,8 @@ $pdo    = getAdminDb();
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    $token = $_ENV['TELEGRAM_BOT_TOKEN'] ?? getenv('TELEGRAM_BOT_TOKEN') ?: '';
-    if ($token === '') jsonError('TELEGRAM_BOT_TOKEN não configurado.', 500);
+    $token = secretGet('telegram_bot_token');
+    if ($token === '') jsonError('telegram_bot_token não configurado.', 500);
 
     $url = "https://api.telegram.org/bot{$token}/getUpdates?limit=20&allowed_updates=%5B%22message%22%5D";
     $ch  = curl_init($url);

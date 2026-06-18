@@ -30,8 +30,8 @@ try {
     }
 
     jsonSuccess(['data' => [
-        'name'        => $user['name'],
-        'email'       => $user['email'],
+        'name'        => decryptField((string) $user['name']),
+        'email'       => decryptField((string) $user['email']),
         'mfa_enabled' => (bool) $user['mfa_enabled'],
         'is_admin'    => (bool) $user['is_admin'],
     ]]);

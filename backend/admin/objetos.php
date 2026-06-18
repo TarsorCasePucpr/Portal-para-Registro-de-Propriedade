@@ -44,6 +44,7 @@ if ($method === 'GET') {
         $stmtList->execute();
 
         $objetos = array_map(function (array $o): array {
+            $o['user_name']  = decryptField((string) $o['user_name']);
             $o['user_email'] = decryptField((string) $o['user_email']);
             return $o;
         }, $stmtList->fetchAll());

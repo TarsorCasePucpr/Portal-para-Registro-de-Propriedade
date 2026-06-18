@@ -9,6 +9,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../middleware/csrf.php';
 require_once __DIR__ . '/../utils/response.php';
 require_once __DIR__ . '/../utils/totp.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 $userId = isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : 0;
 if ($userId === 0) {
@@ -35,7 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         jsonError('Usuário não encontrado.', 404);
     }
 
-    $label = 'SNGuard:' . rawurlencode($user['email']);
+    $emailPlain = decryptField((string) $user['email']);
+    $label = 'SNGuard:' . rawurlencode($emailPlain);
     $uri   = 'otpauth://totp/' . $label . '?secret=' . $secret . '&issuer=SNGuard';
 
     session_write_close();
@@ -67,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare(
             "UPDATE users SET mfa_secret = :secret, mfa_enabled = 1 WHERE id = :id"
         );
-        $stmt->execute(['secret' => $secret, 'id' => $userId]);
+        $stmt->execute(['secret' => encryptField($secret), 'id' => $userId]);
     } catch (PDOException $e) {
         error_log('[setup_mfa] POST: ' . $e->getMessage());
         jsonError('Erro interno. Tente novamente.', 500);

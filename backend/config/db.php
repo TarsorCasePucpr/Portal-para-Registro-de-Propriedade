@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../utils/store.php';
+
 function loadEnv(string $path): void {
     if (!file_exists($path)) return;
     $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -19,7 +21,17 @@ function loadEnv(string $path): void {
 
 function applySecurityHeaders(): void {
     if (headers_sent()) return;
-    header('Content-Security-Policy: default-src \'self\'');
+    header(
+        "Content-Security-Policy: " .
+        "default-src 'self'; " .
+        "script-src 'self' https://challenges.cloudflare.com; " .
+        "style-src 'self' 'unsafe-inline'; " .
+        "img-src 'self' data:; " .
+        "frame-src https://challenges.cloudflare.com; " .
+        "connect-src 'self' https://challenges.cloudflare.com; " .
+        "base-uri 'self'; " .
+        "form-action 'self'"
+    );
     header('X-Frame-Options: DENY');
     header('X-Content-Type-Options: nosniff');
     header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
@@ -37,11 +49,8 @@ function getDb(): PDO {
     $host = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: 'localhost';
     $port = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: '3306';
     $name = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: 'portal_propriedade';
-    $user = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: '';
-    $passSecret = '/run/secrets/db_pass';
-    $pass = is_readable($passSecret)
-        ? trim((string) file_get_contents($passSecret))
-        : ($_ENV['DB_PASS'] ?? getenv('DB_PASS') ?: '');
+    $user = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: 'snguard';
+    $pass = secretGet('db_pass');
 
     $pdo = new PDO(
         "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4",
@@ -68,10 +77,7 @@ function getAdminDb(): PDO {
     $port = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: '3306';
     $name = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: 'portal_propriedade';
     $user = $_ENV['DB_ADMIN_USER'] ?? getenv('DB_ADMIN_USER') ?: 'snguard_admin';
-    $passSecret = '/run/secrets/db_admin_pass';
-    $pass = is_readable($passSecret)
-        ? trim((string) file_get_contents($passSecret))
-        : ($_ENV['DB_ADMIN_PASS'] ?? getenv('DB_ADMIN_PASS') ?: '');
+    $pass = secretGet('db_admin_pass');
 
     $pdo = new PDO(
         "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4",

@@ -88,7 +88,7 @@ $baseUrl = rtrim(
     '/'
 );
 $linkConfirmacao = $baseUrl . '/backend/auth/admin-confirm-email.php?token=' . urlencode($tokenRaw);
-$nomeAdmin       = trim((string) ($admin['name'] ?? 'Administrador'));
+$nomeAdmin       = decryptField((string) ($admin['name'] ?? '')) ?: 'Administrador';
 
 try {
     enviarEmail(

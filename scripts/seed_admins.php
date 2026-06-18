@@ -52,6 +52,7 @@ try {
     foreach ($admins as $a) {
         $emailHash = hashField($a['email']);
         $cpfHash   = hashField($a['cpf']);
+        $nameEnc   = encryptField($a['name']);
         $emailEnc  = encryptField($a['email']);
         $cpfEnc    = encryptField($a['cpf']);
         $chatEnc   = $a['chat_id'] !== '' ? encryptField($a['chat_id']) : null;
@@ -66,7 +67,7 @@ try {
                 'INSERT INTO users (name, email, email_hash, cpf, cpf_hash, password_hash, is_active)
                  VALUES (:n, :e, :eh, :c, :ch, :p, 1)'
             )->execute([
-                'n'  => $a['name'],
+                'n'  => $nameEnc,
                 'e'  => $emailEnc,
                 'eh' => $emailHash,
                 'c'  => $cpfEnc,
@@ -77,7 +78,10 @@ try {
             echo "users: criado #{$userId} ({$a['name']})\n";
         } else {
             $userId = (int) $userId;
-            echo "users: já existe #{$userId} ({$a['name']})\n";
+            $pdo->prepare(
+                'UPDATE users SET name = :n WHERE id = :id'
+            )->execute(['n' => $nameEnc, 'id' => $userId]);
+            echo "users: já existe #{$userId} ({$a['name']}) — name re-cifrado\n";
         }
 
         $hasProfile = $pdo->prepare('SELECT id FROM admin_profiles WHERE user_id = ?');

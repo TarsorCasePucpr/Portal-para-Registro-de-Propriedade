@@ -41,6 +41,9 @@ try {
     $stmtList->execute();
 
     $logs = array_map(function (array $r): array {
+        if (isset($r['user_name']) && $r['user_name'] !== '[removido]') {
+            $r['user_name'] = decryptField((string) $r['user_name']);
+        }
         if (isset($r['user_email']) && $r['user_email'] !== '[removido]') {
             $r['user_email'] = decryptField((string) $r['user_email']);
         }

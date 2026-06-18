@@ -39,7 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             jsonError('Usuário não encontrado.', 404);
         }
 
-        $usuario['email'] = decryptField($usuario['email']);
+        $usuario['name']  = decryptField((string) $usuario['name']);
+        $usuario['email'] = decryptField((string) $usuario['email']);
         $cpf = decryptField($usuario['cpf']);
         $usuario['cpf_mascarado'] = substr($cpf, 0, 4) . '***.***-' . substr($cpf, -2);
         unset($usuario['cpf']);
@@ -75,7 +76,7 @@ if ($acao === 'atualizar_nome') {
     try {
         $pdo->prepare(
             'UPDATE users SET name = :nome WHERE id = :id AND deleted_at IS NULL'
-        )->execute(['nome' => $novoNome, 'id' => $userId]);
+        )->execute(['nome' => encryptField($novoNome), 'id' => $userId]);
 
         jsonSuccess(['mensagem' => 'Nome atualizado com sucesso.']);
 

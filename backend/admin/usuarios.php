@@ -46,6 +46,7 @@ if ($method === 'GET') {
         $stmtList->execute();
 
         $usuarios = array_map(function (array $u): array {
+            $u['name']  = decryptField((string) $u['name']);
             $u['email'] = decryptField((string) $u['email']);
             $u['cpf']   = decryptField((string) $u['cpf']);
             return $u;

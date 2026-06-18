@@ -138,11 +138,12 @@ try {
 }
 
 $statusFormatado = ucfirst($objeto['status']);
+$donoNome        = decryptField((string) $objeto['dono_nome']);
 
 $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
          . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
 
-$corpo = "Olá, {$objeto['dono_nome']}!\n\n"
+$corpo = "Olá, {$donoNome}!\n\n"
        . "Alguém encontrou um objeto seu registrado no SNGuard e enviou uma mensagem.\n\n"
        . "Produto: {$objeto['descricao']}\n"
        . "Status:  {$statusFormatado}\n\n"
@@ -160,7 +161,7 @@ try {
     }
     enviarEmail(
         destinatario: $donoEmail,
-        nome:         $objeto['dono_nome'],
+        nome:         $donoNome,
         assunto:      "SNGuard — Alguém encontrou seu produto ({$statusFormatado})",
         corpo:        $corpo
     );

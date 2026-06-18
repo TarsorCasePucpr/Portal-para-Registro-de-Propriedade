@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../middleware/auth_guard.php';
 require_once __DIR__ . '/../utils/response.php';
+require_once __DIR__ . '/../utils/crypto.php';
 
 requireAdmin();
 
@@ -29,6 +30,13 @@ try {
          JOIN users u ON u.id = r.user_id
          ORDER BY r.requested_at DESC"
     )->fetchAll();
+
+    $rows = array_map(function (array $r): array {
+        $r['user_name']  = decryptField((string) $r['user_name']);
+        $r['user_email'] = decryptField((string) $r['user_email']);
+        $r['user_cpf']   = decryptField((string) $r['user_cpf']);
+        return $r;
+    }, $rows);
 
     jsonSuccess(['data' => ['solicitacoes' => $rows]]);
 
